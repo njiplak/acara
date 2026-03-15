@@ -18,6 +18,8 @@ class Order extends Model
         'catalog_id',
         'catalog_price',
         'addons_total',
+        'referral_discount',
+        'balance_used',
         'total_amount',
         'status',
         'payment_proof',
@@ -28,6 +30,7 @@ class Order extends Model
         'refunded_at',
         'refund_reason',
         'notes',
+        'referred_by',
     ];
 
     protected function casts(): array
@@ -52,6 +55,11 @@ class Order extends Model
     public function catalog(): BelongsTo
     {
         return $this->belongsTo(Catalog::class);
+    }
+
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'referred_by');
     }
 
     public function confirmedByUser(): BelongsTo

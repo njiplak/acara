@@ -7,4 +7,5 @@ export type Customer = Model & {
     google_id?: string | null;
     avatar?: string | null;
     referral_code?: string | null;
+    referral_balance?: number;
 };

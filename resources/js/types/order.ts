@@ -18,6 +18,8 @@ export type Order = Model & {
     catalog_id: number;
     catalog_price: number;
     addons_total: number;
+    referral_discount: number;
+    balance_used: number;
     total_amount: number;
     status: OrderStatus;
     payment_proof: string | null;
@@ -28,9 +30,11 @@ export type Order = Model & {
     refunded_at: string | null;
     refund_reason: string | null;
     notes: string | null;
+    referred_by: number | null;
     customer?: Customer;
     event?: Event;
     catalog?: Catalog;
     addons?: (Addon & { pivot?: OrderAddonPivot })[];
     confirmed_by_user?: { id: number; name: string };
+    referrer?: Customer;
 };

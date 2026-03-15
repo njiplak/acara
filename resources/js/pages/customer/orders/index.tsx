@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, Copy, Wallet } from 'lucide-react';
+import { useState } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
     refunded: { label: 'Refunded', variant: 'secondary' },
 };
 
-export default function CustomerOrdersIndex({ orders }: { orders: Order[] }) {
+export default function CustomerOrdersIndex({ orders, referralCode, referralBalance }: { orders: Order[]; referralCode: string; referralBalance: number }) {
     const { auth, name } = usePage<SharedData>().props;
     const customer = auth.customer!;
     const appName = (name as string) || 'Acara';
@@ -77,6 +78,9 @@ export default function CustomerOrdersIndex({ orders }: { orders: Order[] }) {
 
                         <h1 className="mb-6 text-2xl font-bold tracking-tight text-foreground">My Orders</h1>
 
+                        {/* Referral info card */}
+                        <ReferralCard code={referralCode} balance={referralBalance} />
+
                         {orders.length === 0 ? (
                             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
                                 <ClipboardList className="mb-3 size-8 text-muted-foreground/50" />
@@ -123,5 +127,43 @@ export default function CustomerOrdersIndex({ orders }: { orders: Order[] }) {
                 </main>
             </div>
         </>
+    );
+}
+
+function ReferralCard({ code, balance }: { code: string; balance: number }) {
+    const [copied, setCopied] = useState(false);
+
+    const copyCode = () => {
+        navigator.clipboard.writeText(code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="mb-6 rounded-lg border bg-card p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground">Your Referral Code</p>
+                    <div className="mt-1 flex items-center gap-2">
+                        <span className="font-mono text-lg font-bold tracking-wider text-foreground">{code}</span>
+                        <button
+                            onClick={copyCode}
+                            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
+                            <Copy className="size-3" />
+                            {copied ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">Share this code with friends to earn referral credits</p>
+                </div>
+                <div className="flex items-center gap-2 rounded-md bg-accent/50 px-4 py-2">
+                    <Wallet className="size-4 text-muted-foreground" />
+                    <div>
+                        <p className="text-xs text-muted-foreground">Balance</p>
+                        <p className="font-semibold text-foreground">{formatPrice(balance)}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

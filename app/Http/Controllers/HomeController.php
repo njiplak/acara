@@ -40,12 +40,15 @@ class HomeController extends Controller
 
         // Check customer's existing orders for this event
         $customerOrderCatalogIds = [];
+        $customerBalance = 0;
         if (Auth::guard('customer')->check()) {
+            $customer = Auth::guard('customer')->user();
             $customerOrderCatalogIds = Order::where('event_id', $event->id)
-                ->where('customer_id', Auth::guard('customer')->id())
+                ->where('customer_id', $customer->id)
                 ->whereNotIn('status', ['cancelled', 'rejected'])
                 ->pluck('catalog_id')
                 ->toArray();
+            $customerBalance = $customer->referral_balance;
         }
 
         return Inertia::render('events/show', [
@@ -53,6 +56,8 @@ class HomeController extends Controller
             'event' => $event,
             'orderCounts' => $orderCounts,
             'customerOrderCatalogIds' => $customerOrderCatalogIds,
+            'customerBalance' => $customerBalance,
+            'referralDiscount' => config('service-contract.referral.referee_discount', 0),
         ]);
     }
 }

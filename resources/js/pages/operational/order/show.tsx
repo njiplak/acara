@@ -121,6 +121,18 @@ export default function OrderShow({ order }: Props) {
                             <span className="text-sm">{formatPrice(addon.pivot?.addon_price || addon.price)}</span>
                         </div>
                     ))}
+                    {order.referral_discount > 0 && (
+                        <div className="flex justify-between text-green-600 dark:text-green-400">
+                            <span className="text-sm">Referral discount</span>
+                            <span className="text-sm">-{formatPrice(order.referral_discount)}</span>
+                        </div>
+                    )}
+                    {order.balance_used > 0 && (
+                        <div className="flex justify-between text-green-600 dark:text-green-400">
+                            <span className="text-sm">Balance used</span>
+                            <span className="text-sm">-{formatPrice(order.balance_used)}</span>
+                        </div>
+                    )}
                     <div className="border-t pt-2">
                         <div className="flex justify-between">
                             <span className="text-sm font-semibold">Total</span>
@@ -129,6 +141,26 @@ export default function OrderShow({ order }: Props) {
                     </div>
                 </div>
             </div>
+
+            {/* Referral info */}
+            {order.referrer && (
+                <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                    <h2 className="mb-3 text-sm font-semibold">Referral</h2>
+                    <div className="flex items-center gap-3">
+                        {order.referrer.avatar ? (
+                            <img src={order.referrer.avatar} alt={order.referrer.name} className="size-8 rounded-full" />
+                        ) : (
+                            <div className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                {order.referrer.name.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-sm font-medium">Referred by {order.referrer.name}</p>
+                            <p className="text-xs text-muted-foreground">{order.referrer.email}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Payment Proof */}
             {order.payment_proof && (

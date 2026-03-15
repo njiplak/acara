@@ -5,6 +5,7 @@ namespace App\Service\Operational;
 use App\Contract\Operational\OrderContract;
 use App\Models\Addon;
 use App\Models\Catalog;
+use App\Models\Customer;
 use App\Models\Event;
 use App\Models\Order;
 use App\Service\BaseService;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService extends BaseService implements OrderContract
 {
-    protected array $relation = ['customer', 'event', 'catalog', 'addons', 'confirmedByUser'];
+    protected array $relation = ['customer', 'event', 'catalog', 'addons', 'confirmedByUser', 'referrer'];
 
     public function __construct(Order $model)
     {
@@ -67,6 +68,34 @@ class OrderService extends BaseService implements OrderContract
                 }
             }
 
+            $subtotal = $catalogPrice + $addonsTotal;
+            $referralDiscount = 0;
+            $referredBy = null;
+            $balanceUsed = 0;
+
+            // Handle referral code
+            $referralCode = $payloads['referral_code'] ?? null;
+            if ($referralCode) {
+                $referrer = Customer::where('referral_code', $referralCode)->first();
+                abort_if(!$referrer, 422, 'Invalid referral code.');
+                abort_if($referrer->id === $payloads['customer_id'], 422, 'You cannot use your own referral code.');
+
+                $referredBy = $referrer->id;
+                $referralDiscount = min(config('service-contract.referral.referee_discount', 0), $subtotal);
+            }
+
+            // Handle referral balance usage
+            if (!empty($payloads['use_balance'])) {
+                $customer = Customer::findOrFail($payloads['customer_id']);
+                if ($customer->referral_balance > 0) {
+                    $remaining = $subtotal - $referralDiscount;
+                    $balanceUsed = min($customer->referral_balance, $remaining);
+                    $customer->decrement('referral_balance', $balanceUsed);
+                }
+            }
+
+            $totalAmount = $subtotal - $referralDiscount - $balanceUsed;
+
             $order = Order::create([
                 'order_code' => Order::generateOrderCode(),
                 'customer_id' => $payloads['customer_id'],
@@ -74,7 +103,10 @@ class OrderService extends BaseService implements OrderContract
                 'catalog_id' => $catalog->id,
                 'catalog_price' => $catalogPrice,
                 'addons_total' => $addonsTotal,
-                'total_amount' => $catalogPrice + $addonsTotal,
+                'referral_discount' => $referralDiscount,
+                'balance_used' => $balanceUsed,
+                'total_amount' => $totalAmount,
+                'referred_by' => $referredBy,
                 'status' => 'pending_payment',
                 'notes' => $payloads['notes'] ?? null,
             ]);
@@ -136,6 +168,14 @@ class OrderService extends BaseService implements OrderContract
                 'confirmed_by' => $userId,
             ]);
 
+            // Credit referrer's balance
+            if ($order->referred_by) {
+                $referrerCredit = config('service-contract.referral.referrer_credit', 0);
+                if ($referrerCredit > 0) {
+                    Customer::where('id', $order->referred_by)->increment('referral_balance', $referrerCredit);
+                }
+            }
+
             DB::commit();
 
             return $order->fresh($this->relation);
@@ -186,6 +226,11 @@ class OrderService extends BaseService implements OrderContract
                 'status' => 'cancelled',
             ]);
 
+            // Restore customer's balance that was used
+            if ($order->balance_used > 0) {
+                Customer::where('id', $order->customer_id)->increment('referral_balance', $order->balance_used);
+            }
+
             DB::commit();
 
             return $order->fresh($this->relation);
@@ -210,6 +255,25 @@ class OrderService extends BaseService implements OrderContract
                 'refund_reason' => $reason,
                 'confirmed_by' => $userId,
             ]);
+
+            // Reverse referrer credit
+            if ($order->referred_by) {
+                $referrerCredit = config('service-contract.referral.referrer_credit', 0);
+                if ($referrerCredit > 0) {
+                    $referrer = Customer::find($order->referred_by);
+                    if ($referrer) {
+                        $deduct = min($referrerCredit, $referrer->referral_balance);
+                        if ($deduct > 0) {
+                            $referrer->decrement('referral_balance', $deduct);
+                        }
+                    }
+                }
+            }
+
+            // Restore customer's balance that was used
+            if ($order->balance_used > 0) {
+                Customer::where('id', $order->customer_id)->increment('referral_balance', $order->balance_used);
+            }
 
             DB::commit();
 

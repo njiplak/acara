@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, ClipboardList, Tag, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, ClipboardList, Tag, Ticket, Users, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { store } from '@/actions/App/Http/Controllers/Customer/OrderController';
@@ -35,9 +35,11 @@ type Props = {
     event: Event;
     orderCounts: Record<number, number>;
     customerOrderCatalogIds: number[];
+    customerBalance: number;
+    referralDiscount: number;
 };
 
-export default function EventShow({ settings, event, orderCounts, customerOrderCatalogIds }: Props) {
+export default function EventShow({ settings, event, orderCounts, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
     const { auth } = usePage<SharedData>().props;
@@ -137,6 +139,8 @@ export default function EventShow({ settings, event, orderCounts, customerOrderC
                                                 isFull={isFull}
                                                 alreadyOrdered={alreadyOrdered}
                                                 currentOrders={currentOrders}
+                                                customerBalance={customerBalance}
+                                                referralDiscount={referralDiscount}
                                             />
                                         );
                                     })}
@@ -178,6 +182,8 @@ function CatalogCard({
     isFull,
     alreadyOrdered,
     currentOrders,
+    customerBalance,
+    referralDiscount,
 }: {
     catalog: Catalog & { pivot?: { max_participant: number | null } };
     eventId: number;
@@ -185,16 +191,24 @@ function CatalogCard({
     isFull: boolean;
     alreadyOrdered: boolean;
     currentOrders: number;
+    customerBalance: number;
+    referralDiscount: number;
 }) {
     const addons = catalog.addons || [];
     const hasDiscount = catalog.strike_price !== null && catalog.strike_price > catalog.price;
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
     const [submitting, setSubmitting] = useState(false);
+    const [referralCode, setReferralCode] = useState('');
+    const [useBalance, setUseBalance] = useState(false);
 
     const addonsTotal = addons
         .filter((a) => selectedAddons.includes(a.id))
         .reduce((sum, a) => sum + a.price, 0);
-    const total = catalog.price + addonsTotal;
+    const subtotal = catalog.price + addonsTotal;
+    const appliedDiscount = referralCode.trim() ? Math.min(referralDiscount, subtotal) : 0;
+    const remainingAfterDiscount = subtotal - appliedDiscount;
+    const appliedBalance = useBalance ? Math.min(customerBalance, remainingAfterDiscount) : 0;
+    const total = subtotal - appliedDiscount - appliedBalance;
 
     const toggleAddon = (id: number) => {
         setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
@@ -208,6 +222,8 @@ function CatalogCard({
                 event_id: eventId,
                 catalog_id: catalog.id,
                 addon_ids: selectedAddons,
+                referral_code: referralCode.trim() || undefined,
+                use_balance: useBalance || undefined,
             },
             {
                 onFinish: () => setSubmitting(false),
@@ -261,10 +277,84 @@ function CatalogCard({
                             />
                         ))}
                     </div>
-                    {selectedAddons.length > 0 && (
-                        <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
-                            <span className="text-muted-foreground">Total</span>
-                            <span className="font-semibold text-foreground">{formatPrice(total)}</span>
+                </div>
+            )}
+
+            {/* Referral code & balance — shown for authenticated users who can register */}
+            {isAuthenticated && !isFull && !alreadyOrdered && (
+                <div className="mt-4 border-t pt-4 space-y-3">
+                    {/* Referral code input */}
+                    <div>
+                        <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                            <Ticket className="size-3.5" />
+                            Referral Code (optional)
+                        </label>
+                        <input
+                            type="text"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                            placeholder="Enter referral code"
+                            maxLength={20}
+                            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/30 focus:outline-none"
+                        />
+                        {referralCode.trim() && referralDiscount > 0 && (
+                            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                You'll get {formatPrice(appliedDiscount)} discount
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Use balance toggle */}
+                    {customerBalance > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setUseBalance(!useBalance)}
+                            className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                                useBalance ? 'border-foreground/30 bg-accent' : 'border-border hover:bg-accent/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <div
+                                    className={`flex size-4 items-center justify-center rounded border ${
+                                        useBalance ? 'border-foreground bg-foreground text-background' : 'border-muted-foreground/40'
+                                    }`}
+                                >
+                                    {useBalance && <Check className="size-3" />}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Wallet className="size-3.5" />
+                                    <span className="font-medium">Use referral balance</span>
+                                </div>
+                            </div>
+                            <span className="ml-4 shrink-0 text-xs font-medium text-muted-foreground">
+                                {formatPrice(customerBalance)} available
+                            </span>
+                        </button>
+                    )}
+
+                    {/* Price breakdown */}
+                    {(appliedDiscount > 0 || appliedBalance > 0 || selectedAddons.length > 0) && (
+                        <div className="space-y-1.5 border-t pt-3 text-sm">
+                            <div className="flex justify-between text-muted-foreground">
+                                <span>Subtotal</span>
+                                <span>{formatPrice(subtotal)}</span>
+                            </div>
+                            {appliedDiscount > 0 && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span>Referral discount</span>
+                                    <span>-{formatPrice(appliedDiscount)}</span>
+                                </div>
+                            )}
+                            {appliedBalance > 0 && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span>Balance used</span>
+                                    <span>-{formatPrice(appliedBalance)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between border-t pt-1.5">
+                                <span className="font-semibold text-foreground">Total</span>
+                                <span className="font-semibold text-foreground">{formatPrice(total)}</span>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -18,6 +18,7 @@ class Customer extends Authenticatable
         'google_id',
         'avatar',
         'referral_code',
+        'referral_balance',
     ];
 
     protected $hidden = [

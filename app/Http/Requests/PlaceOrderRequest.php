@@ -18,6 +18,8 @@ class PlaceOrderRequest extends FormRequest
             'catalog_id' => ['required', 'integer', 'exists:catalogs,id'],
             'addon_ids' => ['nullable', 'array'],
             'addon_ids.*' => ['integer', 'exists:addons,id'],
+            'referral_code' => ['nullable', 'string', 'max:20'],
+            'use_balance' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

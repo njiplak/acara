@@ -23,13 +23,16 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = Order::where('customer_id', Auth::guard('customer')->id())
+        $customer = Auth::guard('customer')->user();
+        $orders = Order::where('customer_id', $customer->id)
             ->with(['event', 'catalog', 'addons'])
             ->orderByDesc('created_at')
             ->get();
 
         return Inertia::render('customer/orders/index', [
             'orders' => $orders,
+            'referralCode' => $customer->referral_code,
+            'referralBalance' => $customer->referral_balance,
         ]);
     }
 

@@ -39,7 +39,13 @@ export default function CustomerShow({ customer }: Props) {
                 </div>
                 <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium text-muted-foreground">Referral Code</span>
-                    <span className="text-sm">{customer.referral_code || '-'}</span>
+                    <span className="font-mono text-sm">{customer.referral_code || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">Referral Balance</span>
+                    <span className="text-sm">
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(customer.referral_balance || 0)}
+                    </span>
                 </div>
                 <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium text-muted-foreground">Email Verified</span>

@@ -153,6 +153,18 @@ export default function CustomerOrderShow({ order, paymentInstruction }: Props) 
                                         ))}
                                     </>
                                 )}
+                                {order.referral_discount > 0 && (
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                                        <span className="text-sm">Referral discount</span>
+                                        <span className="text-sm">-{formatPrice(order.referral_discount)}</span>
+                                    </div>
+                                )}
+                                {order.balance_used > 0 && (
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                                        <span className="text-sm">Balance used</span>
+                                        <span className="text-sm">-{formatPrice(order.balance_used)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t pt-2">
                                     <div className="flex justify-between">
                                         <span className="text-sm font-semibold text-foreground">Total</span>
