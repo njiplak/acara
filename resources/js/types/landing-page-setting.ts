@@ -1,0 +1,28 @@
+export type LandingPageSetting = {
+    id: number;
+    business_name: string | null;
+    business_description: string | null;
+    business_phone: string | null;
+    business_email: string | null;
+    business_address: string | null;
+    hero_badge_text: string | null;
+    hero_title: string | null;
+    hero_subtitle: string | null;
+    cta_text: string | null;
+    cta_url: string | null;
+    meta_title: string | null;
+    meta_description: string | null;
+    meta_keywords: string | null;
+    og_image: string | null;
+    google_site_verification: string | null;
+    google_analytics_id: string | null;
+    google_tag_manager_id: string | null;
+    meta_pixel_id: string | null;
+    custom_head_scripts: string | null;
+    social_instagram: string | null;
+    social_whatsapp: string | null;
+    social_tiktok: string | null;
+    social_facebook: string | null;
+    footer_text: string | null;
+    payment_instruction: string | null;
+};

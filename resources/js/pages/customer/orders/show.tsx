@@ -1,0 +1,303 @@
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, Upload, XCircle } from 'lucide-react';
+import { useRef } from 'react';
+import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
+import { cancel, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import type { SharedData } from '@/types';
+import type { Order, OrderStatus } from '@/types/order';
+
+function formatPrice(price: number) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+}
+
+function formatDate(date: string) {
+    return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    pending_payment: { label: 'Pending Payment', variant: 'outline' },
+    waiting_confirmation: { label: 'Waiting Confirmation', variant: 'secondary' },
+    confirmed: { label: 'Confirmed', variant: 'default' },
+    rejected: { label: 'Rejected', variant: 'destructive' },
+    cancelled: { label: 'Cancelled', variant: 'outline' },
+    refunded: { label: 'Refunded', variant: 'secondary' },
+};
+
+type Props = {
+    order: Order;
+    paymentInstruction: string | null;
+};
+
+export default function CustomerOrderShow({ order, paymentInstruction }: Props) {
+    const { auth, name } = usePage<SharedData>().props;
+    const customer = auth.customer!;
+    const appName = (name as string) || 'Acara';
+    const config = statusConfig[order.status];
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { data, setData, post, processing, errors } = useForm<{ payment_proof: File | null }>({
+        payment_proof: null,
+    });
+
+    const handleUpload = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!data.payment_proof) return;
+        post(pay.url({ order: order.id }), {
+            forceFormData: true,
+        });
+    };
+
+    const handleCancel = () => {
+        if (!confirm('Are you sure you want to cancel this order?')) return;
+        router.post(cancel.url({ order: order.id }));
+    };
+
+    return (
+        <>
+            <Head>
+                <title>{`Order ${order.order_code} - ${appName}`}</title>
+            </Head>
+
+            <div className="relative flex min-h-svh flex-col bg-background">
+                <div className="h-px w-full bg-border" />
+
+                {/* Header */}
+                <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
+                    <Link href="/" className="flex items-center gap-2.5">
+                        <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
+                            <span className="text-sm font-bold tracking-tight text-background">{appName.charAt(0)}</span>
+                        </div>
+                        <span className="text-lg font-semibold tracking-tight text-foreground">{appName}</span>
+                    </Link>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            {customer.avatar ? (
+                                <img src={customer.avatar} alt={customer.name} className="size-7 rounded-full" />
+                            ) : (
+                                <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                    {customer.name.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <span className="hidden text-sm font-medium sm:inline">{customer.name}</span>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.post(logout.url())}
+                        >
+                            Logout
+                        </Button>
+                    </div>
+                </header>
+
+                {/* Content */}
+                <main className="flex-1 px-6 py-8 lg:px-12 lg:py-12">
+                    <div className="mx-auto max-w-3xl">
+                        <Link href={index.url()} className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                            <ArrowLeft className="size-3.5" />
+                            Back to My Orders
+                        </Link>
+
+                        {/* Order header */}
+                        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <span className="text-xs font-mono text-muted-foreground">{order.order_code}</span>
+                                <h1 className="text-2xl font-bold tracking-tight text-foreground">Order Detail</h1>
+                            </div>
+                            <Badge variant={config.variant} className="self-start sm:self-auto">{config.label}</Badge>
+                        </div>
+
+                        {/* Status message */}
+                        <StatusMessage order={order} />
+
+                        {/* Event & Session */}
+                        <div className="mt-6 rounded-lg border bg-card p-5">
+                            <h2 className="mb-3 text-sm font-semibold text-foreground">Event & Session</h2>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Event</span>
+                                    <span className="text-sm font-medium text-foreground">{order.event?.name}</span>
+                                </div>
+                                {order.event && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-muted-foreground">Date</span>
+                                        <div className="flex items-center gap-1.5 text-sm text-foreground">
+                                            <Calendar className="size-3.5" />
+                                            <span>{formatDate(order.event.start_date)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Session</span>
+                                    <span className="text-sm font-medium text-foreground">{order.catalog?.name}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Pricing breakdown */}
+                        <div className="mt-4 rounded-lg border bg-card p-5">
+                            <h2 className="mb-3 text-sm font-semibold text-foreground">Pricing</h2>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">{order.catalog?.name}</span>
+                                    <span className="text-sm text-foreground">{formatPrice(order.catalog_price)}</span>
+                                </div>
+                                {order.addons && order.addons.length > 0 && (
+                                    <>
+                                        {order.addons.map((addon) => (
+                                            <div key={addon.id} className="flex justify-between">
+                                                <span className="text-sm text-muted-foreground">{addon.pivot?.addon_name || addon.name}</span>
+                                                <span className="text-sm text-foreground">{formatPrice(addon.pivot?.addon_price || addon.price)}</span>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                                <div className="border-t pt-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-sm font-semibold text-foreground">Total</span>
+                                        <span className="text-lg font-bold text-foreground">{formatPrice(order.total_amount)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment section */}
+                        {(order.status === 'pending_payment' || order.status === 'rejected') && (
+                            <div className="mt-4 rounded-lg border bg-card p-5">
+                                <h2 className="mb-3 text-sm font-semibold text-foreground">Payment</h2>
+
+                                {paymentInstruction && (
+                                    <div className="mb-4 rounded-md bg-accent/50 p-4">
+                                        <p className="text-xs font-medium text-muted-foreground mb-2">Payment Instructions:</p>
+                                        <p className="text-sm whitespace-pre-wrap text-foreground">{paymentInstruction}</p>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleUpload} className="space-y-3">
+                                    <div>
+                                        <label className="text-sm font-medium text-foreground">Upload Payment Proof</label>
+                                        <p className="text-xs text-muted-foreground mt-0.5">Upload a screenshot or photo of your transfer receipt (max 2MB)</p>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
+                                            onChange={(e) => setData('payment_proof', e.target.files?.[0] || null)}
+                                        />
+                                        {errors.payment_proof && (
+                                            <p className="mt-1 text-xs text-destructive">{errors.payment_proof}</p>
+                                        )}
+                                    </div>
+                                    <Button type="submit" disabled={processing || !data.payment_proof} className="gap-2">
+                                        <Upload className="size-4" />
+                                        {processing ? 'Uploading...' : 'Submit Payment Proof'}
+                                    </Button>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* Payment proof preview for waiting_confirmation */}
+                        {order.status === 'waiting_confirmation' && order.payment_proof && (
+                            <div className="mt-4 rounded-lg border bg-card p-5">
+                                <h2 className="mb-3 text-sm font-semibold text-foreground">Payment Proof</h2>
+                                <img
+                                    src={`/storage/${order.payment_proof}`}
+                                    alt="Payment proof"
+                                    className="max-h-64 rounded-md border"
+                                />
+                                {order.paid_at && (
+                                    <p className="mt-2 text-xs text-muted-foreground">Submitted {formatDate(order.paid_at)}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        {!['confirmed', 'cancelled', 'refunded'].includes(order.status) && (
+                            <div className="mt-6">
+                                <Button variant="outline" size="sm" onClick={handleCancel} className="text-destructive hover:text-destructive">
+                                    Cancel Order
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Timestamps */}
+                        <div className="mt-6 text-xs text-muted-foreground">
+                            <p>Ordered on {formatDate(order.created_at)}</p>
+                            {order.confirmed_at && <p>Confirmed on {formatDate(order.confirmed_at)}</p>}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </>
+    );
+}
+
+function StatusMessage({ order }: { order: Order }) {
+    switch (order.status) {
+        case 'pending_payment':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950">
+                    <Clock className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <div>
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Payment Required</p>
+                        <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-300">Please complete your payment and upload the proof below.</p>
+                    </div>
+                </div>
+            );
+        case 'waiting_confirmation':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
+                    <Clock className="mt-0.5 size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div>
+                        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Payment Under Review</p>
+                        <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-300">We're reviewing your payment proof. You'll be notified once it's confirmed.</p>
+                    </div>
+                </div>
+            );
+        case 'confirmed':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
+                    <CheckCircle className="mt-0.5 size-5 shrink-0 text-green-600 dark:text-green-400" />
+                    <div>
+                        <p className="text-sm font-medium text-green-800 dark:text-green-200">Registration Confirmed</p>
+                        <p className="mt-0.5 text-xs text-green-700 dark:text-green-300">Your registration has been confirmed. See you at the event!</p>
+                    </div>
+                </div>
+            );
+        case 'rejected':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+                    <XCircle className="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
+                    <div>
+                        <p className="text-sm font-medium text-red-800 dark:text-red-200">Payment Rejected</p>
+                        <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">
+                            {order.rejection_reason || 'Your payment proof was rejected. Please re-upload a valid proof.'}
+                        </p>
+                    </div>
+                </div>
+            );
+        case 'cancelled':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border bg-muted/50 p-4">
+                    <XCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium text-muted-foreground">Order Cancelled</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">This order has been cancelled.</p>
+                    </div>
+                </div>
+            );
+        case 'refunded':
+            return (
+                <div className="flex items-start gap-3 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900 dark:bg-purple-950">
+                    <XCircle className="mt-0.5 size-5 shrink-0 text-purple-600 dark:text-purple-400" />
+                    <div>
+                        <p className="text-sm font-medium text-purple-800 dark:text-purple-200">Order Refunded</p>
+                        <p className="mt-0.5 text-xs text-purple-700 dark:text-purple-300">
+                            {order.refund_reason || 'This order has been refunded.'}
+                        </p>
+                    </div>
+                </div>
+            );
+    }
+}

@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Providers;
+
+use App\Contract\Auth\CustomerAuthContract;
+use App\Contract\Auth\UserAuthContract;
+use App\Contract\AuthContract;
+use App\Contract\BaseContract;
+use App\Contract\Master\AddonContract;
+use App\Contract\Master\CatalogContract;
+use App\Contract\Master\EventContract;
+use App\Contract\Operational\CustomerContract;
+use App\Contract\Operational\OrderContract;
+use App\Contract\Setting\PermissionContract;
+use App\Contract\Setting\RoleContract;
+use App\Contract\Setting\SettingContract;
+use App\Service\Auth\CustomerAuthService;
+use App\Service\Auth\UserAuthService;
+use App\Service\AuthService;
+use App\Service\BaseService;
+use App\Service\Master\AddonService;
+use App\Service\Master\CatalogService;
+use App\Service\Master\EventService;
+use App\Service\Operational\CustomerService;
+use App\Service\Operational\OrderService;
+use App\Service\Setting\PermissionService;
+use App\Service\Setting\RoleService;
+use App\Service\Setting\SettingService;
+use Illuminate\Support\ServiceProvider;
+
+class ContractProvider extends ServiceProvider
+{
+    public array $bindings = [
+        // Base
+        BaseContract::class => BaseService::class,
+        AuthContract::class => AuthService::class,
+        UserAuthContract::class => UserAuthService::class,
+        CustomerAuthContract::class => CustomerAuthService::class,
+
+        // Operational
+        CustomerContract::class => CustomerService::class,
+        OrderContract::class => OrderService::class,
+
+        // Master
+        AddonContract::class => AddonService::class,
+        CatalogContract::class => CatalogService::class,
+        EventContract::class => EventService::class,
+
+        // Setting
+        SettingContract::class => SettingService::class,
+        RoleContract::class => RoleService::class,
+        PermissionContract::class => PermissionService::class,
+    ];
+
+    public function register(): void
+    {
+        foreach ($this->bindings as $contract => $service) {
+            $this->app->bind($contract, $service);
+        }
+    }
+
+    public function boot(): void {}
+}
