@@ -1,5 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
-import { Clock, LoaderCircle, Trash2 } from 'lucide-react';
+import { Clock, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import type { PricingType } from '@/types/event';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -28,9 +29,18 @@ type ScheduleEntry = {
     description: string;
 };
 
+type TierEntry = {
+    label: string;
+    price: number | '';
+    end_date: string;
+    max_seats: number | '';
+};
+
 type CatalogEntry = {
     catalog_id: number | '';
     max_participant: number | '';
+    pricing_type: PricingType;
+    pricing_tiers: TierEntry[];
 };
 
 type Props = {
@@ -52,6 +62,13 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
         event?.catalogs?.map((c) => ({
             catalog_id: c.id,
             max_participant: c.pivot?.max_participant ?? '',
+            pricing_type: c.pivot?.pricing_type ?? 'fixed',
+            pricing_tiers: c.pivot?.pricing_tiers?.map((t) => ({
+                label: t.label ?? '',
+                price: t.price ?? '',
+                end_date: t.end_date ?? '',
+                max_seats: t.max_seats ?? '',
+            })) ?? [],
         })) ?? [];
 
     const { data, setData, post, put, errors, processing } = useForm({
@@ -77,7 +94,7 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
     };
 
     const addCatalog = () => {
-        setData('catalogs', [...data.catalogs, { catalog_id: '', max_participant: '' }]);
+        setData('catalogs', [...data.catalogs, { catalog_id: '', max_participant: '', pricing_type: 'fixed', pricing_tiers: [] }]);
     };
 
     const removeCatalog = (idx: number) => {
@@ -90,6 +107,44 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
     const updateCatalog = (idx: number, field: keyof CatalogEntry, value: any) => {
         const updated = [...data.catalogs];
         updated[idx] = { ...updated[idx], [field]: value };
+        setData('catalogs', updated);
+    };
+
+    const handlePricingTypeChange = (catalogIdx: number, type: PricingType) => {
+        const updated = [...data.catalogs];
+        updated[catalogIdx] = {
+            ...updated[catalogIdx],
+            pricing_type: type,
+            pricing_tiers: type === 'fixed' ? [] : [
+                { label: '', price: '', end_date: '', max_seats: '' },
+                { label: '', price: '', end_date: '', max_seats: '' },
+            ],
+        };
+        setData('catalogs', updated);
+    };
+
+    const addTier = (catalogIdx: number) => {
+        const updated = [...data.catalogs];
+        const tiers = [...updated[catalogIdx].pricing_tiers];
+        tiers.splice(tiers.length - 1, 0, { label: '', price: '', end_date: '', max_seats: '' });
+        updated[catalogIdx] = { ...updated[catalogIdx], pricing_tiers: tiers };
+        setData('catalogs', updated);
+    };
+
+    const removeTier = (catalogIdx: number, tierIdx: number) => {
+        const updated = [...data.catalogs];
+        updated[catalogIdx] = {
+            ...updated[catalogIdx],
+            pricing_tiers: updated[catalogIdx].pricing_tiers.filter((_, i) => i !== tierIdx),
+        };
+        setData('catalogs', updated);
+    };
+
+    const updateTier = (catalogIdx: number, tierIdx: number, field: keyof TierEntry, value: any) => {
+        const updated = [...data.catalogs];
+        const tiers = [...updated[catalogIdx].pricing_tiers];
+        tiers[tierIdx] = { ...tiers[tierIdx], [field]: value };
+        updated[catalogIdx] = { ...updated[catalogIdx], pricing_tiers: tiers };
         setData('catalogs', updated);
     };
 
@@ -365,85 +420,207 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
                         </p>
                     )}
                     <div className="space-y-3">
-                        {data.catalogs.map((entry, idx) => (
-                            <div
-                                key={idx}
-                                className="flex items-start gap-3 rounded-md border p-3"
-                            >
-                                <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label>Catalog</Label>
+                        {data.catalogs.map((entry, idx) => {
+                            const isLastTier = (tierIdx: number) => tierIdx === entry.pricing_tiers.length - 1;
+                            return (
+                                <div key={idx} className="rounded-md border p-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="grid flex-1 gap-3 sm:grid-cols-2">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label>Catalog</Label>
+                                                <Select
+                                                    value={entry.catalog_id?.toString() ?? ''}
+                                                    onValueChange={(val) =>
+                                                        updateCatalog(idx, 'catalog_id', Number(val))
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select catalog" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {catalogs
+                                                            .filter(
+                                                                (c) =>
+                                                                    !selectedCatalogIds.includes(c.id) ||
+                                                                    c.id === entry.catalog_id,
+                                                            )
+                                                            .map((c) => (
+                                                                <SelectItem
+                                                                    key={c.id}
+                                                                    value={c.id.toString()}
+                                                                >
+                                                                    {c.name} — Rp{' '}
+                                                                    {Number(c.price).toLocaleString('id-ID')}
+                                                                </SelectItem>
+                                                            ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <InputError
+                                                    message={
+                                                        (errors as any)?.[`catalogs.${idx}.catalog_id`]
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label>Max Participant</Label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    placeholder="Unlimited"
+                                                    value={entry.max_participant}
+                                                    onChange={(e) =>
+                                                        updateCatalog(
+                                                            idx,
+                                                            'max_participant',
+                                                            e.target.value ? Number(e.target.value) : '',
+                                                        )
+                                                    }
+                                                />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Leave empty for unlimited capacity
+                                                </p>
+                                                <InputError
+                                                    message={
+                                                        (errors as any)?.[`catalogs.${idx}.max_participant`]
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="mt-6 shrink-0 text-red-500 hover:text-red-600"
+                                            onClick={() => removeCatalog(idx)}
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </Button>
+                                    </div>
+
+                                    {/* Pricing Type */}
+                                    <div className="mt-3 flex flex-col gap-1.5">
+                                        <Label>Pricing</Label>
                                         <Select
-                                            value={entry.catalog_id?.toString() ?? ''}
-                                            onValueChange={(val) =>
-                                                updateCatalog(idx, 'catalog_id', Number(val))
-                                            }
+                                            value={entry.pricing_type}
+                                            onValueChange={(val) => handlePricingTypeChange(idx, val as PricingType)}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select catalog" />
+                                                <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {catalogs
-                                                    .filter(
-                                                        (c) =>
-                                                            !selectedCatalogIds.includes(c.id) ||
-                                                            c.id === entry.catalog_id,
-                                                    )
-                                                    .map((c) => (
-                                                        <SelectItem
-                                                            key={c.id}
-                                                            value={c.id.toString()}
-                                                        >
-                                                            {c.name} — Rp{' '}
-                                                            {Number(c.price).toLocaleString('id-ID')}
-                                                        </SelectItem>
-                                                    ))}
+                                                <SelectItem value="fixed">Fixed (Default)</SelectItem>
+                                                <SelectItem value="date">Date-based Tiers</SelectItem>
+                                                <SelectItem value="quantity">Quantity-based Tiers</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <InputError
-                                            message={
-                                                (errors as any)?.[`catalogs.${idx}.catalog_id`]
-                                            }
-                                        />
+                                        <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_type`]} />
                                     </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label>Max Participant</Label>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            placeholder="Unlimited"
-                                            value={entry.max_participant}
-                                            onChange={(e) =>
-                                                updateCatalog(
-                                                    idx,
-                                                    'max_participant',
-                                                    e.target.value ? Number(e.target.value) : '',
-                                                )
-                                            }
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Leave empty for unlimited capacity
-                                        </p>
-                                        <InputError
-                                            message={
-                                                (errors as any)?.[
-                                                    `catalogs.${idx}.max_participant`
-                                                ]
-                                            }
-                                        />
-                                    </div>
+
+                                    {/* Pricing Tiers */}
+                                    {entry.pricing_type !== 'fixed' && (
+                                        <div className="mt-3 rounded-md bg-muted/30 p-3">
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <p className="text-xs font-medium text-muted-foreground">
+                                                    {entry.pricing_type === 'date' ? 'Date-based' : 'Quantity-based'} Pricing Tiers
+                                                </p>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => addTier(idx)}
+                                                >
+                                                    <Plus className="size-3" />
+                                                    Add Tier
+                                                </Button>
+                                            </div>
+                                            <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_tiers`]} />
+                                            <div className="space-y-2">
+                                                {entry.pricing_tiers.map((tier, tIdx) => (
+                                                    <div key={tIdx} className="flex items-start gap-2 rounded border bg-background p-2">
+                                                        <div className="grid flex-1 gap-2 sm:grid-cols-3">
+                                                            <div className="flex flex-col gap-1">
+                                                                <Label className="text-xs">Label</Label>
+                                                                <Input
+                                                                    value={tier.label}
+                                                                    onChange={(e) => updateTier(idx, tIdx, 'label', e.target.value)}
+                                                                    placeholder={isLastTier(tIdx) ? 'e.g. Regular' : 'e.g. Early Bird'}
+                                                                    className="h-8 text-sm"
+                                                                />
+                                                                <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_tiers.${tIdx}.label`]} />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <Label className="text-xs">Price</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={tier.price}
+                                                                    onChange={(e) => updateTier(idx, tIdx, 'price', e.target.value ? Number(e.target.value) : '')}
+                                                                    placeholder="0"
+                                                                    className="h-8 text-sm"
+                                                                />
+                                                                <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_tiers.${tIdx}.price`]} />
+                                                            </div>
+                                                            {entry.pricing_type === 'date' && (
+                                                                <div className="flex flex-col gap-1">
+                                                                    <Label className="text-xs">End Date</Label>
+                                                                    {isLastTier(tIdx) ? (
+                                                                        <Input
+                                                                            disabled
+                                                                            placeholder="No end date (catch-all)"
+                                                                            className="h-8 text-sm"
+                                                                        />
+                                                                    ) : (
+                                                                        <Input
+                                                                            type="date"
+                                                                            value={tier.end_date}
+                                                                            onChange={(e) => updateTier(idx, tIdx, 'end_date', e.target.value)}
+                                                                            className="h-8 text-sm"
+                                                                        />
+                                                                    )}
+                                                                    <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_tiers.${tIdx}.end_date`]} />
+                                                                </div>
+                                                            )}
+                                                            {entry.pricing_type === 'quantity' && (
+                                                                <div className="flex flex-col gap-1">
+                                                                    <Label className="text-xs">Max Seats</Label>
+                                                                    {isLastTier(tIdx) ? (
+                                                                        <Input
+                                                                            disabled
+                                                                            placeholder="Unlimited (catch-all)"
+                                                                            className="h-8 text-sm"
+                                                                        />
+                                                                    ) : (
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={tier.max_seats}
+                                                                            onChange={(e) => updateTier(idx, tIdx, 'max_seats', e.target.value ? Number(e.target.value) : '')}
+                                                                            className="h-8 text-sm"
+                                                                        />
+                                                                    )}
+                                                                    <InputError message={(errors as any)?.[`catalogs.${idx}.pricing_tiers.${tIdx}.max_seats`]} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {!isLastTier(tIdx) && entry.pricing_tiers.length > 2 && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="mt-5 size-8 shrink-0 text-red-500 hover:text-red-600"
+                                                                onClick={() => removeTier(idx, tIdx)}
+                                                            >
+                                                                <Trash2 className="size-3" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="mt-6 shrink-0 text-red-500 hover:text-red-600"
-                                    onClick={() => removeCatalog(idx)}
-                                >
-                                    <Trash2 className="size-4" />
-                                </Button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <InputError message={errors?.catalogs} />
                 </CardContent>

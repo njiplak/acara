@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Event;
 use App\Models\Order;
 use App\Service\BaseService;
+use App\Utils\PriceResolver;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -42,17 +43,26 @@ class OrderService extends BaseService implements OrderContract
                 ->exists();
             abort_if($exists, 422, 'You have already registered for this session.');
 
+            // Count active orders (needed for capacity check AND price resolution)
+            $currentCount = Order::where('event_id', $event->id)
+                ->where('catalog_id', $catalog->id)
+                ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
+                ->count();
+
             // Check capacity
             $maxParticipant = $catalog->pivot->max_participant;
             if ($maxParticipant) {
-                $currentCount = Order::where('event_id', $event->id)
-                    ->where('catalog_id', $catalog->id)
-                    ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
-                    ->count();
                 abort_if($currentCount >= $maxParticipant, 422, 'This session is full.');
             }
 
-            $catalogPrice = $catalog->price;
+            // Resolve price from pricing tiers
+            $resolved = PriceResolver::resolve(
+                pricingType: $catalog->pivot->pricing_type ?? 'fixed',
+                pricingTiers: $catalog->pivot->pricing_tiers,
+                catalogPrice: $catalog->price,
+                currentOrders: $currentCount,
+            );
+            $catalogPrice = $resolved['active_price'];
             $addonIds = $payloads['addon_ids'] ?? [];
             $addonsTotal = 0;
             $addonPivotData = [];

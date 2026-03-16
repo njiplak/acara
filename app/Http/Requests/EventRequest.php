@@ -30,6 +30,47 @@ class EventRequest extends FormRequest
             'catalogs' => ['nullable', 'array'],
             'catalogs.*.catalog_id' => ['required', 'exists:catalogs,id'],
             'catalogs.*.max_participant' => ['nullable', 'integer', 'min:1'],
+            'catalogs.*.pricing_type' => ['required', 'string', 'in:fixed,date,quantity'],
+            'catalogs.*.pricing_tiers' => ['nullable', 'array'],
+            'catalogs.*.pricing_tiers.*.label' => ['required', 'string', 'max:100'],
+            'catalogs.*.pricing_tiers.*.price' => ['required', 'numeric', 'min:0'],
+            'catalogs.*.pricing_tiers.*.end_date' => ['nullable', 'date'],
+            'catalogs.*.pricing_tiers.*.max_seats' => ['nullable', 'integer', 'min:1'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $catalogs = $this->input('catalogs', []);
+            foreach ($catalogs as $idx => $catalog) {
+                $type = $catalog['pricing_type'] ?? 'fixed';
+                $tiers = $catalog['pricing_tiers'] ?? [];
+
+                if ($type === 'fixed') continue;
+
+                if (count($tiers) < 2) {
+                    $validator->errors()->add(
+                        "catalogs.{$idx}.pricing_tiers",
+                        'Tiered pricing requires at least 2 tiers.'
+                    );
+                    continue;
+                }
+
+                $lastTier = end($tiers);
+                if ($type === 'date' && !empty($lastTier['end_date'])) {
+                    $validator->errors()->add(
+                        "catalogs.{$idx}.pricing_tiers",
+                        'The last date tier must have no end date (catch-all).'
+                    );
+                }
+                if ($type === 'quantity' && !empty($lastTier['max_seats'])) {
+                    $validator->errors()->add(
+                        "catalogs.{$idx}.pricing_tiers",
+                        'The last quantity tier must have no max seats (catch-all).'
+                    );
+                }
+            }
+        });
     }
 }

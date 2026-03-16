@@ -30,6 +30,8 @@ class Catalog extends Model
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class)->withPivot('max_participant');
+        return $this->belongsToMany(Event::class)
+            ->withPivot('max_participant', 'pricing_type', 'pricing_tiers')
+            ->using(CatalogEventPivot::class);
     }
 }

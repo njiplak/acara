@@ -27,8 +27,13 @@ class EventService extends BaseService implements EventContract
 
             $pivotData = [];
             foreach ($catalogs as $catalog) {
+                $pricingType = $catalog['pricing_type'] ?? 'fixed';
                 $pivotData[$catalog['catalog_id']] = [
                     'max_participant' => $catalog['max_participant'] ?? null,
+                    'pricing_type' => $pricingType,
+                    'pricing_tiers' => $pricingType !== 'fixed'
+                        ? json_encode($catalog['pricing_tiers'] ?? [])
+                        : null,
                 ];
             }
             $model->catalogs()->sync($pivotData);
@@ -53,8 +58,13 @@ class EventService extends BaseService implements EventContract
 
             $pivotData = [];
             foreach ($catalogs as $catalog) {
+                $pricingType = $catalog['pricing_type'] ?? 'fixed';
                 $pivotData[$catalog['catalog_id']] = [
                     'max_participant' => $catalog['max_participant'] ?? null,
+                    'pricing_type' => $pricingType,
+                    'pricing_tiers' => $pricingType !== 'fixed'
+                        ? json_encode($catalog['pricing_tiers'] ?? [])
+                        : null,
                 ];
             }
             $model->catalogs()->sync($pivotData);

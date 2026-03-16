@@ -28,6 +28,7 @@ function formatPrice(price: number) {
 }
 
 function getLowestPrice(event: Event): number | null {
+    if (event.lowest_active_price != null) return event.lowest_active_price;
     if (!event.catalogs || event.catalogs.length === 0) return null;
     return Math.min(...event.catalogs.map((c) => c.price));
 }

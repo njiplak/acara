@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
 import type { Catalog } from '@/types/catalog';
-import type { Event } from '@/types/event';
+import type { Event, ResolvedPricing } from '@/types/event';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
 
 function formatDateRange(start: string, end: string) {
@@ -35,12 +35,13 @@ type Props = {
     logoUrl?: string | null;
     event: Event;
     orderCounts: Record<number, number>;
+    pricingData: Record<number, ResolvedPricing>;
     customerOrderCatalogIds: number[];
     customerBalance: number;
     referralDiscount: number;
 };
 
-export default function EventShow({ settings, logoUrl, event, orderCounts, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
+export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
     const { auth } = usePage<SharedData>().props;
@@ -204,6 +205,7 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, custo
                                                 currentOrders={currentOrders}
                                                 customerBalance={customerBalance}
                                                 referralDiscount={referralDiscount}
+                                                pricing={pricingData[catalog.id]}
                                             />
                                         );
                                     })}
@@ -247,6 +249,7 @@ function CatalogCard({
     currentOrders,
     customerBalance,
     referralDiscount,
+    pricing,
 }: {
     catalog: Catalog & { pivot?: { max_participant: number | null } };
     eventId: number;
@@ -256,9 +259,12 @@ function CatalogCard({
     currentOrders: number;
     customerBalance: number;
     referralDiscount: number;
+    pricing: ResolvedPricing;
 }) {
     const addons = catalog.addons || [];
-    const hasDiscount = catalog.strike_price !== null && catalog.strike_price > catalog.price;
+    const activePrice = pricing.active_price;
+    const hasTiers = pricing.tiers.length > 0;
+    const hasDiscount = !hasTiers && catalog.strike_price !== null && catalog.strike_price > catalog.price;
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [referralCode, setReferralCode] = useState('');
@@ -267,7 +273,7 @@ function CatalogCard({
     const addonsTotal = addons
         .filter((a) => selectedAddons.includes(a.id))
         .reduce((sum, a) => sum + a.price, 0);
-    const subtotal = catalog.price + addonsTotal;
+    const subtotal = activePrice + addonsTotal;
     const appliedDiscount = referralCode.trim() ? Math.min(referralDiscount, subtotal) : 0;
     const remainingAfterDiscount = subtotal - appliedDiscount;
     const appliedBalance = useBalance ? Math.min(customerBalance, remainingAfterDiscount) : 0;
@@ -349,9 +355,52 @@ function CatalogCard({
                     {hasDiscount && (
                         <span className="text-sm text-muted-foreground line-through">{formatPrice(catalog.strike_price!)}</span>
                     )}
-                    <span className="text-lg font-bold text-foreground">{formatPrice(catalog.price)}</span>
+                    {hasTiers && pricing.active_tier_index !== null && (
+                        <span className="text-xs font-medium text-muted-foreground">{pricing.tiers[pricing.active_tier_index].label}</span>
+                    )}
+                    <span className="text-lg font-bold text-foreground">{formatPrice(activePrice)}</span>
                 </div>
             </div>
+
+            {/* Pricing Tiers Transparency */}
+            {hasTiers && (
+                <div className="mt-3 space-y-1">
+                    {pricing.tiers.map((tier, idx) => {
+                        const isActive = idx === pricing.active_tier_index;
+                        const isPast = idx < (pricing.active_tier_index ?? 0);
+                        return (
+                            <div
+                                key={idx}
+                                className={`flex items-center justify-between rounded-md px-3 py-1.5 text-sm ${
+                                    isActive
+                                        ? 'border border-foreground/20 bg-accent font-medium text-foreground'
+                                        : isPast
+                                          ? 'text-muted-foreground line-through'
+                                          : 'text-muted-foreground'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <div className={`size-2 rounded-full ${isActive ? 'bg-foreground' : 'bg-muted-foreground/30'}`} />
+                                    <span>{tier.label}</span>
+                                    {tier.end_date && !isPast && (
+                                        <span className="text-xs">until {new Date(tier.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                    )}
+                                    {tier.max_seats && !isPast && (
+                                        <span className="text-xs">{tier.max_seats} seats</span>
+                                    )}
+                                    {isPast && <span className="text-xs">Ended</span>}
+                                </div>
+                                <span>{formatPrice(tier.price)}</span>
+                            </div>
+                        );
+                    })}
+                    {pricing.savings > 0 && (
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                            Save {formatPrice(pricing.savings)} by registering now
+                        </p>
+                    )}
+                </div>
+            )}
 
             {/* Addon selection for authenticated users */}
             {isAuthenticated && !isFull && !alreadyOrdered && addons.length > 0 && (
