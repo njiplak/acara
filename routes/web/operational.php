@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Operational\CustomerController;
 use App\Http\Controllers\Operational\OrderController;
+use App\Http\Controllers\Operational\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backoffice.operational.'], function () {
@@ -29,5 +30,11 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
     Route::group(['prefix' => 'check-in', 'as' => 'check-in.'], function () {
         Route::get('/', [OrderController::class, 'scannerPage'])->name('scanner');
         Route::post('/scan', [OrderController::class, 'scanCheckIn'])->name('scan');
+    });
+
+    Route::group(['prefix' => 'testimonial', 'as' => 'testimonial.'], function () {
+        Route::get('/', [TestimonialController::class, 'index'])->name('index');
+        Route::get('/fetch', [TestimonialController::class, 'fetch'])->name('fetch');
+        Route::post('/{id}/toggle-highlight', [TestimonialController::class, 'toggleHighlight'])->name('toggle-highlight');
     });
 });

@@ -10,6 +10,7 @@ import {
     MapPin,
     Package,
     Puzzle,
+    MessageSquare,
     ScanLine,
     Settings,
     Shield,
@@ -254,6 +255,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.operational.checkIn.scanner.url()}>
                                             <ScanLine />
                                             <span>Check In</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.testimonial.index.url())}>
+                                        <Link href={backoffice.operational.testimonial.index.url()}>
+                                            <MessageSquare />
+                                            <span>Testimonial</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

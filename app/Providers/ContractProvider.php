@@ -15,6 +15,7 @@ use App\Contract\Master\VenueContract;
 use App\Contract\Master\VoucherContract;
 use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
+use App\Contract\Operational\TestimonialContract;
 use App\Contract\Setting\PermissionContract;
 use App\Contract\Setting\RoleContract;
 use App\Contract\Setting\PageContract;
@@ -32,6 +33,7 @@ use App\Service\Master\VenueService;
 use App\Service\Master\VoucherService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
+use App\Service\Operational\TestimonialService;
 use App\Service\Setting\PageService;
 use App\Service\Setting\PermissionService;
 use App\Service\Setting\RoleService;
@@ -50,6 +52,7 @@ class ContractProvider extends ServiceProvider
         // Operational
         CustomerContract::class => CustomerService::class,
         OrderContract::class => OrderService::class,
+        TestimonialContract::class => TestimonialService::class,
 
         // Master
         AddonContract::class => AddonService::class,

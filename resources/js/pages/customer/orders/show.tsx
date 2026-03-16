@@ -1,14 +1,17 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, FileText, Link2, QrCode, Upload, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, FileText, Link2, MessageSquare, QrCode, Star, Upload, XCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { cancel, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { store as storeTestimonial } from '@/actions/App/Http/Controllers/Customer/TestimonialController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import type { SharedData } from '@/types';
 import type { EventMaterial } from '@/types/event-material';
 import type { Order, OrderStatus } from '@/types/order';
+import type { Testimonial } from '@/types/testimonial';
 
 function formatPrice(price: number) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
@@ -32,9 +35,11 @@ type Props = {
     paymentInstruction: string | null;
     materials?: EventMaterial[];
     logoUrl?: string | null;
+    testimonial?: Testimonial | null;
+    canSubmitTestimonial?: boolean;
 };
 
-export default function CustomerOrderShow({ order, paymentInstruction, materials = [], logoUrl }: Props) {
+export default function CustomerOrderShow({ order, paymentInstruction, materials = [], logoUrl, testimonial, canSubmitTestimonial }: Props) {
     const { auth, name } = usePage<SharedData>().props;
     const customer = auth.customer!;
     const appName = (name as string) || 'Acara';
@@ -318,6 +323,28 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                             </div>
                         )}
 
+                        {/* Testimonial - already submitted */}
+                        {testimonial && (
+                            <div className="mt-4 rounded-lg border bg-card p-5">
+                                <h2 className="mb-3 text-sm font-semibold text-foreground">Your Feedback</h2>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`size-4 ${i < testimonial.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
+                                        />
+                                    ))}
+                                </div>
+                                {testimonial.body && (
+                                    <p className="mt-2 text-sm text-muted-foreground">{testimonial.body}</p>
+                                )}
+                                <p className="mt-2 text-xs text-muted-foreground">Submitted on {formatDate(testimonial.created_at)}</p>
+                            </div>
+                        )}
+
+                        {/* Testimonial - submit form */}
+                        {canSubmitTestimonial && <TestimonialForm orderId={order.id} />}
+
                         {/* Actions */}
                         {!['confirmed', 'cancelled', 'refunded'].includes(order.status) && (
                             <div className="mt-6">
@@ -336,6 +363,64 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                 </main>
             </div>
         </>
+    );
+}
+
+function TestimonialForm({ orderId }: { orderId: number }) {
+    const { data, setData, post, processing, errors } = useForm({
+        order_id: orderId,
+        rating: 0,
+        body: '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (data.rating === 0) return;
+        post(storeTestimonial.url());
+    };
+
+    return (
+        <div className="mt-4 rounded-lg border bg-card p-5">
+            <div className="mb-3 flex items-center gap-2">
+                <MessageSquare className="size-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold text-foreground">How was your experience?</h2>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="text-sm font-medium text-foreground">Rating</label>
+                    <div className="mt-1.5 flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <button
+                                key={i}
+                                type="button"
+                                onClick={() => setData('rating', i + 1)}
+                                className="rounded p-0.5 transition-colors hover:bg-accent"
+                            >
+                                <Star
+                                    className={`size-6 ${i < data.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                    {errors.rating && <p className="mt-1 text-xs text-destructive">{errors.rating}</p>}
+                </div>
+                <div>
+                    <label className="text-sm font-medium text-foreground">Feedback (optional)</label>
+                    <Textarea
+                        className="mt-1.5"
+                        placeholder="Tell us about your experience..."
+                        value={data.body}
+                        onChange={(e) => setData('body', e.target.value)}
+                        rows={3}
+                    />
+                    {errors.body && <p className="mt-1 text-xs text-destructive">{errors.body}</p>}
+                </div>
+                <Button type="submit" disabled={processing || data.rating === 0} className="gap-2">
+                    <Star className="size-4" />
+                    {processing ? 'Submitting...' : 'Submit Feedback'}
+                </Button>
+            </form>
+        </div>
     );
 }
 

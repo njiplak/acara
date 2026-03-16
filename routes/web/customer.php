@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\Customer\TestimonialController;
 use App\Http\Middleware\RedirectIfNotCustomer;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,6 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
     });
 
     Route::post('/voucher/validate', [OrderController::class, 'validateVoucher'])->name('voucher.validate');
+
+    Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');
 });

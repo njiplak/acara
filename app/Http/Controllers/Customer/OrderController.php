@@ -9,6 +9,7 @@ use App\Http\Requests\PlaceOrderRequest;
 use App\Models\EventMaterial;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
+use App\Models\Testimonial;
 use App\Models\Voucher;
 use App\Utils\WebResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -78,11 +79,18 @@ class OrderController extends Controller
             }
         }
 
+        $testimonial = Testimonial::where('order_id', $order->id)->first();
+        $canSubmitTestimonial = $order->status === 'confirmed'
+            && $order->checked_in_at !== null
+            && $testimonial === null;
+
         return Inertia::render('customer/orders/show', [
             'order' => $order,
             'paymentInstruction' => $settings->payment_instruction,
             'materials' => $materials,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
+            'testimonial' => $testimonial,
+            'canSubmitTestimonial' => $canSubmitTestimonial,
         ]);
     }
 
