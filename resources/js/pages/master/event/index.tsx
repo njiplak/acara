@@ -1,17 +1,24 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
-import { Users } from 'lucide-react';
-import { createElement } from 'react';
+import { BarChart3, Copy, Users } from 'lucide-react';
+import { createElement, useState } from 'react';
 
 import IndexPage from '@/components/index-page';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
 import {
     create,
     destroy as destroyRoute,
     destroyBulk,
+    economics,
     fetch as fetchRoute,
     registrants,
     show,
@@ -100,10 +107,17 @@ export default function EventIndex() {
             columns={columns}
             routes={routes}
             actionExtras={(row) =>
-                createElement(
-                    Link,
-                    { href: registrants.url(row.id), method: 'get' } as any,
-                    createElement(DropdownMenuItem, null, createElement(Users, null), ' Registrants'),
+                createElement('div', null,
+                    createElement(
+                        Link,
+                        { href: registrants.url(row.id), method: 'get' } as any,
+                        createElement(DropdownMenuItem, null, createElement(Users, { className: 'size-4' }), ' Registrants'),
+                    ),
+                    createElement(
+                        Link,
+                        { href: economics.url(row.id), method: 'get' } as any,
+                        createElement(DropdownMenuItem, null, createElement(BarChart3, { className: 'size-4' }), ' Economics'),
+                    ),
                 )
             }
         />

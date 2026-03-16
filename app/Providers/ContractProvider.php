@@ -1,5 +1,5 @@
 <?php
-
+    
 namespace App\Providers;
 
 use App\Contract\Auth\CustomerAuthContract;
@@ -10,6 +10,7 @@ use App\Contract\Master\AddonContract;
 use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
 use App\Contract\Master\EventMaterialContract;
+use App\Contract\Master\EventTemplateContract;
 use App\Contract\Master\SpeakerContract;
 use App\Contract\Master\VenueContract;
 use App\Contract\Master\VoucherContract;
@@ -28,6 +29,7 @@ use App\Service\Master\AddonService;
 use App\Service\Master\CatalogService;
 use App\Service\Master\EventMaterialService;
 use App\Service\Master\EventService;
+use App\Service\Master\EventTemplateService;
 use App\Service\Master\SpeakerService;
 use App\Service\Master\VenueService;
 use App\Service\Master\VoucherService;
@@ -59,6 +61,7 @@ class ContractProvider extends ServiceProvider
         CatalogContract::class => CatalogService::class,
         EventContract::class => EventService::class,
         EventMaterialContract::class => EventMaterialService::class,
+        EventTemplateContract::class => EventTemplateService::class,
         SpeakerContract::class => SpeakerService::class,
         VenueContract::class => VenueService::class,
         VoucherContract::class => VoucherService::class,

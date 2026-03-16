@@ -4,6 +4,7 @@ use App\Http\Controllers\Master\AddonController;
 use App\Http\Controllers\Master\CatalogController;
 use App\Http\Controllers\Master\EventController;
 use App\Http\Controllers\Master\EventMaterialController;
+use App\Http\Controllers\Master\EventTemplateController;
 use App\Http\Controllers\Master\SpeakerController;
 use App\Http\Controllers\Master\VenueController;
 use App\Http\Controllers\Master\VoucherController;
@@ -66,13 +67,27 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [VoucherController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
+    Route::group(['prefix' => 'event-template', 'as' => 'event-template.'], function () {
+        Route::get('/', [EventTemplateController::class, 'index'])->name('index');
+        Route::get('/fetch', [EventTemplateController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [EventTemplateController::class, 'create'])->name('create');
+        Route::post('/', [EventTemplateController::class, 'store'])->name('store');
+        Route::get('/{id}', [EventTemplateController::class, 'show'])->name('show');
+        Route::put('/{id}', [EventTemplateController::class, 'update'])->name('update');
+        Route::delete('/{id}', [EventTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [EventTemplateController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
     Route::group(['prefix' => 'event', 'as' => 'event.'], function () {
         Route::get('/', [EventController::class, 'index'])->name('index');
         Route::get('/fetch', [EventController::class, 'fetch'])->name('fetch');
         Route::get('/create', [EventController::class, 'create'])->name('create');
         Route::post('/', [EventController::class, 'store'])->name('store');
+        Route::post('/check-conflicts', [EventController::class, 'checkConflicts'])->name('check-conflicts');
+        Route::post('/{id}/save-as-template', [EventController::class, 'saveAsTemplate'])->name('save-as-template');
         Route::get('/{id}', [EventController::class, 'show'])->name('show');
         Route::get('/{id}/registrants', [EventController::class, 'registrants'])->name('registrants');
+        Route::get('/{id}/economics', [EventController::class, 'economics'])->name('economics');
         Route::put('/{id}', [EventController::class, 'update'])->name('update');
         Route::delete('/{id}', [EventController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [EventController::class, 'destroy_bulk'])->name('destroy-bulk');

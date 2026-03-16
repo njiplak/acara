@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
-import { Calendar, ClipboardList, DollarSign, Users } from 'lucide-react';
+import { AlertTriangle, BarChart3, Calendar, ClipboardList, DollarSign, TrendingDown, TrendingUp, Users } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -65,6 +65,36 @@ type Stats = {
     activeEvents: number;
 };
 
+type Trends = {
+    revenue: number;
+    orders: number;
+    customers: number;
+};
+
+type LowFillEvent = {
+    id: number;
+    name: string;
+    fillRate: number;
+};
+
+type Alerts = {
+    waitingConfirmation: number;
+    lowFillEvents: LowFillEvent[];
+    draftEventsCount: number;
+};
+
+type TopReferrer = {
+    referral_count: number;
+    total_given: number;
+    referrer: { id: number; name: string; referral_code: string };
+};
+
+type VoucherPerformanceItem = {
+    uses: number;
+    total_discount: number;
+    voucher: { id: number; code: string; name: string };
+};
+
 type RevenueDataPoint = {
     date: string;
     revenue: number;
@@ -78,13 +108,28 @@ type UpcomingEvent = Event & {
 
 type Props = {
     stats: Stats;
+    trends: Trends;
+    alerts: Alerts;
+    topReferrers: TopReferrer[];
+    voucherPerformance: VoucherPerformanceItem[];
     revenueChart: RevenueDataPoint[];
     statusBreakdown: Record<string, number>;
     recentOrders: Order[];
     upcomingEvents: UpcomingEvent[];
 };
 
-export default function Backoffice({ stats, revenueChart, statusBreakdown, recentOrders, upcomingEvents }: Props) {
+function TrendIndicator({ value }: { value: number }) {
+    if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>;
+    const isPositive = value > 0;
+    return (
+        <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+            {isPositive ? '+' : ''}{value}%
+        </span>
+    );
+}
+
+export default function Backoffice({ stats, trends, alerts, topReferrers, voucherPerformance, revenueChart, statusBreakdown, recentOrders, upcomingEvents }: Props) {
     const pieData = Object.entries(statusBreakdown).map(([status, count]) => ({
         name: statusConfig[status as OrderStatus]?.label || status,
         value: count,
@@ -92,6 +137,8 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
     }));
 
     const totalOrdersInPie = pieData.reduce((sum, d) => sum + d.value, 0);
+
+    const hasAlerts = alerts.waitingConfirmation > 0 || alerts.lowFillEvents.length > 0 || alerts.draftEventsCount > 0;
 
     return (
         <div className="flex flex-col gap-6">
@@ -112,8 +159,9 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                             </div>
                         </CardAction>
                     </CardHeader>
-                    <CardFooter className="text-xs text-muted-foreground">
-                        From confirmed orders
+                    <CardFooter>
+                        <TrendIndicator value={trends.revenue} />
+                        <span className="ml-1 text-xs text-muted-foreground">vs last 30 days</span>
                     </CardFooter>
                 </Card>
                 <Card>
@@ -127,13 +175,8 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                         </CardAction>
                     </CardHeader>
                     <CardFooter>
-                        {stats.pendingReviewCount > 0 ? (
-                            <span className="text-xs text-amber-600 dark:text-amber-400">
-                                {stats.pendingReviewCount} pending review
-                            </span>
-                        ) : (
-                            <span className="text-xs text-muted-foreground">All caught up</span>
-                        )}
+                        <TrendIndicator value={trends.orders} />
+                        <span className="ml-1 text-xs text-muted-foreground">vs last 30 days</span>
                     </CardFooter>
                 </Card>
                 <Card>
@@ -146,8 +189,9 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                             </div>
                         </CardAction>
                     </CardHeader>
-                    <CardFooter className="text-xs text-muted-foreground">
-                        Registered via Google
+                    <CardFooter>
+                        <TrendIndicator value={trends.customers} />
+                        <span className="ml-1 text-xs text-muted-foreground">vs last 30 days</span>
                     </CardFooter>
                 </Card>
                 <Card>
@@ -165,6 +209,56 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                     </CardFooter>
                 </Card>
             </div>
+
+            {/* Needs Attention */}
+            {hasAlerts && (
+                <Card className="border-amber-200 dark:border-amber-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <AlertTriangle className="size-4 text-amber-500" />
+                            Needs Attention
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {alerts.waitingConfirmation > 0 && (
+                                <div className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-950/30">
+                                    <span className="text-sm">
+                                        <span className="font-semibold">{alerts.waitingConfirmation}</span> order{alerts.waitingConfirmation > 1 ? 's' : ''} waiting confirmation
+                                    </span>
+                                    <Button variant="outline" size="xs" asChild>
+                                        <Link href="/backoffice/operational/order">Review</Link>
+                                    </Button>
+                                </div>
+                            )}
+                            {alerts.lowFillEvents.length > 0 && (
+                                <div className="rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-950/30">
+                                    <p className="mb-1 text-sm">
+                                        <span className="font-semibold">{alerts.lowFillEvents.length}</span> event{alerts.lowFillEvents.length > 1 ? 's' : ''} with low fill rate (&lt;30%)
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {alerts.lowFillEvents.map((e) => (
+                                            <Badge key={e.id} variant="outline" className="text-xs">
+                                                {e.name} ({e.fillRate}%)
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {alerts.draftEventsCount > 0 && (
+                                <div className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-950/30">
+                                    <span className="text-sm">
+                                        <span className="font-semibold">{alerts.draftEventsCount}</span> draft event{alerts.draftEventsCount > 1 ? 's' : ''} not yet published
+                                    </span>
+                                    <Button variant="outline" size="xs" asChild>
+                                        <Link href="/backoffice/master/event">View</Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Charts row */}
             <div className="grid gap-4 lg:grid-cols-3">
@@ -269,7 +363,7 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="text-base">Recent Orders</CardTitle>
                         <Button variant="outline" size="sm" asChild>
-                            <Link href="/operational/order">View All</Link>
+                            <Link href="/backoffice/operational/order">View All</Link>
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -315,7 +409,7 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="text-base">Upcoming Events</CardTitle>
                         <Button variant="outline" size="sm" asChild>
-                            <Link href="/master/event">View All</Link>
+                            <Link href="/backoffice/master/event">View All</Link>
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -365,6 +459,72 @@ export default function Backoffice({ stats, revenueChart, statusBreakdown, recen
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Referrers & Vouchers row */}
+            {(topReferrers.length > 0 || voucherPerformance.length > 0) && (
+                <div className="grid gap-4 lg:grid-cols-2">
+                    {/* Top Referrers */}
+                    {topReferrers.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Users className="size-4" />
+                                    Top Referrers
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {topReferrers.map((item, idx) => (
+                                        <div key={item.referrer.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                                            <div className="flex items-center gap-3">
+                                                <span className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                                                    {idx + 1}
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-medium">{item.referrer.name}</p>
+                                                    <p className="font-mono text-xs text-muted-foreground">{item.referrer.referral_code}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-semibold">{item.referral_count} referrals</p>
+                                                <p className="text-xs text-muted-foreground">{formatCompactPrice(item.total_given)} earned</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Voucher Performance */}
+                    {voucherPerformance.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <BarChart3 className="size-4" />
+                                    Top Vouchers
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {voucherPerformance.map((item) => (
+                                        <div key={item.voucher.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                                            <div>
+                                                <p className="text-sm font-medium">{item.voucher.name}</p>
+                                                <p className="font-mono text-xs text-muted-foreground">{item.voucher.code}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-semibold">{item.uses} uses</p>
+                                                <p className="text-xs text-muted-foreground">{formatCompactPrice(item.total_discount)} discount</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

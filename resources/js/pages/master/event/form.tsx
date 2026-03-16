@@ -1,8 +1,10 @@
 import { router, useForm } from '@inertiajs/react';
-import { Clock, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Clock, Copy, LoaderCircle, Plus, Trash2 } from 'lucide-react';
+import { useMemo } from 'react';
 import type { PricingType } from '@/types/event';
 
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,9 +17,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useConflictCheck } from '@/hooks/use-conflict-check';
 import AppLayout from '@/layouts/app-layout';
 import { FormResponse } from '@/lib/constant';
-import { index, store, update } from '@/routes/backoffice/master/event';
+import { index, store, update, saveAsTemplate } from '@/routes/backoffice/master/event';
 import type { Catalog } from '@/types/catalog';
 import type { Event } from '@/types/event';
 import type { Venue } from '@/types/venue';
@@ -45,11 +48,13 @@ type CatalogEntry = {
 
 type Props = {
     event?: Event;
-    catalogs?: Catalog[];
+    catalogs?: (Catalog & { speakers?: { id: number; name: string }[] })[];
     venues?: Venue[];
+    fromTemplate?: string;
+    templates?: { id: number; name: string }[];
 };
 
-export default function EventForm({ event, catalogs = [], venues = [] }: Props) {
+export default function EventForm({ event, catalogs = [], venues = [], fromTemplate, templates = [] }: Props) {
     const initialSchedule: ScheduleEntry[] =
         event?.schedule?.map((s) => ({
             time: s.time ?? '',
@@ -164,11 +169,44 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
 
     const selectedCatalogIds = data.catalogs.map((c) => c.catalog_id).filter(Boolean);
 
+    const speakerIds = useMemo(() => {
+        const ids: number[] = [];
+        for (const entry of data.catalogs) {
+            if (!entry.catalog_id) continue;
+            const catalog = catalogs.find((c) => c.id === entry.catalog_id);
+            if (catalog?.speakers) {
+                for (const speaker of catalog.speakers) {
+                    if (!ids.includes(speaker.id)) ids.push(speaker.id);
+                }
+            }
+        }
+        return ids;
+    }, [data.catalogs, catalogs]);
+
+    const { conflicts } = useConflictCheck({
+        eventId: event?.id,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        venueId: data.venue_id,
+        speakerIds,
+    });
+
+    const formatConflictDate = (d: string) =>
+        new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
     return (
         <form onSubmit={onSubmit} className="space-y-6">
+            {fromTemplate && (
+                <div className="flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm dark:border-blue-800 dark:bg-blue-950/30">
+                    <Copy className="size-4 text-blue-500" />
+                    <span className="text-blue-800 dark:text-blue-300">
+                        Pre-filled from template: <span className="font-medium">{fromTemplate}</span>
+                    </span>
+                </div>
+            )}
             <Card>
                 <CardHeader>
-                    <CardTitle>{event ? 'Edit Event' : 'New Event'}</CardTitle>
+                    <CardTitle>{event?.id ? 'Edit Event' : 'New Event'}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex flex-col gap-1.5">
@@ -291,6 +329,19 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
                                 Assign a venue to this event (optional)
                             </p>
                             <InputError message={errors?.venue_id} />
+                            {conflicts.venue && conflicts.venue.length > 0 && (
+                                <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+                                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-500" />
+                                    <div className="text-xs">
+                                        <p className="font-medium text-amber-800 dark:text-amber-300">Venue conflict</p>
+                                        {conflicts.venue.map((c) => (
+                                            <p key={c.id} className="text-amber-700 dark:text-amber-400">
+                                                {c.name} ({formatConflictDate(c.start_date)} — {formatConflictDate(c.end_date)})
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     <div className="flex items-center justify-between rounded-md border px-4 py-3">
@@ -623,6 +674,19 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
                         })}
                     </div>
                     <InputError message={errors?.catalogs} />
+                    {conflicts.speakers && conflicts.speakers.length > 0 && (
+                        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+                            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-500" />
+                            <div className="text-xs">
+                                <p className="font-medium text-amber-800 dark:text-amber-300">Speaker conflict</p>
+                                {conflicts.speakers.map((c) => (
+                                    <p key={c.id} className="text-amber-700 dark:text-amber-400">
+                                        {c.conflicting_speakers.join(', ')} — already assigned to {c.name} ({formatConflictDate(c.start_date)} — {formatConflictDate(c.end_date)})
+                                    </p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -638,6 +702,16 @@ export default function EventForm({ event, catalogs = [], venues = [] }: Props) 
                     {processing && <LoaderCircle className="size-4 animate-spin" />}
                     Save
                 </Button>
+                {event?.id && (
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => router.post(saveAsTemplate(event.id).url)}
+                    >
+                        <Copy className="size-4" />
+                        Save as Template
+                    </Button>
+                )}
             </div>
         </form>
     );

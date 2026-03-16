@@ -1,8 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Calendar,
+    CalendarDays,
     ChevronsUpDown,
     ClipboardList,
+    Copy,
     FileText,
     Globe,
     LayoutDashboard,
@@ -172,6 +174,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.calendar.url())}>
+                                        <Link href={backoffice.calendar.url()}>
+                                            <CalendarDays />
+                                            <span>Calendar</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
@@ -224,6 +234,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.master.voucher.index.url()}>
                                             <Tag />
                                             <span>Voucher</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.eventTemplate.index.url())}>
+                                        <Link href={backoffice.master.eventTemplate.index.url()}>
+                                            <Copy />
+                                            <span>Templates</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
