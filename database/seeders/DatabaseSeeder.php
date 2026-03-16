@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AddonSeeder::class,
             CatalogSeeder::class,
             EventSeeder::class,
+            PageSeeder::class,
         ]);
     }
 }
