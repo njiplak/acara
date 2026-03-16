@@ -3,6 +3,9 @@
 use App\Http\Controllers\Master\AddonController;
 use App\Http\Controllers\Master\CatalogController;
 use App\Http\Controllers\Master\EventController;
+use App\Http\Controllers\Master\EventMaterialController;
+use App\Http\Controllers\Master\SpeakerController;
+use App\Http\Controllers\Master\VenueController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.master.'], function () {
@@ -29,6 +32,28 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [CatalogController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
+    Route::group(['prefix' => 'speaker', 'as' => 'speaker.'], function () {
+        Route::get('/', [SpeakerController::class, 'index'])->name('index');
+        Route::get('/fetch', [SpeakerController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [SpeakerController::class, 'create'])->name('create');
+        Route::post('/', [SpeakerController::class, 'store'])->name('store');
+        Route::get('/{id}', [SpeakerController::class, 'show'])->name('show');
+        Route::put('/{id}', [SpeakerController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SpeakerController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [SpeakerController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'venue', 'as' => 'venue.'], function () {
+        Route::get('/', [VenueController::class, 'index'])->name('index');
+        Route::get('/fetch', [VenueController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [VenueController::class, 'create'])->name('create');
+        Route::post('/', [VenueController::class, 'store'])->name('store');
+        Route::get('/{id}', [VenueController::class, 'show'])->name('show');
+        Route::put('/{id}', [VenueController::class, 'update'])->name('update');
+        Route::delete('/{id}', [VenueController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [VenueController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
     Route::group(['prefix' => 'event', 'as' => 'event.'], function () {
         Route::get('/', [EventController::class, 'index'])->name('index');
         Route::get('/fetch', [EventController::class, 'fetch'])->name('fetch');
@@ -39,5 +64,14 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::put('/{id}', [EventController::class, 'update'])->name('update');
         Route::delete('/{id}', [EventController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [EventController::class, 'destroy_bulk'])->name('destroy-bulk');
+
+        Route::group(['prefix' => '{eventId}/materials', 'as' => 'materials.'], function () {
+            Route::get('/', [EventMaterialController::class, 'index'])->name('index');
+            Route::get('/create', [EventMaterialController::class, 'create'])->name('create');
+            Route::post('/', [EventMaterialController::class, 'store'])->name('store');
+            Route::get('/{id}', [EventMaterialController::class, 'show'])->name('show');
+            Route::put('/{id}', [EventMaterialController::class, 'update'])->name('update');
+            Route::delete('/{id}', [EventMaterialController::class, 'destroy'])->name('destroy');
+        });
     });
 });

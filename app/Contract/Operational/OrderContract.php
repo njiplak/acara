@@ -12,4 +12,6 @@ interface OrderContract extends BaseContract
     public function rejectOrder(int $orderId, int $userId, string $reason): mixed;
     public function cancelOrder(int $orderId): mixed;
     public function refundOrder(int $orderId, int $userId, string $reason): mixed;
+    public function checkIn(int $orderId): mixed;
+    public function undoCheckIn(int $orderId): mixed;
 }

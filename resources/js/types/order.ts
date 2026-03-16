@@ -25,6 +25,7 @@ export type Order = Model & {
     payment_proof: string | null;
     paid_at: string | null;
     confirmed_at: string | null;
+    checked_in_at: string | null;
     confirmed_by: number | null;
     rejection_reason: string | null;
     refunded_at: string | null;

@@ -12,15 +12,23 @@ class LandingPageSettingController extends Controller
 {
     public function edit()
     {
+        $setting = LandingPageSetting::instance();
+        $setting->load('media');
+
         return Inertia::render('setting/landing-page/form', [
-            'landingPageSetting' => LandingPageSetting::instance(),
+            'landingPageSetting' => $setting,
+            'logoUrl' => $setting->getFirstMediaUrl('logo') ?: null,
         ]);
     }
 
     public function update(LandingPageSettingRequest $request)
     {
         $setting = LandingPageSetting::instance();
-        $setting->update($request->validated());
+        $setting->update($request->safe()->except('logo'));
+
+        if ($request->hasFile('logo')) {
+            $setting->addMediaFromRequest('logo')->toMediaCollection('logo');
+        }
 
         return WebResponse::response($setting, 'backoffice.setting.landing-page.edit');
     }

@@ -1,5 +1,5 @@
-import { router, useForm } from '@inertiajs/react';
-import { Calendar, Users } from 'lucide-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { Calendar, FileText, Users } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { index as eventIndex } from '@/routes/backoffice/master/event';
-import { confirm, refund, reject } from '@/routes/backoffice/operational/order';
+import { checkIn, confirm, refund, reject, undoCheckIn } from '@/routes/backoffice/operational/order';
 import { show as orderShow } from '@/routes/backoffice/operational/order';
 import type { Event } from '@/types/event';
 import type { Order, OrderStatus } from '@/types/order';
@@ -67,6 +67,7 @@ export default function EventRegistrants({ event, orders }: Props) {
     const waitingCount = orders.filter((o) => o.status === 'waiting_confirmation').length;
     const pendingCount = orders.filter((o) => o.status === 'pending_payment').length;
     const refundedCount = orders.filter((o) => o.status === 'refunded').length;
+    const checkedInCount = orders.filter((o) => o.checked_in_at).length;
     const totalRevenue = orders.filter((o) => o.status === 'confirmed').reduce((sum, o) => sum + o.total_amount, 0);
 
     const handleConfirm = (orderId: number) => {
@@ -191,16 +192,28 @@ export default function EventRegistrants({ event, orders }: Props) {
                         </div>
                         <h1 className="text-xl font-semibold">{event.name} — Registrants</h1>
                     </div>
-                    <Button variant="outline" onClick={() => router.visit(eventIndex().url)}>
-                        Back to Events
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button asChild variant="outline">
+                            <Link href={`/master/event/${event.id}/materials`}>
+                                <FileText className="size-4" />
+                                Materials
+                            </Link>
+                        </Button>
+                        <Button variant="outline" onClick={() => router.visit(eventIndex().url)}>
+                            Back to Events
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                     <div className="rounded-lg border bg-card p-4">
                         <p className="text-xs text-muted-foreground">Confirmed</p>
                         <p className="text-2xl font-bold text-foreground">{confirmedCount}</p>
+                    </div>
+                    <div className="rounded-lg border bg-card p-4">
+                        <p className="text-xs text-muted-foreground">Checked In</p>
+                        <p className="text-2xl font-bold text-foreground">{checkedInCount}</p>
                     </div>
                     <div className="rounded-lg border bg-card p-4">
                         <p className="text-xs text-muted-foreground">Waiting Review</p>
@@ -313,7 +326,12 @@ export default function EventRegistrants({ event, orders }: Props) {
                                                         {formatPrice(order.total_amount)}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <Badge variant={config.variant}>{config.label}</Badge>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            <Badge variant={config.variant}>{config.label}</Badge>
+                                                            {order.checked_in_at && (
+                                                                <Badge variant="default" className="bg-green-600">Checked In</Badge>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3 text-xs text-muted-foreground">
                                                         {formatDate(order.created_at)}
@@ -349,6 +367,29 @@ export default function EventRegistrants({ event, orders }: Props) {
                                                                 {order.status === 'confirmed' && (
                                                                     <>
                                                                         <DropdownMenuSeparator />
+                                                                        {!order.checked_in_at ? (
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    router.post(checkIn.url(order.id), {}, {
+                                                                                        preserveScroll: true,
+                                                                                        onSuccess: () => router.reload(),
+                                                                                    });
+                                                                                }}
+                                                                            >
+                                                                                Check In
+                                                                            </DropdownMenuItem>
+                                                                        ) : (
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    router.post(undoCheckIn.url(order.id), {}, {
+                                                                                        preserveScroll: true,
+                                                                                        onSuccess: () => router.reload(),
+                                                                                    });
+                                                                                }}
+                                                                            >
+                                                                                Undo Check In
+                                                                            </DropdownMenuItem>
+                                                                        )}
                                                                         <DropdownMenuItem
                                                                             className="text-destructive focus:text-destructive"
                                                                             onClick={() => setRefundOrderId(order.id)}

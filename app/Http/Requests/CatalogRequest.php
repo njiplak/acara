@@ -20,6 +20,8 @@ class CatalogRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'addon_ids' => ['nullable', 'array'],
             'addon_ids.*' => ['exists:addons,id'],
+            'speaker_ids' => ['nullable', 'array'],
+            'speaker_ids.*' => ['exists:speakers,id'],
         ];
     }
 }

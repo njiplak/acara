@@ -1,12 +1,12 @@
 import { router, useForm } from '@inertiajs/react';
-import { Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, ScanLine, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { confirm, index, refund, reject } from '@/routes/backoffice/operational/order';
+import { checkIn, confirm, index, refund, reject, undoCheckIn } from '@/routes/backoffice/operational/order';
 import type { Order, OrderStatus } from '@/types/order';
 
 function formatPrice(price: number) {
@@ -208,6 +208,53 @@ export default function OrderShow({ order }: Props) {
                             </Button>
                         </form>
                     )}
+                </div>
+            )}
+
+            {/* Check-in status & actions */}
+            {order.status === 'confirmed' && (
+                <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                    <h2 className="mb-3 text-sm font-semibold">Check-in</h2>
+                    {order.checked_in_at ? (
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                <CheckCircle className="size-4" />
+                                <span className="text-sm font-medium">Checked in at {formatDate(order.checked_in_at)}</span>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.post(undoCheckIn.url(order.id))}
+                            >
+                                Undo Check In
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Not checked in yet</span>
+                            <Button
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => router.post(checkIn.url(order.id))}
+                            >
+                                <ScanLine className="size-4" />
+                                Check In
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Invoice download for confirmed orders */}
+            {order.status === 'confirmed' && (
+                <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                    <h2 className="mb-3 text-sm font-semibold">Invoice</h2>
+                    <a
+                        href={`/operational/order/${order.id}/invoice`}
+                        className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-2 hover:no-underline"
+                    >
+                        Download Invoice (PDF)
+                    </a>
                 </div>
             )}
 

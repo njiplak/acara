@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { LoaderCircle, Trash2 } from 'lucide-react';
+import { Clock, LoaderCircle, Trash2 } from 'lucide-react';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,14 @@ import { FormResponse } from '@/lib/constant';
 import { index, store, update } from '@/routes/backoffice/master/event';
 import type { Catalog } from '@/types/catalog';
 import type { Event } from '@/types/event';
+import type { Venue } from '@/types/venue';
+
+type ScheduleEntry = {
+    time: string;
+    end_time: string;
+    title: string;
+    description: string;
+};
 
 type CatalogEntry = {
     catalog_id: number | '';
@@ -28,9 +36,18 @@ type CatalogEntry = {
 type Props = {
     event?: Event;
     catalogs?: Catalog[];
+    venues?: Venue[];
 };
 
-export default function EventForm({ event, catalogs = [] }: Props) {
+export default function EventForm({ event, catalogs = [], venues = [] }: Props) {
+    const initialSchedule: ScheduleEntry[] =
+        event?.schedule?.map((s) => ({
+            time: s.time ?? '',
+            end_time: s.end_time ?? '',
+            title: s.title ?? '',
+            description: s.description ?? '',
+        })) ?? [];
+
     const initialCatalogs: CatalogEntry[] =
         event?.catalogs?.map((c) => ({
             catalog_id: c.id,
@@ -44,6 +61,9 @@ export default function EventForm({ event, catalogs = [] }: Props) {
         end_date: event?.end_date ?? '',
         status: event?.status ?? 'draft',
         payment_method: event?.payment_method ?? 'manual',
+        venue_id: event?.venue_id ?? '',
+        material_require_checkin: event?.material_require_checkin ?? true,
+        schedule: initialSchedule,
         catalogs: initialCatalogs,
     });
 
@@ -71,6 +91,20 @@ export default function EventForm({ event, catalogs = [] }: Props) {
         const updated = [...data.catalogs];
         updated[idx] = { ...updated[idx], [field]: value };
         setData('catalogs', updated);
+    };
+
+    const addScheduleItem = () => {
+        setData('schedule', [...data.schedule, { time: '', end_time: '', title: '', description: '' }]);
+    };
+
+    const removeScheduleItem = (idx: number) => {
+        setData('schedule', data.schedule.filter((_, i) => i !== idx));
+    };
+
+    const updateScheduleItem = (idx: number, field: keyof ScheduleEntry, value: string) => {
+        const updated = [...data.schedule];
+        updated[idx] = { ...updated[idx], [field]: value };
+        setData('schedule', updated);
     };
 
     const selectedCatalogIds = data.catalogs.map((c) => c.catalog_id).filter(Boolean);
@@ -179,6 +213,138 @@ export default function EventForm({ event, catalogs = [] }: Props) {
                             <InputError message={errors?.payment_method} />
                         </div>
                     </div>
+                    {venues.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Venue</Label>
+                            <Select
+                                value={data.venue_id?.toString() ?? ''}
+                                onValueChange={(val) => setData('venue_id', val === 'none' ? ('' as any) : Number(val))}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select venue (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No venue</SelectItem>
+                                    {venues.map((v) => (
+                                        <SelectItem key={v.id} value={v.id.toString()}>
+                                            {v.name} — {v.city}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Assign a venue to this event (optional)
+                            </p>
+                            <InputError message={errors?.venue_id} />
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between rounded-md border px-4 py-3">
+                        <div>
+                            <p className="text-sm font-medium">Require check-in for materials</p>
+                            <p className="text-xs text-muted-foreground">
+                                When enabled, customers must be checked in to access distributed materials
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={data.material_require_checkin}
+                            onClick={() => setData('material_require_checkin', !data.material_require_checkin)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                                data.material_require_checkin ? 'bg-foreground' : 'bg-muted'
+                            }`}
+                        >
+                            <span
+                                className={`pointer-events-none inline-block size-5 rounded-full bg-background shadow-lg transition-transform ${
+                                    data.material_require_checkin ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
+                        </button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="flex-row items-center justify-between">
+                    <CardTitle>Schedule / Timeline</CardTitle>
+                    <Button type="button" variant="outline" size="sm" onClick={addScheduleItem}>
+                        Add Item
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                        Build the event timeline with time slots and activity descriptions
+                    </p>
+                    {data.schedule.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                            No schedule items yet. Click "Add Item" to build the timeline.
+                        </p>
+                    )}
+                    <div className="space-y-3">
+                        {data.schedule.map((entry, idx) => (
+                            <div key={idx} className="flex items-start gap-3 rounded-md border p-3">
+                                <div className="grid flex-1 gap-3">
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label>Start Time</Label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    type="time"
+                                                    className="pl-9"
+                                                    value={entry.time}
+                                                    onChange={(e) => updateScheduleItem(idx, 'time', e.target.value)}
+                                                />
+                                            </div>
+                                            <InputError message={(errors as any)?.[`schedule.${idx}.time`]} />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label>End Time</Label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    type="time"
+                                                    className="pl-9"
+                                                    value={entry.end_time}
+                                                    onChange={(e) => updateScheduleItem(idx, 'end_time', e.target.value)}
+                                                />
+                                            </div>
+                                            <InputError message={(errors as any)?.[`schedule.${idx}.end_time`]} />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label>Title</Label>
+                                        <Input
+                                            value={entry.title}
+                                            onChange={(e) => updateScheduleItem(idx, 'title', e.target.value)}
+                                            placeholder="e.g. Registration, Session 1, Break"
+                                        />
+                                        <InputError message={(errors as any)?.[`schedule.${idx}.title`]} />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label>Description</Label>
+                                        <Textarea
+                                            rows={2}
+                                            value={entry.description}
+                                            onChange={(e) => updateScheduleItem(idx, 'description', e.target.value)}
+                                            placeholder="Optional details about this activity"
+                                        />
+                                        <InputError message={(errors as any)?.[`schedule.${idx}.description`]} />
+                                    </div>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="mt-6 shrink-0 text-red-500 hover:text-red-600"
+                                    onClick={() => removeScheduleItem(idx)}
+                                >
+                                    <Trash2 className="size-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                    <InputError message={errors?.schedule} />
                 </CardContent>
             </Card>
 

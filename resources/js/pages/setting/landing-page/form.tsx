@@ -1,5 +1,6 @@
-import { useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { router, useForm } from '@inertiajs/react';
+import { ImageIcon, LoaderCircle, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 import InputError from '@/components/input-error';
 import { PhoneInput } from '@/components/phone-input';
@@ -15,10 +16,13 @@ import type { LandingPageSetting } from '@/types/landing-page-setting';
 
 type Props = {
     landingPageSetting: LandingPageSetting;
+    logoUrl?: string | null;
 };
 
-export default function LandingPageSettingForm({ landingPageSetting }: Props) {
-    const { data, setData, put, errors, processing } = useForm({
+export default function LandingPageSettingForm({ landingPageSetting, logoUrl }: Props) {
+    const [logoPreview, setLogoPreview] = useState<string | null>(logoUrl ?? null);
+    const { data, setData, errors, processing, post } = useForm<Record<string, any>>({
+        logo: null as File | null,
         business_name: landingPageSetting.business_name ?? '',
         business_description: landingPageSetting.business_description ?? '',
         business_phone: landingPageSetting.business_phone ?? '',
@@ -46,13 +50,49 @@ export default function LandingPageSettingForm({ landingPageSetting }: Props) {
         payment_instruction: landingPageSetting.payment_instruction ?? '',
     });
 
+    const handleLogoChange = (file: File | null) => {
+        setData('logo', file);
+        if (file) {
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    };
+
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        put(update().url, FormResponse);
+        router.post(update().url, { ...data, _method: 'PUT' }, { ...FormResponse, forceFormData: true });
     };
 
     return (
         <form onSubmit={onSubmit} className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Logo</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-start gap-6">
+                        <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                            {logoPreview ? (
+                                <img src={logoPreview} alt="Logo" className="size-full object-contain" />
+                            ) : (
+                                <ImageIcon className="size-8 text-muted-foreground/50" />
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
+                                onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Upload your business logo (max 2MB). Displayed in the header of public pages.
+                            </p>
+                            <InputError message={errors?.logo} />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Business Information</CardTitle>

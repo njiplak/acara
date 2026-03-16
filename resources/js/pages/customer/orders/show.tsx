@@ -1,11 +1,13 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, CheckCircle, Clock, Upload, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, FileText, Link2, QrCode, Upload, XCircle } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { cancel, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
+import type { EventMaterial } from '@/types/event-material';
 import type { Order, OrderStatus } from '@/types/order';
 
 function formatPrice(price: number) {
@@ -28,9 +30,11 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
 type Props = {
     order: Order;
     paymentInstruction: string | null;
+    materials?: EventMaterial[];
+    logoUrl?: string | null;
 };
 
-export default function CustomerOrderShow({ order, paymentInstruction }: Props) {
+export default function CustomerOrderShow({ order, paymentInstruction, materials = [], logoUrl }: Props) {
     const { auth, name } = usePage<SharedData>().props;
     const customer = auth.customer!;
     const appName = (name as string) || 'Acara';
@@ -65,9 +69,13 @@ export default function CustomerOrderShow({ order, paymentInstruction }: Props) 
                 {/* Header */}
                 <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
-                            <span className="text-sm font-bold tracking-tight text-background">{appName.charAt(0)}</span>
-                        </div>
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={appName} className="h-8 w-auto object-contain" />
+                        ) : (
+                            <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
+                                <span className="text-sm font-bold tracking-tight text-background">{appName.charAt(0)}</span>
+                            </div>
+                        )}
                         <span className="text-lg font-semibold tracking-tight text-foreground">{appName}</span>
                     </Link>
                     <div className="flex items-center gap-3">
@@ -110,6 +118,41 @@ export default function CustomerOrderShow({ order, paymentInstruction }: Props) 
 
                         {/* Status message */}
                         <StatusMessage order={order} />
+
+                        {/* QR Code + Actions for confirmed orders */}
+                        {order.status === 'confirmed' && (
+                            <div className="mt-4 rounded-lg border bg-card p-5">
+                                <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <QRCodeSVG value={order.order_code} size={120} />
+                                        <span className="text-xs text-muted-foreground">Show this QR at check-in</span>
+                                    </div>
+                                    <div className="flex flex-1 flex-col gap-2 text-center sm:text-left">
+                                        {order.checked_in_at ? (
+                                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                                <CheckCircle className="size-4" />
+                                                <span className="text-sm font-medium">Checked In</span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {formatDate(order.checked_in_at)}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <QrCode className="size-4" />
+                                                <span className="text-sm">Not checked in yet</span>
+                                            </div>
+                                        )}
+                                        <a
+                                            href={`/customer/orders/${order.id}/invoice`}
+                                            className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-2 hover:no-underline"
+                                        >
+                                            <Download className="size-4" />
+                                            Download Invoice
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Event & Session */}
                         <div className="mt-6 rounded-lg border bg-card p-5">
@@ -173,6 +216,51 @@ export default function CustomerOrderShow({ order, paymentInstruction }: Props) 
                                 </div>
                             </div>
                         </div>
+
+                        {/* Materials */}
+                        {materials.length > 0 && (
+                            <div className="mt-4 rounded-lg border bg-card p-5">
+                                <h2 className="mb-3 text-sm font-semibold text-foreground">Materials</h2>
+                                <div className="space-y-2">
+                                    {materials.map((material) => {
+                                        const icons = { file: File, link: Link2, note: FileText };
+                                        const Icon = icons[material.type];
+                                        return (
+                                            <div key={material.id} className="flex items-start gap-3 rounded-md border p-3">
+                                                <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-foreground">{material.title}</p>
+                                                    {material.type === 'link' && material.content && (
+                                                        <a
+                                                            href={material.content}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
+                                                        >
+                                                            Open Link
+                                                            <ExternalLink className="size-3" />
+                                                        </a>
+                                                    )}
+                                                    {material.type === 'note' && material.content && (
+                                                        <p className="mt-0.5 whitespace-pre-wrap text-xs text-muted-foreground">{material.content}</p>
+                                                    )}
+                                                    {material.type === 'file' && material.media?.[0] && (
+                                                        <a
+                                                            href={material.media[0].original_url}
+                                                            download
+                                                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
+                                                        >
+                                                            <Download className="size-3" />
+                                                            {material.media[0].file_name}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Payment section */}
                         {(order.status === 'pending_payment' || order.status === 'rejected') && (

@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, ClipboardList, Tag, Ticket, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, ClipboardList, Clock, MapPin, Tag, Ticket, Users, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { store } from '@/actions/App/Http/Controllers/Customer/OrderController';
@@ -32,6 +32,7 @@ function formatPrice(price: number) {
 
 type Props = {
     settings: LandingPageSetting;
+    logoUrl?: string | null;
     event: Event;
     orderCounts: Record<number, number>;
     customerOrderCatalogIds: number[];
@@ -39,7 +40,7 @@ type Props = {
     referralDiscount: number;
 };
 
-export default function EventShow({ settings, event, orderCounts, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
+export default function EventShow({ settings, logoUrl, event, orderCounts, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
     const { auth } = usePage<SharedData>().props;
@@ -58,9 +59,13 @@ export default function EventShow({ settings, event, orderCounts, customerOrderC
                 {/* Header */}
                 <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
-                            <span className="text-sm font-bold tracking-tight text-background">{name.charAt(0)}</span>
-                        </div>
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={name} className="h-8 w-auto object-contain" />
+                        ) : (
+                            <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
+                                <span className="text-sm font-bold tracking-tight text-background">{name.charAt(0)}</span>
+                            </div>
+                        )}
                         <span className="text-lg font-semibold tracking-tight text-foreground">{name}</span>
                     </Link>
                     {customer ? (
@@ -110,7 +115,65 @@ export default function EventShow({ settings, event, orderCounts, customerOrderC
                             {event.description && (
                                 <p className="mt-3 leading-relaxed text-muted-foreground">{event.description}</p>
                             )}
+
+                            {event.venue && (
+                                <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                                    <MapPin className="mt-0.5 size-4 shrink-0" />
+                                    <div>
+                                        <span className="font-medium text-foreground">{event.venue.name}</span>
+                                        <span className="mx-1">—</span>
+                                        <span>{event.venue.address}, {event.venue.city}</span>
+                                        {event.venue.maps_url && (
+                                            <>
+                                                <span className="mx-1">·</span>
+                                                <a
+                                                    href={event.venue.maps_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-foreground underline underline-offset-2 hover:no-underline"
+                                                >
+                                                    View Map
+                                                </a>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Schedule */}
+                        {event.schedule && event.schedule.length > 0 && (
+                            <>
+                                <div className="h-px bg-border" />
+                                <div className="mt-8 mb-8">
+                                    <h2 className="mb-4 text-lg font-semibold text-foreground">Schedule</h2>
+                                    <div className="space-y-0">
+                                        {event.schedule.map((item, idx) => (
+                                            <div key={idx} className="relative flex gap-4 pb-6 last:pb-0">
+                                                {idx < event.schedule!.length - 1 && (
+                                                    <div className="absolute left-3 top-8 bottom-0 w-px bg-border" />
+                                                )}
+                                                <div className="flex size-6 shrink-0 items-center justify-center rounded-full border bg-background">
+                                                    <Clock className="size-3 text-muted-foreground" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-sm font-medium text-foreground">
+                                                            {item.time}
+                                                            {item.end_time ? ` - ${item.end_time}` : ''}
+                                                        </span>
+                                                    </div>
+                                                    <p className="font-medium text-foreground">{item.title}</p>
+                                                    {item.description && (
+                                                        <p className="mt-0.5 text-sm text-muted-foreground">{item.description}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <div className="h-px bg-border" />
 
@@ -241,6 +304,33 @@ function CatalogCard({
                     <h3 className="font-semibold text-foreground">{catalog.name}</h3>
                     {catalog.description && (
                         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{catalog.description}</p>
+                    )}
+
+                    {/* Speakers */}
+                    {catalog.speakers && catalog.speakers.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                            {catalog.speakers.map((speaker) => (
+                                <div key={speaker.id} className="flex items-center gap-2">
+                                    {speaker.media?.[0]?.original_url ? (
+                                        <img
+                                            src={speaker.media[0].original_url}
+                                            alt={speaker.name}
+                                            className="size-8 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                            {speaker.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-foreground">{speaker.name}</span>
+                                        {speaker.title && (
+                                            <span className="text-xs text-muted-foreground">{speaker.title}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
 
                     {/* Capacity */}

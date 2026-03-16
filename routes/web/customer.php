@@ -11,6 +11,7 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
         Route::post('/', [OrderController::class, 'store'])->name('store');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
         Route::post('/{order}/pay', [OrderController::class, 'pay'])->name('pay');
+        Route::get('/{order}/invoice', [OrderController::class, 'invoice'])->name('invoice');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     });
 });

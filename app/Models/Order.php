@@ -29,6 +29,7 @@ class Order extends Model
         'rejection_reason',
         'refunded_at',
         'refund_reason',
+        'checked_in_at',
         'notes',
         'referred_by',
     ];
@@ -38,6 +39,7 @@ class Order extends Model
         return [
             'paid_at' => 'datetime',
             'confirmed_at' => 'datetime',
+            'checked_in_at' => 'datetime',
             'refunded_at' => 'datetime',
         ];
     }

@@ -1,5 +1,6 @@
 export type LandingPageSetting = {
     id: number;
+    logo_url?: string | null;
     business_name: string | null;
     business_description: string | null;
     business_phone: string | null;

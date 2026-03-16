@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
+use App\Contract\Master\VenueContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Models\Order;
@@ -15,11 +16,13 @@ class EventController extends Controller
 {
     protected EventContract $service;
     protected CatalogContract $catalogService;
+    protected VenueContract $venueService;
 
-    public function __construct(EventContract $service, CatalogContract $catalogService)
+    public function __construct(EventContract $service, CatalogContract $catalogService, VenueContract $venueService)
     {
         $this->service = $service;
         $this->catalogService = $catalogService;
+        $this->venueService = $venueService;
     }
 
     public function index()
@@ -47,8 +50,15 @@ class EventController extends Controller
             withPaginate: false,
         );
 
+        $venues = $this->venueService->all(
+            allowedFilters: [],
+            allowedSorts: [],
+            withPaginate: false,
+        );
+
         return Inertia::render('master/event/form', [
             'catalogs' => $catalogs,
+            'venues' => $venues,
         ]);
     }
 
@@ -67,9 +77,16 @@ class EventController extends Controller
             withPaginate: false,
         );
 
+        $venues = $this->venueService->all(
+            allowedFilters: [],
+            allowedSorts: [],
+            withPaginate: false,
+        );
+
         return Inertia::render('master/event/form', [
             'event' => $data,
             'catalogs' => $catalogs,
+            'venues' => $venues,
         ]);
     }
 

@@ -19,8 +19,11 @@ class HomeController extends Controller
             ->orderBy('start_date')
             ->get();
 
+        $settings = LandingPageSetting::instance();
+
         return Inertia::render('home', [
-            'settings' => LandingPageSetting::instance(),
+            'settings' => $settings,
+            'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
             'events' => $events,
         ]);
     }
@@ -29,7 +32,7 @@ class HomeController extends Controller
     {
         abort_if($event->status !== 'published', 404);
 
-        $event->load('catalogs.addons');
+        $event->load(['catalogs.addons', 'catalogs.speakers.media', 'venue']);
 
         // Count active orders per catalog for capacity display
         $orderCounts = Order::where('event_id', $event->id)
@@ -51,8 +54,11 @@ class HomeController extends Controller
             $customerBalance = $customer->referral_balance;
         }
 
+        $settings = LandingPageSetting::instance();
+
         return Inertia::render('events/show', [
-            'settings' => LandingPageSetting::instance(),
+            'settings' => $settings,
+            'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
             'event' => $event,
             'orderCounts' => $orderCounts,
             'customerOrderCatalogIds' => $customerOrderCatalogIds,

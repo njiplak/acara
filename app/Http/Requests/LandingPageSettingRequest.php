@@ -14,6 +14,7 @@ class LandingPageSettingRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'logo' => ['nullable', 'image', 'max:2048'],
             'business_name' => ['nullable', 'string', 'max:255'],
             'business_description' => ['nullable', 'string'],
             'business_phone' => ['nullable', 'string', 'max:255'],

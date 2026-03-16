@@ -23,6 +23,11 @@ class Catalog extends Model
         return $this->belongsToMany(Addon::class);
     }
 
+    public function speakers(): BelongsToMany
+    {
+        return $this->belongsToMany(Speaker::class);
+    }
+
     public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class)->withPivot('max_participant');

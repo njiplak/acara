@@ -14,14 +14,17 @@ import { FormResponse } from '@/lib/constant';
 import { index, store, update } from '@/routes/backoffice/master/catalog';
 import type { Addon } from '@/types/addon';
 import type { Catalog } from '@/types/catalog';
+import type { Speaker } from '@/types/speaker';
 
 type Props = {
     catalog?: Catalog;
     addons?: Addon[];
+    speakers?: Speaker[];
 };
 
-export default function CatalogForm({ catalog, addons = [] }: Props) {
+export default function CatalogForm({ catalog, addons = [], speakers = [] }: Props) {
     const initialAddonIds = catalog?.addons?.map((a) => a.id) ?? [];
+    const initialSpeakerIds = catalog?.speakers?.map((s) => s.id) ?? [];
 
     const { data, setData, post, put, errors, processing } = useForm({
         name: catalog?.name ?? '',
@@ -29,6 +32,7 @@ export default function CatalogForm({ catalog, addons = [] }: Props) {
         strike_price: catalog?.strike_price ?? '',
         price: catalog?.price ?? '',
         addon_ids: initialAddonIds,
+        speaker_ids: initialSpeakerIds,
     });
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,6 +50,15 @@ export default function CatalogForm({ catalog, addons = [] }: Props) {
             data.addon_ids.includes(id)
                 ? data.addon_ids.filter((a) => a !== id)
                 : [...data.addon_ids, id],
+        );
+    };
+
+    const toggleSpeaker = (id: number) => {
+        setData(
+            'speaker_ids',
+            data.speaker_ids.includes(id)
+                ? data.speaker_ids.filter((s) => s !== id)
+                : [...data.speaker_ids, id],
         );
     };
 
@@ -147,6 +160,41 @@ export default function CatalogForm({ catalog, addons = [] }: Props) {
                             ))}
                         </div>
                         <InputError message={errors?.addon_ids} />
+                    </CardContent>
+                </Card>
+            )}
+
+            {speakers.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Speakers</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                            Select which speakers are associated with this catalog
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                            {speakers.map((speaker) => (
+                                <label
+                                    key={speaker.id}
+                                    className="flex items-center gap-2 rounded-md border p-3 text-sm"
+                                >
+                                    <Checkbox
+                                        checked={data.speaker_ids.includes(speaker.id)}
+                                        onCheckedChange={() => toggleSpeaker(speaker.id)}
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{speaker.name}</span>
+                                        {speaker.title && (
+                                            <span className="text-xs text-muted-foreground">
+                                                {speaker.title}
+                                            </span>
+                                        )}
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                        <InputError message={errors?.speaker_ids} />
                     </CardContent>
                 </Card>
             )}

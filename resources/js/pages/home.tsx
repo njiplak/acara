@@ -32,7 +32,7 @@ function getLowestPrice(event: Event): number | null {
     return Math.min(...event.catalogs.map((c) => c.price));
 }
 
-export default function Home({ settings, events }: { settings: LandingPageSetting; events: Event[] }) {
+export default function Home({ settings, events, logoUrl }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null }) {
     const name = settings.business_name || 'Acara';
     const { auth } = usePage<SharedData>().props;
     const customer = auth.customer;
@@ -53,9 +53,13 @@ export default function Home({ settings, events }: { settings: LandingPageSettin
                 {/* Header */}
                 <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
-                            <span className="text-sm font-bold tracking-tight text-background">{name.charAt(0)}</span>
-                        </div>
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={name} className="h-8 w-auto object-contain" />
+                        ) : (
+                            <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
+                                <span className="text-sm font-bold tracking-tight text-background">{name.charAt(0)}</span>
+                            </div>
+                        )}
                         <span className="text-lg font-semibold tracking-tight text-foreground">{name}</span>
                     </Link>
                     {customer ? (

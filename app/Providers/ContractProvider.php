@@ -9,6 +9,9 @@ use App\Contract\BaseContract;
 use App\Contract\Master\AddonContract;
 use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
+use App\Contract\Master\EventMaterialContract;
+use App\Contract\Master\SpeakerContract;
+use App\Contract\Master\VenueContract;
 use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
 use App\Contract\Setting\PermissionContract;
@@ -20,7 +23,10 @@ use App\Service\AuthService;
 use App\Service\BaseService;
 use App\Service\Master\AddonService;
 use App\Service\Master\CatalogService;
+use App\Service\Master\EventMaterialService;
 use App\Service\Master\EventService;
+use App\Service\Master\SpeakerService;
+use App\Service\Master\VenueService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
 use App\Service\Setting\PermissionService;
@@ -45,6 +51,9 @@ class ContractProvider extends ServiceProvider
         AddonContract::class => AddonService::class,
         CatalogContract::class => CatalogService::class,
         EventContract::class => EventService::class,
+        EventMaterialContract::class => EventMaterialService::class,
+        SpeakerContract::class => SpeakerService::class,
+        VenueContract::class => VenueService::class,
 
         // Setting
         SettingContract::class => SettingService::class,

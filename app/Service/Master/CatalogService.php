@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class CatalogService extends BaseService implements CatalogContract
 {
-    protected array $relation = ['addons'];
+    protected array $relation = ['addons', 'speakers'];
 
     public function __construct(Catalog $model)
     {
@@ -22,12 +22,15 @@ class CatalogService extends BaseService implements CatalogContract
             DB::beginTransaction();
             $addonIds = $payloads['addon_ids'] ?? [];
             unset($payloads['addon_ids']);
+            $speakerIds = $payloads['speaker_ids'] ?? [];
+            unset($payloads['speaker_ids']);
 
             $model = $this->model->create($payloads);
             $model->addons()->sync($addonIds);
+            $model->speakers()->sync($speakerIds);
 
             DB::commit();
-            return $model->fresh(['addons']);
+            return $model->fresh(['addons', 'speakers']);
         } catch (\Exception $e) {
             DB::rollBack();
             return $e;
@@ -40,13 +43,16 @@ class CatalogService extends BaseService implements CatalogContract
             DB::beginTransaction();
             $addonIds = $payloads['addon_ids'] ?? [];
             unset($payloads['addon_ids']);
+            $speakerIds = $payloads['speaker_ids'] ?? [];
+            unset($payloads['speaker_ids']);
 
             $model = $this->model->findOrFail($id);
             $model->update($payloads);
             $model->addons()->sync($addonIds);
+            $model->speakers()->sync($speakerIds);
 
             DB::commit();
-            return $model->fresh(['addons']);
+            return $model->fresh(['addons', 'speakers']);
         } catch (\Exception $e) {
             DB::rollBack();
             return $e;

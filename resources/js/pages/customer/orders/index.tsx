@@ -25,7 +25,7 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
     refunded: { label: 'Refunded', variant: 'secondary' },
 };
 
-export default function CustomerOrdersIndex({ orders, referralCode, referralBalance }: { orders: Order[]; referralCode: string; referralBalance: number }) {
+export default function CustomerOrdersIndex({ orders, referralCode, referralBalance, logoUrl }: { orders: Order[]; referralCode: string; referralBalance: number; logoUrl?: string | null }) {
     const { auth, name } = usePage<SharedData>().props;
     const customer = auth.customer!;
     const appName = (name as string) || 'Acara';
@@ -42,9 +42,13 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                 {/* Header */}
                 <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
-                            <span className="text-sm font-bold tracking-tight text-background">{appName.charAt(0)}</span>
-                        </div>
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={appName} className="h-8 w-auto object-contain" />
+                        ) : (
+                            <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
+                                <span className="text-sm font-bold tracking-tight text-background">{appName.charAt(0)}</span>
+                            </div>
+                        )}
                         <span className="text-lg font-semibold tracking-tight text-foreground">{appName}</span>
                     </Link>
                     <div className="flex items-center gap-3">
@@ -104,6 +108,9 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs font-mono text-muted-foreground">{order.order_code}</span>
                                                     <Badge variant={config.variant}>{config.label}</Badge>
+                                                    {order.checked_in_at && (
+                                                        <Badge variant="default" className="bg-green-600">Checked In</Badge>
+                                                    )}
                                                 </div>
                                                 <h3 className="mt-1.5 font-semibold text-foreground">{order.event?.name}</h3>
                                                 <p className="text-sm text-muted-foreground">{order.catalog?.name}</p>

@@ -283,4 +283,45 @@ class OrderService extends BaseService implements OrderContract
             return $e;
         }
     }
+
+    public function checkIn(int $orderId): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $order = Order::findOrFail($orderId);
+
+            abort_if($order->status !== 'confirmed', 422, 'Only confirmed orders can be checked in.');
+            abort_if($order->checked_in_at !== null, 422, 'Order is already checked in.');
+
+            $order->update(['checked_in_at' => now()]);
+
+            DB::commit();
+
+            return $order->fresh($this->relation);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
+
+    public function undoCheckIn(int $orderId): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $order = Order::findOrFail($orderId);
+
+            abort_if($order->checked_in_at === null, 422, 'Order is not checked in.');
+
+            $order->update(['checked_in_at' => null]);
+
+            DB::commit();
+
+            return $order->fresh($this->relation);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
 }

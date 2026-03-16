@@ -6,11 +6,14 @@ import {
     Globe,
     LayoutDashboard,
     LogOut,
+    MapPin,
     Package,
     Puzzle,
+    ScanLine,
     Settings,
     Shield,
     UserCog,
+    UserRound,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -197,6 +200,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.speaker.index.url())}>
+                                        <Link href={backoffice.master.speaker.index.url()}>
+                                            <UserRound />
+                                            <span>Speaker</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.venue.index.url())}>
+                                        <Link href={backoffice.master.venue.index.url()}>
+                                            <MapPin />
+                                            <span>Venue</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
@@ -217,6 +236,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.operational.customer.index.url()}>
                                             <Users />
                                             <span>Customer</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.checkIn.scanner.url())}>
+                                        <Link href={backoffice.operational.checkIn.scanner.url()}>
+                                            <ScanLine />
+                                            <span>Check In</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

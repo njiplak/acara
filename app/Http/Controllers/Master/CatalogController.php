@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Contract\Master\AddonContract;
 use App\Contract\Master\CatalogContract;
+use App\Contract\Master\SpeakerContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CatalogRequest;
 use App\Utils\WebResponse;
@@ -14,11 +15,13 @@ class CatalogController extends Controller
 {
     protected CatalogContract $service;
     protected AddonContract $addonService;
+    protected SpeakerContract $speakerService;
 
-    public function __construct(CatalogContract $service, AddonContract $addonService)
+    public function __construct(CatalogContract $service, AddonContract $addonService, SpeakerContract $speakerService)
     {
         $this->service = $service;
         $this->addonService = $addonService;
+        $this->speakerService = $speakerService;
     }
 
     public function index()
@@ -46,8 +49,15 @@ class CatalogController extends Controller
             withPaginate: false,
         );
 
+        $speakers = $this->speakerService->all(
+            allowedFilters: [],
+            allowedSorts: [],
+            withPaginate: false,
+        );
+
         return Inertia::render('master/catalog/form', [
             'addons' => $addons,
+            'speakers' => $speakers,
         ]);
     }
 
@@ -59,8 +69,14 @@ class CatalogController extends Controller
 
     public function show($id)
     {
-        $data = $this->service->find($id, ['addons']);
+        $data = $this->service->find($id, ['addons', 'speakers']);
         $addons = $this->addonService->all(
+            allowedFilters: [],
+            allowedSorts: [],
+            withPaginate: false,
+        );
+
+        $speakers = $this->speakerService->all(
             allowedFilters: [],
             allowedSorts: [],
             withPaginate: false,
@@ -69,6 +85,7 @@ class CatalogController extends Controller
         return Inertia::render('master/catalog/form', [
             'catalog' => $data,
             'addons' => $addons,
+            'speakers' => $speakers,
         ]);
     }
 
