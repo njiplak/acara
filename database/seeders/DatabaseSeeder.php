@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SettingSeeder::class,
             LandingPageSettingSeeder::class,
+            MailTemplateSeeder::class,
             AddonSeeder::class,
             CatalogSeeder::class,
             EventSeeder::class,

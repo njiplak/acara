@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\LandingPageSettingController;
+use App\Http\Controllers\Setting\MailTemplateController;
 use App\Http\Controllers\Setting\PageController;
 use App\Http\Controllers\Setting\PermissionController;
 use App\Http\Controllers\Setting\RoleController;
@@ -45,6 +46,17 @@ Route::group(['middleware' => 'auth', 'prefix' => 'setting', 'as' => 'backoffice
         Route::put('/{id}', [PermissionController::class, 'update'])->name('update');
         Route::delete('/{id}', [PermissionController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [PermissionController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'mail-template', 'as' => 'mail-template.'], function () {
+        Route::get('/', [MailTemplateController::class, 'index'])->name('index');
+        Route::get('/fetch', [MailTemplateController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [MailTemplateController::class, 'create'])->name('create');
+        Route::post('/', [MailTemplateController::class, 'store'])->name('store');
+        Route::get('/{id}', [MailTemplateController::class, 'show'])->name('show');
+        Route::put('/{id}', [MailTemplateController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MailTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [MailTemplateController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
     Route::group(['prefix' => 'page', 'as' => 'page.'], function () {
