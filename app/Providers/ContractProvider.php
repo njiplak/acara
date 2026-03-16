@@ -17,6 +17,7 @@ use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
 use App\Contract\Setting\PermissionContract;
 use App\Contract\Setting\RoleContract;
+use App\Contract\Setting\PageContract;
 use App\Contract\Setting\SettingContract;
 use App\Service\Auth\CustomerAuthService;
 use App\Service\Auth\UserAuthService;
@@ -31,6 +32,7 @@ use App\Service\Master\VenueService;
 use App\Service\Master\VoucherService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
+use App\Service\Setting\PageService;
 use App\Service\Setting\PermissionService;
 use App\Service\Setting\RoleService;
 use App\Service\Setting\SettingService;
@@ -62,6 +64,7 @@ class ContractProvider extends ServiceProvider
         SettingContract::class => SettingService::class,
         RoleContract::class => RoleService::class,
         PermissionContract::class => PermissionService::class,
+        PageContract::class => PageService::class,
     ];
 
     public function register(): void

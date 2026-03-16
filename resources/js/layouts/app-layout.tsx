@@ -3,6 +3,7 @@ import {
     Calendar,
     ChevronsUpDown,
     ClipboardList,
+    FileText,
     Globe,
     LayoutDashboard,
     LogOut,
@@ -292,6 +293,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.setting.permission.index.url()}>
                                             <Shield />
                                             <span>Permission</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.page.index.url())}>
+                                        <Link href={backoffice.setting.page.index.url()}>
+                                            <FileText />
+                                            <span>Pages</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

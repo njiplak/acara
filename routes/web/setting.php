@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\LandingPageSettingController;
+use App\Http\Controllers\Setting\PageController;
 use App\Http\Controllers\Setting\PermissionController;
 use App\Http\Controllers\Setting\RoleController;
 use App\Http\Controllers\Setting\SettingController;
@@ -44,5 +45,16 @@ Route::group(['middleware' => 'auth', 'prefix' => 'setting', 'as' => 'backoffice
         Route::put('/{id}', [PermissionController::class, 'update'])->name('update');
         Route::delete('/{id}', [PermissionController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [PermissionController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'page', 'as' => 'page.'], function () {
+        Route::get('/', [PageController::class, 'index'])->name('index');
+        Route::get('/fetch', [PageController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [PageController::class, 'create'])->name('create');
+        Route::post('/', [PageController::class, 'store'])->name('store');
+        Route::get('/{id}', [PageController::class, 'show'])->name('show');
+        Route::put('/{id}', [PageController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PageController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [PageController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 });
