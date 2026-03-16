@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('catalog_id')->nullable()->constrained()->nullOnDelete();
             $table->string('title');
-            $table->enum('type', ['file', 'link', 'note']);
+            $table->enum('type', ['file', 'link', 'note', 'video']);
             $table->text('content')->nullable();
             $table->timestamps();
         });

@@ -18,7 +18,17 @@ class EventMaterial extends Model implements HasMedia
         'title',
         'type',
         'content',
+        'available_from',
+        'available_until',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'available_from' => 'datetime',
+            'available_until' => 'datetime',
+        ];
+    }
 
     public function event(): BelongsTo
     {

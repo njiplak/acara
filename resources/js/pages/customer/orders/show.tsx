@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, FileText, Link2, MessageSquare, QrCode, Star, Upload, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, FileText, Link2, MessageSquare, Play, QrCode, Star, Upload, Video, XCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
@@ -19,6 +19,18 @@ function formatPrice(price: number) {
 
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function getVideoEmbedUrl(url: string): string | null {
+    // YouTube: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+
+    // Vimeo: vimeo.com/ID
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+
+    return null;
 }
 
 const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -234,38 +246,62 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                                 <h2 className="mb-3 text-sm font-semibold text-foreground">Materials</h2>
                                 <div className="space-y-2">
                                     {materials.map((material) => {
-                                        const icons = { file: File, link: Link2, note: FileText };
+                                        const icons = { file: File, link: Link2, note: FileText, video: Video };
                                         const Icon = icons[material.type];
+                                        const embedUrl = material.type === 'video' && material.content ? getVideoEmbedUrl(material.content) : null;
                                         return (
-                                            <div key={material.id} className="flex items-start gap-3 rounded-md border p-3">
-                                                <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-medium text-foreground">{material.title}</p>
-                                                    {material.type === 'link' && material.content && (
-                                                        <a
-                                                            href={material.content}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
-                                                        >
-                                                            Open Link
-                                                            <ExternalLink className="size-3" />
-                                                        </a>
-                                                    )}
-                                                    {material.type === 'note' && material.content && (
-                                                        <p className="mt-0.5 whitespace-pre-wrap text-xs text-muted-foreground">{material.content}</p>
-                                                    )}
-                                                    {material.type === 'file' && material.media?.[0] && (
-                                                        <a
-                                                            href={material.media[0].original_url}
-                                                            download
-                                                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
-                                                        >
-                                                            <Download className="size-3" />
-                                                            {material.media[0].file_name}
-                                                        </a>
-                                                    )}
+                                            <div key={material.id} className="flex flex-col gap-2 rounded-md border p-3">
+                                                <div className="flex items-start gap-3">
+                                                    <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-foreground">{material.title}</p>
+                                                        {material.type === 'link' && material.content && (
+                                                            <a
+                                                                href={material.content}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
+                                                            >
+                                                                Open Link
+                                                                <ExternalLink className="size-3" />
+                                                            </a>
+                                                        )}
+                                                        {material.type === 'note' && material.content && (
+                                                            <p className="mt-0.5 whitespace-pre-wrap text-xs text-muted-foreground">{material.content}</p>
+                                                        )}
+                                                        {material.type === 'file' && material.media?.[0] && (
+                                                            <a
+                                                                href={material.media[0].original_url}
+                                                                download
+                                                                className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
+                                                            >
+                                                                <Download className="size-3" />
+                                                                {material.media[0].file_name}
+                                                            </a>
+                                                        )}
+                                                        {material.type === 'video' && material.content && !embedUrl && (
+                                                            <a
+                                                                href={material.content}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-0.5 inline-flex items-center gap-1 text-xs text-foreground underline underline-offset-2 hover:no-underline"
+                                                            >
+                                                                <Play className="size-3" />
+                                                                Watch Video
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
+                                                {embedUrl && (
+                                                    <div className="aspect-video w-full overflow-hidden rounded-md">
+                                                        <iframe
+                                                            src={embedUrl}
+                                                            className="size-full"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                            allowFullScreen
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

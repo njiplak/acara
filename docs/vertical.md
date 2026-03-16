@@ -4,8 +4,8 @@
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    ███░░░     █████     ████░░       ██░░░░░░       █░░░░░
- 90%       45%        95%       80%          30%            20%
+ ██████    ███░░░     █████     ████░░       ███░░░░░       █░░░░░
+ 90%       45%        95%       80%          40%            20%
 ```
 
 ---
@@ -101,7 +101,7 @@ Event-day execution and content delivery.
 
 ---
 
-## 5. FOLLOW-UP — 30%
+## 5. FOLLOW-UP — 40%
 
 Post-event actions that close the loop.
 
@@ -112,7 +112,7 @@ Post-event actions that close the loop.
 | Post-event survey (NPS, detailed) | Not started | Multi-question surveys per event or catalog |
 | Certificate distribution | Not started | Auto-send certificates after event ends |
 | Post-event email (thank you, recap) | Not started | Automated email with event summary, feedback link, next events |
-| Recording/replay access | Not started | Gate recorded content for confirmed attendees |
+| Recording/replay access | Done | Video embed (YouTube/Vimeo) as material type, availability window gating |
 | Financial reports (exportable) | Not started | Export event economics to Excel/PDF |
 
 ### What to develop next in FOLLOW-UP
@@ -164,7 +164,7 @@ Features ranked by **impact vs effort** across all stages.
 | 12 | Recurring class schedules | PLAN | Niche | High |
 | 13 | Live announcements | DELIVER | Low | Medium |
 | 14 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
-| 15 | Recording/replay access | FOLLOW-UP | Niche | Medium |
+| ~~15~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 
 ---
 
@@ -176,6 +176,6 @@ Features ranked by **impact vs effort** across all stages.
 | MARKET | 45% | 8 | 5 | 3 |
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 80% | 7 | 4 | 3 |
-| FOLLOW-UP | 30% | 7 | 2 | 5 |
+| FOLLOW-UP | 40% | 7 | 3 | 4 |
 | RETAIN | 20% | 8 | 3 | 5 |
-| **TOTAL** | **~60%** | **55** | **37** | **18** |
+| **TOTAL** | **~62%** | **55** | **38** | **17** |

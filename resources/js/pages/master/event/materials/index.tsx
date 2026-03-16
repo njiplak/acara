@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, ExternalLink, File, FileText, Link2, Trash2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, File, FileText, Link2, Trash2, Video } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,8 @@ import { index as eventIndex } from '@/routes/backoffice/master/event';
 import type { Event } from '@/types/event';
 import type { EventMaterial } from '@/types/event-material';
 
-const typeIcons = { file: File, link: Link2, note: FileText };
-const typeLabels = { file: 'File', link: 'Link', note: 'Note' };
+const typeIcons = { file: File, link: Link2, note: FileText, video: Video };
+const typeLabels = { file: 'File', link: 'Link', note: 'Note', video: 'Video' };
 
 type Props = {
     event: Event;
@@ -79,6 +79,24 @@ export default function MaterialsIndex({ event, materials }: Props) {
                                         )}
                                         {material.type === 'file' && material.media?.[0] && (
                                             <p className="mt-0.5 text-xs text-muted-foreground">{material.media[0].file_name}</p>
+                                        )}
+                                        {material.type === 'video' && material.content && (
+                                            <a
+                                                href={material.content}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                                            >
+                                                {material.content}
+                                                <ExternalLink className="size-3" />
+                                            </a>
+                                        )}
+                                        {(material.available_from || material.available_until) && (
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                {material.available_from && `From: ${new Date(material.available_from).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                                                {material.available_from && material.available_until && ' · '}
+                                                {material.available_until && `Until: ${new Date(material.available_until).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                                            </p>
                                         )}
                                     </div>
                                 </div>

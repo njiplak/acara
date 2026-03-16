@@ -74,6 +74,14 @@ class OrderController extends Controller
                         $q->whereNull('catalog_id')
                             ->orWhere('catalog_id', $order->catalog_id);
                     })
+                    ->where(function ($q) {
+                        $q->whereNull('available_from')
+                            ->orWhere('available_from', '<=', now());
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('available_until')
+                            ->orWhere('available_until', '>=', now());
+                    })
                     ->with('media')
                     ->get();
             }
