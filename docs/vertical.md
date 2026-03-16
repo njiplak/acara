@@ -4,8 +4,8 @@
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    █░░░░░     █████     ████░░       ██░░░░░░       █░░░░░
- 90%       10%        95%       80%          30%            20%
+ ██████    ███░░░     █████     ████░░       ██░░░░░░       █░░░░░
+ 90%       45%        95%       80%          30%            20%
 ```
 
 ---
@@ -35,7 +35,7 @@ Plan, configure, and evaluate events before they go live.
 
 ---
 
-## 2. MARKET — 10%
+## 2. MARKET — 45%
 
 Attract attendees and drive registrations.
 
@@ -45,16 +45,15 @@ Attract attendees and drive registrations.
 | Custom head scripts | Done | GTM, pixel injection |
 | Email/WA notifications | Not started | Order confirmation, payment reminder, event reminder (D-3, D-1) |
 | Blast/campaign to past attendees | Not started | Announce new events to previous customers by segment |
-| Testimonial display on public pages | Not started | Testimonials are collected but not shown on event/landing pages |
+| Testimonial display on public pages | Done | Highlighted testimonials on landing page (global) and event detail (per-event) |
 | Waitlist for sold-out events | Not started | Sign up when session full, auto-promote on cancellation |
-| Social sharing tools | Not started | Easy share links for referral codes, event pages |
-| Early bird countdown/urgency | Not started | Visible countdown to next pricing tier change |
+| Social sharing tools | Done | Share button (WhatsApp, X, Facebook, copy link), referral-enhanced URLs with ?ref= prefill |
+| Early bird countdown/urgency | Done | Live countdown for date-based tiers, "X spots left" for quantity-based tiers |
 
 ### What to develop next in MARKET
 1. **Email/WA notifications** — Order confirmation + event reminders. Reduces no-shows by 20-40%. Highest ROI feature in the entire platform.
-2. **Testimonial display** — Show highlighted testimonials on event detail and landing pages. Quick win, data already exists.
-3. **Waitlist management** — Capture demand for sold-out sessions. Auto-notify when spot opens.
-4. **Blast/campaign system** — Re-engage past attendees when new events are published. Segment by event history.
+2. **Waitlist management** — Capture demand for sold-out sessions. Auto-notify when spot opens.
+3. **Blast/campaign system** — Re-engage past attendees when new events are published. Segment by event history.
 
 ---
 
@@ -154,19 +153,18 @@ Features ranked by **impact vs effort** across all stages.
 | 1 | Email/WA notifications | MARKET | Very High | Medium |
 | 2 | Certificate generation | DELIVER | High | Medium |
 | 3 | Payment gateway (Midtrans/Xendit) | SELL | High | Medium-High |
-| 4 | Testimonial display on public pages | MARKET | Medium | Low |
-| 5 | Post-event email automation | FOLLOW-UP | High | Medium |
-| 6 | Customer segmentation/tags | RETAIN | High | Low-Medium |
-| 7 | Waitlist management | MARKET | Medium | Low-Medium |
-| 8 | Exportable financial reports | FOLLOW-UP | Medium | Low |
-| 9 | Repeat attendee tracking | RETAIN | Medium | Low |
-| 10 | Blast/campaign system | MARKET | High | Medium-High |
-| 11 | Per-session attendance | DELIVER | Medium | Low |
-| 12 | Loyalty/points program | RETAIN | Medium | Medium |
-| 13 | Recurring class schedules | PLAN | Niche | High |
-| 14 | Live announcements | DELIVER | Low | Medium |
-| 15 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
-| 16 | Recording/replay access | FOLLOW-UP | Niche | Medium |
+| 4 | Post-event email automation | FOLLOW-UP | High | Medium |
+| 5 | Customer segmentation/tags | RETAIN | High | Low-Medium |
+| 6 | Waitlist management | MARKET | Medium | Low-Medium |
+| 7 | Exportable financial reports | FOLLOW-UP | Medium | Low |
+| 8 | Repeat attendee tracking | RETAIN | Medium | Low |
+| 9 | Blast/campaign system | MARKET | High | Medium-High |
+| 10 | Per-session attendance | DELIVER | Medium | Low |
+| 11 | Loyalty/points program | RETAIN | Medium | Medium |
+| 12 | Recurring class schedules | PLAN | Niche | High |
+| 13 | Live announcements | DELIVER | Low | Medium |
+| 14 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
+| 15 | Recording/replay access | FOLLOW-UP | Niche | Medium |
 
 ---
 
@@ -175,9 +173,9 @@ Features ranked by **impact vs effort** across all stages.
 | Stage | Progress | Feature Count | Done | Remaining |
 |---|---|---|---|---|
 | PLAN | 90% | 13 | 12 | 1 |
-| MARKET | 10% | 8 | 2 | 6 |
+| MARKET | 45% | 8 | 5 | 3 |
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 80% | 7 | 4 | 3 |
 | FOLLOW-UP | 30% | 7 | 2 | 5 |
 | RETAIN | 20% | 8 | 3 | 5 |
-| **TOTAL** | **~55%** | **55** | **34** | **21** |
+| **TOTAL** | **~60%** | **55** | **37** | **18** |

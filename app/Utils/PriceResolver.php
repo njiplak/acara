@@ -9,7 +9,7 @@ class PriceResolver
     /**
      * Resolve the active price for a catalog-event pairing.
      *
-     * @return array{active_price: int, active_tier_index: int|null, tiers: array, savings: int}
+     * @return array{active_price: int, active_tier_index: int|null, tiers: array, savings: int, tier_ends_at: string|null, remaining_in_tier: int|null}
      */
     public static function resolve(
         string $pricingType,
@@ -23,6 +23,8 @@ class PriceResolver
                 'active_tier_index' => null,
                 'tiers' => [],
                 'savings' => 0,
+                'tier_ends_at' => null,
+                'remaining_in_tier' => null,
             ];
         }
 
@@ -60,11 +62,37 @@ class PriceResolver
         $lastTierPrice = (int) (end($pricingTiers)['price'] ?? $activePrice);
         $savings = max(0, $lastTierPrice - $activePrice);
 
+        // Urgency data
+        $tierEndsAt = null;
+        $remainingInTier = null;
+
+        if ($activeTierIndex !== null) {
+            $activeTier = $pricingTiers[$activeTierIndex];
+
+            if ($pricingType === 'date' && !empty($activeTier['end_date'])) {
+                $tierEndsAt = $activeTier['end_date'];
+            }
+
+            if ($pricingType === 'quantity') {
+                $cumulativeSeats = 0;
+                for ($i = 0; $i <= $activeTierIndex; $i++) {
+                    if ($pricingTiers[$i]['max_seats'] !== null) {
+                        $cumulativeSeats += $pricingTiers[$i]['max_seats'];
+                    }
+                }
+                if ($cumulativeSeats > 0) {
+                    $remainingInTier = max(0, $cumulativeSeats - $currentOrders);
+                }
+            }
+        }
+
         return [
             'active_price' => $activePrice,
             'active_tier_index' => $activeTierIndex,
             'tiers' => $pricingTiers,
             'savings' => $savings,
+            'tier_ends_at' => $tierEndsAt,
+            'remaining_in_tier' => $remainingInTier,
         ];
     }
 }

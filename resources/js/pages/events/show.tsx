@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, ClipboardList, Clock, LoaderCircle, MapPin, Tag, Ticket, Users, Wallet } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Calendar, Check, ClipboardList, Clock, Copy, Link2, LoaderCircle, MapPin, Share2, Star, Tag, Ticket, Timer, Users, Wallet } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { store, validateVoucher } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import type { SharedData } from '@/types';
 import type { Catalog } from '@/types/catalog';
 import type { Event, ResolvedPricing } from '@/types/event';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
+import type { Testimonial } from '@/types/testimonial';
 
 function formatDateRange(start: string, end: string) {
     const s = new Date(start);
@@ -39,9 +40,11 @@ type Props = {
     customerOrderCatalogIds: number[];
     customerBalance: number;
     referralDiscount: number;
+    testimonials?: Testimonial[];
+    prefillReferralCode?: string;
 };
 
-export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerBalance, referralDiscount }: Props) {
+export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerBalance, referralDiscount, testimonials = [], prefillReferralCode = '' }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
     const { auth } = usePage<SharedData>().props;
@@ -111,7 +114,14 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                                 <span>{formatDateRange(event.start_date, event.end_date)}</span>
                             </div>
 
-                            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{event.name}</h1>
+                            <div className="flex items-start justify-between gap-4">
+                                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{event.name}</h1>
+                                <ShareEventButton
+                                    eventName={event.name}
+                                    referralCode={customer?.referral_code ?? undefined}
+                                    referralDiscount={referralDiscount}
+                                />
+                            </div>
 
                             {event.description && (
                                 <p className="mt-3 leading-relaxed text-muted-foreground">{event.description}</p>
@@ -206,12 +216,51 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                                                 customerBalance={customerBalance}
                                                 referralDiscount={referralDiscount}
                                                 pricing={pricingData[catalog.id]}
+                                                prefillReferralCode={prefillReferralCode}
                                             />
                                         );
                                     })}
                                 </div>
                             )}
                         </div>
+
+                        {/* Testimonials */}
+                        {testimonials.length > 0 && (
+                            <>
+                                <div className="mt-10 h-px bg-border" />
+                                <div className="mt-8">
+                                    <h2 className="mb-4 text-lg font-semibold text-foreground">What Attendees Say</h2>
+                                    <div className="space-y-3">
+                                        {testimonials.map((t) => (
+                                            <div key={t.id} className="rounded-lg border bg-card p-4">
+                                                <div className="flex items-center gap-0.5">
+                                                    {Array.from({ length: 5 }, (_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            className={`size-3.5 ${i < t.rating ? 'fill-foreground text-foreground' : 'text-muted-foreground/30'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">"{t.body}"</p>
+                                                <div className="mt-3 flex items-center gap-2">
+                                                    {t.customer?.avatar ? (
+                                                        <img src={t.customer.avatar} alt={t.customer.name} className="size-6 rounded-full" />
+                                                    ) : (
+                                                        <div className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                                            {t.customer?.name?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <span className="text-sm font-medium text-foreground">{t.customer?.name}</span>
+                                                    {t.catalog && (
+                                                        <span className="text-xs text-muted-foreground">· {t.catalog.name}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         {/* Sign in CTA for guests */}
                         {!customer && catalogs.length > 0 && (
@@ -250,6 +299,7 @@ function CatalogCard({
     customerBalance,
     referralDiscount,
     pricing,
+    prefillReferralCode = '',
 }: {
     catalog: Catalog & { pivot?: { max_participant: number | null } };
     eventId: number;
@@ -260,6 +310,7 @@ function CatalogCard({
     customerBalance: number;
     referralDiscount: number;
     pricing: ResolvedPricing;
+    prefillReferralCode?: string;
 }) {
     const addons = catalog.addons || [];
     const activePrice = pricing.active_price;
@@ -267,7 +318,7 @@ function CatalogCard({
     const hasDiscount = !hasTiers && catalog.strike_price !== null && catalog.strike_price > catalog.price;
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
     const [submitting, setSubmitting] = useState(false);
-    const [referralCode, setReferralCode] = useState('');
+    const [referralCode, setReferralCode] = useState(prefillReferralCode);
     const [useBalance, setUseBalance] = useState(false);
 
     // Voucher state
@@ -461,6 +512,19 @@ function CatalogCard({
                             Save {formatPrice(pricing.savings)} by registering now
                         </p>
                     )}
+                </div>
+            )}
+
+            {/* Urgency indicators */}
+            {pricing.tier_ends_at && pricing.savings > 0 && (
+                <CountdownTimer endsAt={pricing.tier_ends_at} tierLabel={pricing.tiers[pricing.active_tier_index!]?.label} />
+            )}
+            {pricing.remaining_in_tier !== null && pricing.remaining_in_tier <= 10 && pricing.savings > 0 && (
+                <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm dark:border-amber-900 dark:bg-amber-950">
+                    <Timer className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span className="font-medium text-amber-700 dark:text-amber-300">
+                        Only {pricing.remaining_in_tier} {pricing.remaining_in_tier === 1 ? 'spot' : 'spots'} left at this price
+                    </span>
                 </div>
             )}
 
@@ -673,6 +737,149 @@ function AddonToggle({ addon, selected, onToggle }: { addon: Addon; selected: bo
             </div>
             <span className="ml-4 shrink-0 font-medium">+{formatPrice(addon.price)}</span>
         </button>
+    );
+}
+
+function CountdownTimer({ endsAt, tierLabel }: { endsAt: string; tierLabel?: string }) {
+    const [timeLeft, setTimeLeft] = useState('');
+    const [expired, setExpired] = useState(false);
+    const intervalRef = useRef<ReturnType<typeof setInterval>>(null);
+
+    useEffect(() => {
+        const target = new Date(endsAt + 'T23:59:59').getTime();
+
+        const tick = () => {
+            const now = Date.now();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                setExpired(true);
+                setTimeLeft('');
+                if (intervalRef.current) clearInterval(intervalRef.current);
+                return;
+            }
+
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+
+            if (days > 0) {
+                setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+            } else if (hours > 0) {
+                setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+            } else {
+                setTimeLeft(`${minutes}m ${seconds}s`);
+            }
+        };
+
+        tick();
+        intervalRef.current = setInterval(tick, 1000);
+        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    }, [endsAt]);
+
+    if (expired) return null;
+
+    return (
+        <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm dark:border-amber-900 dark:bg-amber-950">
+            <Timer className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span className="font-medium text-amber-700 dark:text-amber-300">
+                {tierLabel ? `${tierLabel} ends in ` : 'Price increases in '}{timeLeft}
+            </span>
+        </div>
+    );
+}
+
+function ShareEventButton({ eventName, referralCode, referralDiscount }: { eventName: string; referralCode?: string; referralDiscount: number }) {
+    const [open, setOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    const currentUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
+    const shareUrl = referralCode ? `${currentUrl}?ref=${referralCode}` : currentUrl;
+    const shareText = referralCode
+        ? `Check out ${eventName}! Use my referral code ${referralCode} for ${formatPrice(referralDiscount)} off.`
+        : `Check out ${eventName}!`;
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({ title: eventName, text: shareText, url: shareUrl }).catch(() => {});
+        } else {
+            setOpen(!open);
+        }
+    };
+
+    const copyLink = () => {
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+    const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                onClick={handleShare}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+                <Share2 className="size-4" />
+                <span className="hidden sm:inline">Share</span>
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-full z-30 mt-1 w-56 rounded-lg border bg-card p-1.5 shadow-lg">
+                    <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                        onClick={() => setOpen(false)}
+                    >
+                        <span className="text-base">💬</span>
+                        WhatsApp
+                    </a>
+                    <a
+                        href={twitterUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                        onClick={() => setOpen(false)}
+                    >
+                        <span className="text-base">𝕏</span>
+                        Twitter / X
+                    </a>
+                    <a
+                        href={facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                        onClick={() => setOpen(false)}
+                    >
+                        <span className="text-base">📘</span>
+                        Facebook
+                    </a>
+                    <div className="my-1 h-px bg-border" />
+                    <button
+                        onClick={copyLink}
+                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                        {copied ? <Check className="size-4 text-green-600" /> : <Link2 className="size-4" />}
+                        {copied ? 'Copied!' : 'Copy link'}
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
 

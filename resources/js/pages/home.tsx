@@ -1,11 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Calendar, ClipboardList, Users } from 'lucide-react';
+import { ArrowRight, Calendar, ClipboardList, Star, Users } from 'lucide-react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { showEvent } from '@/actions/App/Http/Controllers/HomeController';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Event } from '@/types/event';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
+import type { Testimonial } from '@/types/testimonial';
 
 function formatDateRange(start: string, end: string) {
     const s = new Date(start);
@@ -33,7 +34,7 @@ function getLowestPrice(event: Event): number | null {
     return Math.min(...event.catalogs.map((c) => c.price));
 }
 
-export default function Home({ settings, events, logoUrl }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null }) {
+export default function Home({ settings, events, logoUrl, testimonials = [] }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null; testimonials?: Testimonial[] }) {
     const name = settings.business_name || 'Acara';
     const { auth } = usePage<SharedData>().props;
     const customer = auth.customer;
@@ -139,6 +140,24 @@ export default function Home({ settings, events, logoUrl }: { settings: LandingP
                     )}
                 </section>
 
+                {/* Testimonials */}
+                {testimonials.length > 0 && (
+                    <>
+                        <div className="mx-6 h-px bg-border lg:mx-12" />
+                        <section className="px-6 py-12 lg:px-12 lg:py-16">
+                            <div className="mb-8 text-center">
+                                <h2 className="text-xl font-semibold tracking-tight text-foreground">What Our Attendees Say</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">Hear from people who joined our events</p>
+                            </div>
+                            <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {testimonials.map((t) => (
+                                    <TestimonialCard key={t.id} testimonial={t} />
+                                ))}
+                            </div>
+                        </section>
+                    </>
+                )}
+
                 {/* Footer */}
                 <footer className="border-t px-6 py-6 lg:px-12">
                     <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
@@ -190,6 +209,37 @@ function EventCard({ event }: { event: Event }) {
                 )}
             </div>
         </Link>
+    );
+}
+
+function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+    return (
+        <div className="flex flex-col rounded-lg border bg-card p-5">
+            <div className="mb-3 flex items-center gap-0.5">
+                {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                        key={i}
+                        className={`size-3.5 ${i < testimonial.rating ? 'fill-foreground text-foreground' : 'text-muted-foreground/30'}`}
+                    />
+                ))}
+            </div>
+            <p className="flex-1 text-sm leading-relaxed text-muted-foreground">"{testimonial.body}"</p>
+            <div className="mt-4 flex items-center gap-2.5">
+                {testimonial.customer?.avatar ? (
+                    <img src={testimonial.customer.avatar} alt={testimonial.customer.name} className="size-7 rounded-full" />
+                ) : (
+                    <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                        {testimonial.customer?.name?.charAt(0).toUpperCase()}
+                    </div>
+                )}
+                <div>
+                    <p className="text-sm font-medium text-foreground">{testimonial.customer?.name}</p>
+                    {testimonial.event && (
+                        <p className="text-xs text-muted-foreground">{testimonial.event.name}</p>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
 

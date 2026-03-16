@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
+use App\Models\Testimonial;
 use App\Utils\PriceResolver;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -52,10 +53,18 @@ class HomeController extends Controller
 
         $settings = LandingPageSetting::instance();
 
+        $testimonials = Testimonial::where('is_highlighted', true)
+            ->whereNotNull('body')
+            ->with('customer:id,name,avatar', 'event:id,name')
+            ->latest()
+            ->limit(6)
+            ->get();
+
         return Inertia::render('home', [
             'settings' => $settings,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
             'events' => $events,
+            'testimonials' => $testimonials,
         ]);
     }
 
@@ -99,6 +108,16 @@ class HomeController extends Controller
 
         $settings = LandingPageSetting::instance();
 
+        $testimonials = Testimonial::where('is_highlighted', true)
+            ->where('event_id', $event->id)
+            ->whereNotNull('body')
+            ->with('customer:id,name,avatar', 'catalog:id,name')
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        $prefillReferralCode = request()->query('ref', '');
+
         return Inertia::render('events/show', [
             'settings' => $settings,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
@@ -108,6 +127,8 @@ class HomeController extends Controller
             'customerOrderCatalogIds' => $customerOrderCatalogIds,
             'customerBalance' => $customerBalance,
             'referralDiscount' => config('service-contract.referral.referee_discount', 0),
+            'testimonials' => $testimonials,
+            'prefillReferralCode' => $prefillReferralCode,
         ]);
     }
 }

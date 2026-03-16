@@ -23,6 +23,8 @@ export type ResolvedPricing = {
     active_tier_index: number | null;
     tiers: PricingTier[];
     savings: number;
+    tier_ends_at: string | null;
+    remaining_in_tier: number | null;
 };
 
 export type CatalogEventPivot = {

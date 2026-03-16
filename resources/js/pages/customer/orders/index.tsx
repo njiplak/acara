@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList, Copy, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, Copy, Share2, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/Customer/OrderController';
@@ -161,7 +161,24 @@ function ReferralCard({ code, balance }: { code: string; balance: number }) {
                             {copied ? 'Copied!' : 'Copy'}
                         </button>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">Share this code with friends to earn referral credits</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        Share this code with friends to earn referral credits
+                    </p>
+                    <button
+                        onClick={() => {
+                            const url = window.location.origin;
+                            const text = `Use my referral code ${code} for a discount! ${url}`;
+                            if (navigator.share) {
+                                navigator.share({ text }).catch(() => {});
+                            } else {
+                                navigator.clipboard.writeText(text);
+                            }
+                        }}
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                        <Share2 className="size-3" />
+                        Share
+                    </button>
                 </div>
                 <div className="flex items-center gap-2 rounded-md bg-accent/50 px-4 py-2">
                     <Wallet className="size-4 text-muted-foreground" />
