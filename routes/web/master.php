@@ -6,6 +6,7 @@ use App\Http\Controllers\Master\EventController;
 use App\Http\Controllers\Master\EventMaterialController;
 use App\Http\Controllers\Master\SpeakerController;
 use App\Http\Controllers\Master\VenueController;
+use App\Http\Controllers\Master\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.master.'], function () {
@@ -52,6 +53,17 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::put('/{id}', [VenueController::class, 'update'])->name('update');
         Route::delete('/{id}', [VenueController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [VenueController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'voucher', 'as' => 'voucher.'], function () {
+        Route::get('/', [VoucherController::class, 'index'])->name('index');
+        Route::get('/fetch', [VoucherController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [VoucherController::class, 'create'])->name('create');
+        Route::post('/', [VoucherController::class, 'store'])->name('store');
+        Route::get('/{id}', [VoucherController::class, 'show'])->name('show');
+        Route::put('/{id}', [VoucherController::class, 'update'])->name('update');
+        Route::delete('/{id}', [VoucherController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [VoucherController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
     Route::group(['prefix' => 'event', 'as' => 'event.'], function () {

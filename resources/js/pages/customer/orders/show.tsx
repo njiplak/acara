@@ -196,6 +196,12 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                                         ))}
                                     </>
                                 )}
+                                {order.voucher_discount > 0 && (
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                                        <span className="text-sm">Promo discount</span>
+                                        <span className="text-sm">-{formatPrice(order.voucher_discount)}</span>
+                                    </div>
+                                )}
                                 {order.referral_discount > 0 && (
                                     <div className="flex justify-between text-green-600 dark:text-green-400">
                                         <span className="text-sm">Referral discount</span>

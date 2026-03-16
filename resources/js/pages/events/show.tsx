@@ -1,8 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, ClipboardList, Clock, MapPin, Tag, Ticket, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, ClipboardList, Clock, LoaderCircle, MapPin, Tag, Ticket, Users, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
-import { store } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { store, validateVoucher } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
@@ -270,17 +270,78 @@ function CatalogCard({
     const [referralCode, setReferralCode] = useState('');
     const [useBalance, setUseBalance] = useState(false);
 
+    // Voucher state
+    const [voucherCode, setVoucherCode] = useState('');
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
+    const [voucherValid, setVoucherValid] = useState(false);
+    const [voucherStackable, setVoucherStackable] = useState(false);
+    const [voucherError, setVoucherError] = useState('');
+    const [voucherLoading, setVoucherLoading] = useState(false);
+
     const addonsTotal = addons
         .filter((a) => selectedAddons.includes(a.id))
         .reduce((sum, a) => sum + a.price, 0);
     const subtotal = activePrice + addonsTotal;
-    const appliedDiscount = referralCode.trim() ? Math.min(referralDiscount, subtotal) : 0;
-    const remainingAfterDiscount = subtotal - appliedDiscount;
+
+    // Voucher discount applied first
+    const appliedVoucherDiscount = voucherValid ? Math.min(voucherDiscount, subtotal) : 0;
+
+    // Referral discount: only if no voucher or voucher is stackable
+    const canApplyReferral = !voucherValid || voucherStackable;
+    const appliedDiscount = canApplyReferral && referralCode.trim() ? Math.min(referralDiscount, subtotal - appliedVoucherDiscount) : 0;
+
+    const remainingAfterDiscount = subtotal - appliedVoucherDiscount - appliedDiscount;
     const appliedBalance = useBalance ? Math.min(customerBalance, remainingAfterDiscount) : 0;
-    const total = subtotal - appliedDiscount - appliedBalance;
+    const total = subtotal - appliedVoucherDiscount - appliedDiscount - appliedBalance;
 
     const toggleAddon = (id: number) => {
         setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
+    };
+
+    const handleApplyVoucher = () => {
+        if (!voucherCode.trim()) return;
+        setVoucherLoading(true);
+        setVoucherError('');
+
+        fetch(validateVoucher.url(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                code: voucherCode.trim(),
+                event_id: eventId,
+                catalog_id: catalog.id,
+                subtotal,
+            }),
+        })
+            .then((res) => res.json())
+            .then((result) => {
+                if (result.valid) {
+                    setVoucherValid(true);
+                    setVoucherDiscount(result.discount);
+                    setVoucherStackable(result.stackable_with_referral);
+                    setVoucherError('');
+                } else {
+                    setVoucherValid(false);
+                    setVoucherDiscount(0);
+                    setVoucherError(result.message);
+                }
+            })
+            .catch(() => {
+                setVoucherError('Failed to validate code. Please try again.');
+            })
+            .finally(() => setVoucherLoading(false));
+    };
+
+    const handleClearVoucher = () => {
+        setVoucherCode('');
+        setVoucherValid(false);
+        setVoucherDiscount(0);
+        setVoucherStackable(false);
+        setVoucherError('');
     };
 
     const handleRegister = () => {
@@ -291,7 +352,8 @@ function CatalogCard({
                 event_id: eventId,
                 catalog_id: catalog.id,
                 addon_ids: selectedAddons,
-                referral_code: referralCode.trim() || undefined,
+                referral_code: canApplyReferral && referralCode.trim() ? referralCode.trim() : undefined,
+                voucher_code: voucherValid ? voucherCode.trim() : undefined,
                 use_balance: useBalance || undefined,
             },
             {
@@ -419,29 +481,86 @@ function CatalogCard({
                 </div>
             )}
 
-            {/* Referral code & balance — shown for authenticated users who can register */}
+            {/* Promo code, referral & balance — shown for authenticated users who can register */}
             {isAuthenticated && !isFull && !alreadyOrdered && (
                 <div className="mt-4 border-t pt-4 space-y-3">
-                    {/* Referral code input */}
+                    {/* Promo code input */}
                     <div>
                         <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                            <Ticket className="size-3.5" />
-                            Referral Code (optional)
+                            <Tag className="size-3.5" />
+                            Promo Code (optional)
                         </label>
-                        <input
-                            type="text"
-                            value={referralCode}
-                            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                            placeholder="Enter referral code"
-                            maxLength={20}
-                            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/30 focus:outline-none"
-                        />
-                        {referralCode.trim() && referralDiscount > 0 && (
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={voucherCode}
+                                onChange={(e) => {
+                                    setVoucherCode(e.target.value.toUpperCase());
+                                    if (voucherValid) handleClearVoucher();
+                                }}
+                                placeholder="Enter promo code"
+                                maxLength={50}
+                                disabled={voucherValid}
+                                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono uppercase placeholder:text-muted-foreground/50 placeholder:font-sans placeholder:normal-case focus:border-foreground/30 focus:outline-none disabled:opacity-50"
+                            />
+                            {voucherValid ? (
+                                <button
+                                    type="button"
+                                    onClick={handleClearVoucher}
+                                    className="shrink-0 rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+                                >
+                                    Clear
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handleApplyVoucher}
+                                    disabled={!voucherCode.trim() || voucherLoading}
+                                    className="shrink-0 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
+                                >
+                                    {voucherLoading ? <LoaderCircle className="size-4 animate-spin" /> : 'Apply'}
+                                </button>
+                            )}
+                        </div>
+                        {voucherValid && (
                             <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                                You'll get {formatPrice(appliedDiscount)} discount
+                                Promo applied — {formatPrice(appliedVoucherDiscount)} off
                             </p>
                         )}
+                        {voucherError && (
+                            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{voucherError}</p>
+                        )}
                     </div>
+
+                    {/* Referral code input — hidden if voucher is non-stackable */}
+                    {canApplyReferral && (
+                        <div>
+                            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                <Ticket className="size-3.5" />
+                                Referral Code (optional)
+                            </label>
+                            <input
+                                type="text"
+                                value={referralCode}
+                                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                                placeholder="Enter referral code"
+                                maxLength={20}
+                                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:border-foreground/30 focus:outline-none"
+                            />
+                            {referralCode.trim() && referralDiscount > 0 && (
+                                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                    You'll get {formatPrice(appliedDiscount)} discount
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Non-stackable notice */}
+                    {voucherValid && !voucherStackable && referralCode.trim() && (
+                        <p className="text-xs text-muted-foreground">
+                            Referral discount cannot be combined with this promo code.
+                        </p>
+                    )}
 
                     {/* Use balance toggle */}
                     {customerBalance > 0 && (
@@ -472,12 +591,18 @@ function CatalogCard({
                     )}
 
                     {/* Price breakdown */}
-                    {(appliedDiscount > 0 || appliedBalance > 0 || selectedAddons.length > 0) && (
+                    {(appliedVoucherDiscount > 0 || appliedDiscount > 0 || appliedBalance > 0 || selectedAddons.length > 0) && (
                         <div className="space-y-1.5 border-t pt-3 text-sm">
                             <div className="flex justify-between text-muted-foreground">
                                 <span>Subtotal</span>
                                 <span>{formatPrice(subtotal)}</span>
                             </div>
+                            {appliedVoucherDiscount > 0 && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span>Promo discount</span>
+                                    <span>-{formatPrice(appliedVoucherDiscount)}</span>
+                                </div>
+                            )}
                             {appliedDiscount > 0 && (
                                 <div className="flex justify-between text-green-600 dark:text-green-400">
                                     <span>Referral discount</span>

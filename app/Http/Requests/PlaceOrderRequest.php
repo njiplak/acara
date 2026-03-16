@@ -19,6 +19,7 @@ class PlaceOrderRequest extends FormRequest
             'addon_ids' => ['nullable', 'array'],
             'addon_ids.*' => ['integer', 'exists:addons,id'],
             'referral_code' => ['nullable', 'string', 'max:20'],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
             'use_balance' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

@@ -12,6 +12,7 @@ import {
     ScanLine,
     Settings,
     Shield,
+    Tag,
     UserCog,
     UserRound,
     Users,
@@ -213,6 +214,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.master.venue.index.url()}>
                                             <MapPin />
                                             <span>Venue</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.voucher.index.url())}>
+                                        <Link href={backoffice.master.voucher.index.url()}>
+                                            <Tag />
+                                            <span>Voucher</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

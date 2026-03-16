@@ -121,6 +121,12 @@ export default function OrderShow({ order }: Props) {
                             <span className="text-sm">{formatPrice(addon.pivot?.addon_price || addon.price)}</span>
                         </div>
                     ))}
+                    {order.voucher_discount > 0 && (
+                        <div className="flex justify-between text-green-600 dark:text-green-400">
+                            <span className="text-sm">Promo discount{order.voucher ? ` (${order.voucher.code})` : ''}</span>
+                            <span className="text-sm">-{formatPrice(order.voucher_discount)}</span>
+                        </div>
+                    )}
                     {order.referral_discount > 0 && (
                         <div className="flex justify-between text-green-600 dark:text-green-400">
                             <span className="text-sm">Referral discount</span>

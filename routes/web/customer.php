@@ -14,4 +14,6 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
         Route::get('/{order}/invoice', [OrderController::class, 'invoice'])->name('invoice');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     });
+
+    Route::post('/voucher/validate', [OrderController::class, 'validateVoucher'])->name('voucher.validate');
 });

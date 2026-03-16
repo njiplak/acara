@@ -32,6 +32,8 @@ class Order extends Model
         'checked_in_at',
         'notes',
         'referred_by',
+        'voucher_id',
+        'voucher_discount',
     ];
 
     protected function casts(): array
@@ -67,6 +69,11 @@ class Order extends Model
     public function confirmedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
     }
 
     public function addons(): BelongsToMany

@@ -3,6 +3,7 @@ import type { Catalog } from './catalog';
 import type { Customer } from './customer';
 import type { Event } from './event';
 import type { Model } from './model';
+import type { Voucher } from './voucher';
 
 export type OrderStatus = 'pending_payment' | 'waiting_confirmation' | 'confirmed' | 'rejected' | 'cancelled' | 'refunded';
 
@@ -19,6 +20,7 @@ export type Order = Model & {
     catalog_price: number;
     addons_total: number;
     referral_discount: number;
+    voucher_discount: number;
     balance_used: number;
     total_amount: number;
     status: OrderStatus;
@@ -32,10 +34,12 @@ export type Order = Model & {
     refund_reason: string | null;
     notes: string | null;
     referred_by: number | null;
+    voucher_id: number | null;
     customer?: Customer;
     event?: Event;
     catalog?: Catalog;
     addons?: (Addon & { pivot?: OrderAddonPivot })[];
     confirmed_by_user?: { id: number; name: string };
     referrer?: Customer;
+    voucher?: Voucher;
 };

@@ -117,6 +117,12 @@
                         <td>Rp {{ number_format($addon->pivot->addon_price, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
+                    @if($order->voucher_discount > 0)
+                    <tr class="discount">
+                        <td>Promo Discount</td>
+                        <td>-Rp {{ number_format($order->voucher_discount, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
                     @if($order->referral_discount > 0)
                     <tr class="discount">
                         <td>Referral Discount</td>

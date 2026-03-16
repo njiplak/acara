@@ -8,6 +8,7 @@ use App\Models\Catalog;
 use App\Models\Customer;
 use App\Models\Event;
 use App\Models\Order;
+use App\Models\Voucher;
 use App\Service\BaseService;
 use App\Utils\PriceResolver;
 use Exception;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService extends BaseService implements OrderContract
 {
-    protected array $relation = ['customer', 'event', 'catalog', 'addons', 'confirmedByUser', 'referrer'];
+    protected array $relation = ['customer', 'event', 'catalog', 'addons', 'confirmedByUser', 'referrer', 'voucher'];
 
     public function __construct(Order $model)
     {
@@ -94,17 +95,75 @@ class OrderService extends BaseService implements OrderContract
                 $referralDiscount = min(config('service-contract.referral.referee_discount', 0), $subtotal);
             }
 
+            // Handle voucher code
+            $voucherId = null;
+            $voucherDiscount = 0;
+            $voucherCode = $payloads['voucher_code'] ?? null;
+            if ($voucherCode) {
+                $voucher = Voucher::where('code', strtoupper($voucherCode))->first();
+                abort_if(!$voucher, 422, 'Invalid promo code.');
+                abort_if(!$voucher->is_active, 422, 'This promo code is no longer active.');
+
+                if ($voucher->valid_from && now()->lt($voucher->valid_from)) {
+                    abort(422, 'This promo code is not yet valid.');
+                }
+                if ($voucher->valid_until && now()->gt($voucher->valid_until)) {
+                    abort(422, 'This promo code has expired.');
+                }
+
+                if ($voucher->event_id && $voucher->event_id !== $event->id) {
+                    abort(422, 'This promo code is not valid for this event.');
+                }
+                if ($voucher->catalog_id && $voucher->catalog_id !== $catalog->id) {
+                    abort(422, 'This promo code is not valid for this session.');
+                }
+
+                if ($voucher->max_uses) {
+                    $totalUsed = Order::where('voucher_id', $voucher->id)
+                        ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
+                        ->count();
+                    abort_if($totalUsed >= $voucher->max_uses, 422, 'This promo code has reached its usage limit.');
+                }
+
+                if ($voucher->max_uses_per_customer) {
+                    $customerUsed = Order::where('voucher_id', $voucher->id)
+                        ->where('customer_id', $payloads['customer_id'])
+                        ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
+                        ->count();
+                    abort_if($customerUsed >= $voucher->max_uses_per_customer, 422, 'You have already used this promo code.');
+                }
+
+                if ($voucher->min_order_amount && $subtotal < $voucher->min_order_amount) {
+                    abort(422, 'Minimum order amount for this promo code is Rp ' . number_format($voucher->min_order_amount, 0, ',', '.') . '.');
+                }
+
+                if ($voucher->type === 'fixed') {
+                    $voucherDiscount = min($voucher->value, $subtotal);
+                } else {
+                    $calculated = (int) floor($subtotal * $voucher->value / 100);
+                    $voucherDiscount = $voucher->max_discount ? min($calculated, $voucher->max_discount) : $calculated;
+                    $voucherDiscount = min($voucherDiscount, $subtotal);
+                }
+
+                $voucherId = $voucher->id;
+
+                // If not stackable, remove referral discount
+                if (!$voucher->stackable_with_referral) {
+                    $referralDiscount = 0;
+                }
+            }
+
             // Handle referral balance usage
             if (!empty($payloads['use_balance'])) {
                 $customer = Customer::findOrFail($payloads['customer_id']);
                 if ($customer->referral_balance > 0) {
-                    $remaining = $subtotal - $referralDiscount;
+                    $remaining = $subtotal - $voucherDiscount - $referralDiscount;
                     $balanceUsed = min($customer->referral_balance, $remaining);
                     $customer->decrement('referral_balance', $balanceUsed);
                 }
             }
 
-            $totalAmount = $subtotal - $referralDiscount - $balanceUsed;
+            $totalAmount = $subtotal - $voucherDiscount - $referralDiscount - $balanceUsed;
 
             $order = Order::create([
                 'order_code' => Order::generateOrderCode(),
@@ -117,6 +176,8 @@ class OrderService extends BaseService implements OrderContract
                 'balance_used' => $balanceUsed,
                 'total_amount' => $totalAmount,
                 'referred_by' => $referredBy,
+                'voucher_id' => $voucherId,
+                'voucher_discount' => $voucherDiscount,
                 'status' => 'pending_payment',
                 'notes' => $payloads['notes'] ?? null,
             ]);
