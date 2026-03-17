@@ -66,6 +66,30 @@ class MailTemplateSeeder extends Seeder
                 'variables' => ['customer_name', 'event_name', 'survey_url'],
                 'is_active' => true,
             ],
+            [
+                'slug' => 'event-announcement',
+                'name' => 'Event Announcement',
+                'subject' => '{{subject}}',
+                'body' => '<h2>{{subject}}</h2><p>Hi {{customer_name}},</p><p>{{message}}</p><p>Regarding event: <strong>{{event_name}}</strong></p>',
+                'variables' => ['customer_name', 'event_name', 'subject', 'message'],
+                'is_active' => true,
+            ],
+            [
+                'slug' => 'waitlist-spot-available',
+                'name' => 'Waitlist Spot Available',
+                'subject' => 'A spot just opened up for {{event_name}}!',
+                'body' => '<h2>Good News!</h2><p>Hi {{customer_name}},</p><p>A spot has opened up for <strong>{{event_name}}</strong> — {{catalog_name}}.</p><p>Register now before it fills up again:</p><p><a href="{{event_url}}">Register Now</a></p><p>First come, first served!</p>',
+                'variables' => ['customer_name', 'event_name', 'catalog_name', 'event_url'],
+                'is_active' => true,
+            ],
+            [
+                'slug' => 'certificate-distribution',
+                'name' => 'Certificate Distribution',
+                'subject' => 'Your Certificate for {{event_name}}',
+                'body' => '<h2>Your Certificate is Ready!</h2><p>Hi {{customer_name}},</p><p>Thank you for attending <strong>{{event_name}}</strong>. Your certificate of attendance is now available for download.</p><p><a href="{{certificate_url}}">Download Your Certificate</a></p><p>We hope to see you at future events!</p>',
+                'variables' => ['customer_name', 'event_name', 'certificate_url'],
+                'is_active' => true,
+            ],
         ];
 
         foreach ($templates as $template) {

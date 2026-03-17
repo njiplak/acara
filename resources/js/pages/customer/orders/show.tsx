@@ -3,7 +3,7 @@ import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, 
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
-import { cancel, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { cancel, certificate, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { store as storeTestimonial } from '@/actions/App/Http/Controllers/Customer/TestimonialController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -166,6 +166,15 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                                             <Download className="size-4" />
                                             Download Invoice
                                         </a>
+                                        {order.checked_in_at && (
+                                            <a
+                                                href={certificate.url({ order: order.id })}
+                                                className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline underline-offset-2 hover:no-underline"
+                                            >
+                                                <Download className="size-4" />
+                                                Download Certificate
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>

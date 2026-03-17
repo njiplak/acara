@@ -4,7 +4,16 @@ import { CheckCircle, ScanLine, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import type { Event, ScheduleItem } from '@/types/event';
 
 type ScanResult = {
     success: boolean;
@@ -14,15 +23,26 @@ type ScanResult = {
         customer?: { name: string; email: string; avatar: string | null };
         event?: { name: string };
         catalog?: { name: string };
+        session_attendances?: { session_index: number; checked_in_at: string }[];
     };
 };
 
-export default function CheckInScanner() {
+type Props = {
+    events: Event[];
+};
+
+export default function CheckInScanner({ events }: Props) {
     const [manualCode, setManualCode] = useState('');
     const [scanning, setScanning] = useState(false);
     const [result, setResult] = useState<ScanResult | null>(null);
     const [cameraActive, setCameraActive] = useState(false);
     const scannerRef = useRef<any>(null);
+
+    const [selectedEventId, setSelectedEventId] = useState<string>('');
+    const [selectedSessionIndex, setSelectedSessionIndex] = useState<string>('');
+
+    const selectedEvent = events.find((e) => String(e.id) === selectedEventId);
+    const schedule: ScheduleItem[] = selectedEvent?.schedule || [];
 
     const handleScan = async (orderCode: string) => {
         if (scanning || !orderCode.trim()) return;
@@ -31,6 +51,12 @@ export default function CheckInScanner() {
 
         try {
             const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+
+            const body: Record<string, any> = { order_code: orderCode.trim() };
+            if (selectedSessionIndex !== '') {
+                body.session_index = parseInt(selectedSessionIndex, 10);
+            }
+
             const res = await fetch('/operational/check-in/scan', {
                 method: 'POST',
                 headers: {
@@ -38,7 +64,7 @@ export default function CheckInScanner() {
                     'X-CSRF-TOKEN': csrfToken || '',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({ order_code: orderCode.trim() }),
+                body: JSON.stringify(body),
             });
 
             const data = await res.json();
@@ -103,6 +129,69 @@ export default function CheckInScanner() {
                 <h1 className="text-xl font-semibold">Check-in Scanner</h1>
                 <p className="text-sm text-muted-foreground">Scan QR codes or enter order codes to check in attendees</p>
             </div>
+
+            {/* Session selection */}
+            {events.length > 0 && (
+                <div className="rounded-lg border bg-card p-5 space-y-3">
+                    <h2 className="text-sm font-semibold">Session Check-in</h2>
+                    <p className="text-xs text-muted-foreground">
+                        Select an event and session to track per-session attendance. Leave empty for general check-in.
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                        <Label>Event</Label>
+                        <Select
+                            value={selectedEventId}
+                            onValueChange={(v) => {
+                                setSelectedEventId(v);
+                                setSelectedSessionIndex('');
+                            }}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select event (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {events.map((event) => (
+                                    <SelectItem key={event.id} value={String(event.id)}>
+                                        {event.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {schedule.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Session</Label>
+                            <Select
+                                value={selectedSessionIndex}
+                                onValueChange={setSelectedSessionIndex}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select session" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {schedule.map((item, idx) => (
+                                        <SelectItem key={idx} value={String(idx)}>
+                                            {item.time}{item.end_time ? ` - ${item.end_time}` : ''}: {item.title}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {selectedEventId && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setSelectedEventId('');
+                                setSelectedSessionIndex('');
+                            }}
+                        >
+                            Clear selection
+                        </Button>
+                    )}
+                </div>
+            )}
 
             {/* Camera scanner */}
             <div className="rounded-lg border bg-card p-5">
@@ -180,6 +269,15 @@ export default function CheckInScanner() {
                                     )}
                                     {result.order.catalog && (
                                         <p className="text-xs text-muted-foreground">Session: {result.order.catalog.name}</p>
+                                    )}
+                                    {result.order.session_attendances && result.order.session_attendances.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {result.order.session_attendances.map((sa) => (
+                                                <Badge key={sa.session_index} variant="default" className="text-xs">
+                                                    Session {sa.session_index + 1}
+                                                </Badge>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             )}

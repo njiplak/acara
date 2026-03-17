@@ -8,9 +8,11 @@ use App\Models\Catalog;
 use App\Models\Customer;
 use App\Models\Event;
 use App\Models\Order;
+use App\Models\SessionAttendance;
 use App\Models\Voucher;
 use App\Service\BaseService;
 use App\Service\MailService;
+use App\Service\WaitlistService;
 use App\Utils\PriceResolver;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -313,6 +315,9 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
+            // Notify waitlisted customers (after commit so spot is actually free)
+            WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+
             return $order->fresh($this->relation);
         } catch (Exception $e) {
             DB::rollBack();
@@ -357,6 +362,9 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
+            // Notify waitlisted customers (after commit so spot is actually free)
+            WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+
             return $order->fresh($this->relation);
         } catch (Exception $e) {
             DB::rollBack();
@@ -376,6 +384,13 @@ class OrderService extends BaseService implements OrderContract
 
             $order->update(['checked_in_at' => now()]);
 
+            // Attendance reward: credit customer balance
+            $attendanceCredit = config('service-contract.loyalty.attendance_credit', 0);
+            if ($attendanceCredit > 0) {
+                $customer = Customer::findOrFail($order->customer_id);
+                $customer->increment('referral_balance', $attendanceCredit);
+            }
+
             DB::commit();
 
             return $order->fresh($this->relation);
@@ -394,11 +409,93 @@ class OrderService extends BaseService implements OrderContract
 
             abort_if($order->checked_in_at === null, 422, 'Order is not checked in.');
 
+            // Reverse attendance reward
+            $attendanceCredit = config('service-contract.loyalty.attendance_credit', 0);
+            if ($attendanceCredit > 0) {
+                $customer = Customer::findOrFail($order->customer_id);
+                $customer->decrement('referral_balance', min($attendanceCredit, $customer->referral_balance));
+            }
+
             $order->update(['checked_in_at' => null]);
 
             DB::commit();
 
             return $order->fresh($this->relation);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
+
+    public function sessionCheckIn(int $orderId, int $sessionIndex): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $order = Order::findOrFail($orderId);
+
+            abort_if($order->status !== 'confirmed', 422, 'Only confirmed orders can be checked in.');
+
+            $exists = SessionAttendance::where('order_id', $order->id)
+                ->where('session_index', $sessionIndex)
+                ->exists();
+            abort_if($exists, 422, 'Already checked in for this session.');
+
+            SessionAttendance::create([
+                'order_id' => $order->id,
+                'session_index' => $sessionIndex,
+                'checked_in_at' => now(),
+            ]);
+
+            // Auto-set order checked_in_at on first session check-in
+            if ($order->checked_in_at === null) {
+                $order->update(['checked_in_at' => now()]);
+
+                $attendanceCredit = config('service-contract.loyalty.attendance_credit', 0);
+                if ($attendanceCredit > 0) {
+                    $customer = Customer::findOrFail($order->customer_id);
+                    $customer->increment('referral_balance', $attendanceCredit);
+                }
+            }
+
+            DB::commit();
+
+            return $order->fresh([...$this->relation, 'sessionAttendances']);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
+
+    public function undoSessionCheckIn(int $orderId, int $sessionIndex): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $order = Order::findOrFail($orderId);
+
+            $attendance = SessionAttendance::where('order_id', $order->id)
+                ->where('session_index', $sessionIndex)
+                ->first();
+            abort_if(!$attendance, 422, 'Not checked in for this session.');
+
+            $attendance->delete();
+
+            // If no sessions left, clear order checked_in_at
+            $remaining = SessionAttendance::where('order_id', $order->id)->count();
+            if ($remaining === 0 && $order->checked_in_at !== null) {
+                $attendanceCredit = config('service-contract.loyalty.attendance_credit', 0);
+                if ($attendanceCredit > 0) {
+                    $customer = Customer::findOrFail($order->customer_id);
+                    $customer->decrement('referral_balance', min($attendanceCredit, $customer->referral_balance));
+                }
+
+                $order->update(['checked_in_at' => null]);
+            }
+
+            DB::commit();
+
+            return $order->fresh([...$this->relation, 'sessionAttendances']);
         } catch (Exception $e) {
             DB::rollBack();
             return $e;

@@ -1,8 +1,9 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList, Copy, Share2, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, Copy, Share2, UserRound, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { show as profileShow } from '@/actions/App/Http/Controllers/Customer/ProfileController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
@@ -52,7 +53,10 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                         <span className="text-lg font-semibold tracking-tight text-foreground">{appName}</span>
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
+                        <Link
+                            href={profileShow.url()}
+                            className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-accent"
+                        >
                             {customer.avatar ? (
                                 <img src={customer.avatar} alt={customer.name} className="size-7 rounded-full" />
                             ) : (
@@ -61,7 +65,7 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                                 </div>
                             )}
                             <span className="hidden text-sm font-medium sm:inline">{customer.name}</span>
-                        </div>
+                        </Link>
                         <Button
                             variant="outline"
                             size="sm"

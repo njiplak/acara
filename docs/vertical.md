@@ -4,8 +4,8 @@
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    ████░░     █████     ████░░       █████░░░       ██░░░░
- 90%       58%        95%       80%          70%            30%
+ ██████    █████░     █████     ██████       ██████         ██████
+ 90%       85%        95%       100%         100%           100%
 ```
 
 ---
@@ -35,7 +35,7 @@ Plan, configure, and evaluate events before they go live.
 
 ---
 
-## 2. MARKET — 45%
+## 2. MARKET — 85%
 
 Attract attendees and drive registrations.
 
@@ -44,15 +44,12 @@ Attract attendees and drive registrations.
 | Landing page + SEO settings | Done | Hero, CTA, meta tags, analytics IDs, social links |
 | Custom head scripts | Done | GTM, pixel injection |
 | Email notifications | Done | Order placed, payment confirmed, order rejected, event reminder (D-3, D-1) via queued mail templates |
-| Blast/campaign to past attendees | Not started | Announce new events to previous customers by segment |
+| Blast/campaign to past attendees | Done | Tag-based audience targeting, live preview count, mail template selection, send-once with audit trail |
 | Testimonial display on public pages | Done | Highlighted testimonials on landing page (global) and event detail (per-event) |
-| Waitlist for sold-out events | Not started | Sign up when session full, auto-promote on cancellation |
+| Waitlist for sold-out events | Done | Join/leave waitlist on event page, auto-notify all waitlisted on cancel/refund (first come first served), waitlist count visible |
 | Social sharing tools | Done | Share button (WhatsApp, X, Facebook, copy link), referral-enhanced URLs with ?ref= prefill |
 | Early bird countdown/urgency | Done | Live countdown for date-based tiers, "X spots left" for quantity-based tiers |
 
-### What to develop next in MARKET
-1. **Waitlist management** — Capture demand for sold-out sessions. Auto-notify when spot opens.
-2. **Blast/campaign system** — Re-engage past attendees when new events are published. Segment by event history.
 
 ---
 
@@ -80,7 +77,7 @@ Registration, payment, and discount handling.
 
 ---
 
-## 4. DELIVER — 80%
+## 4. DELIVER — 100%
 
 Event-day execution and content delivery.
 
@@ -90,17 +87,14 @@ Event-day execution and content delivery.
 | Undo check-in | Done | Reverse accidental check-ins |
 | Event materials distribution | Done | Files, links, notes per event/catalog |
 | Check-in gated materials | Done | Require check-in before accessing materials |
-| Per-session attendance tracking | Not started | Track attendance per catalog, not just event-level |
-| Certificate generation | Not started | Auto-generate PDF certificates with attendee name, event, date |
-| Live announcements | Not started | Push schedule changes or room updates to checked-in attendees |
+| Per-session attendance tracking | Done | Track attendance per schedule item via session_attendances table, scanner supports session selection, auto-sets order checked_in_at on first session |
+| Certificate generation | Done | Admin uploads .docx template with placeholders (via PHPWord), auto-converts to landscape A4 PDF. Falls back to default Blade template. Download from order detail (check-in gated) |
+| Live announcements | Done | Email-based announcements to checked-in attendees, admin picks event + writes message, live recipient count, audit trail |
 
-### What to develop next in DELIVER
-1. **Certificate generation** — Auto-generate attendance/completion certificates (PDF). Huge perceived value for workshops, training, seminars.
-2. **Per-session attendance** — Track check-in per catalog/session for multi-session events.
 
 ---
 
-## 5. FOLLOW-UP — 70%
+## 5. FOLLOW-UP — 100%
 
 Post-event actions that close the loop.
 
@@ -108,18 +102,18 @@ Post-event actions that close the loop.
 |---|---|---|
 | Testimonial/feedback collection | Done | Rating + body text per order, highlight feature |
 | Testimonial admin management | Done | List, highlight, manage in backoffice |
-| Post-event survey (NPS, detailed) | Not started | Multi-question surveys per event or catalog |
-| Certificate distribution | Not started | Auto-send certificates after event ends |
+| Post-event survey (NPS, detailed) | Done | Flexible question builder (NPS/rating/MCQ/text), customer portal fill, admin results dashboard with NPS gauge, auto-email day after event |
+| Certificate distribution | Done | Auto-email certificate download link day after event via scheduled command (daily 11:00) |
 | Post-event email (thank you, recap) | Done | Auto-sent to checked-in attendees day after event ends via scheduled command |
 | Recording/replay access | Done | Video embed (YouTube/Vimeo) as material type, availability window gating |
 | Financial reports (exportable) | Done | Excel export from event economics (summary + orders) and order list page |
 
-### What to develop next in FOLLOW-UP
-1. **Certificate distribution** — Auto-email certificates to checked-in attendees.
+### Future enhancements for FOLLOW-UP
+- **Post-event survey enhancements** — Consider adding survey templates for reuse across events.
 
 ---
 
-## 6. RETAIN — 30%
+## 6. RETAIN — 100%
 
 Turn one-time attendees into repeat customers.
 
@@ -130,14 +124,9 @@ Turn one-time attendees into repeat customers.
 | Customer list + details (admin) | Done | View customers, their orders, delete |
 | Customer segmentation/tags | Done | Auto-computed tags: frequency (new/returning/loyal), recency (active/lapsed/inactive), behavior (no-show/big-spender/referrer). Filterable on customer list. |
 | Repeat attendee tracking | Done | Derived from computed tags — order count, total spend, recency, check-in rate tracked via SQL subqueries on customer list |
-| Loyalty/points program | Not started | Earn points per attendance, redeem for discounts |
-| Re-engagement campaigns | Not started | Targeted emails to lapsed or inactive customers |
-| Customer profile (self-service) | Not started | Customers edit profile, view history, manage preferences |
-
-### What to develop next in RETAIN
-1. **Loyalty/points program** — Builds on existing referral infrastructure. Points per order, redeemable as balance.
-2. **Re-engagement campaigns** — Targeted emails to lapsed or inactive customers. Now possible with tag-based filtering.
-3. **Customer profile (self-service)** — Customers edit profile, view history, manage preferences.
+| Loyalty/points program | Done | Attendance reward (Rp 1,000 credit on check-in), builds on existing referral balance system, configurable via LOYALTY_ATTENDANCE_CREDIT env |
+| Re-engagement campaigns | Done | Tag-based targeting (OR logic), live preview count, mail template integration, chunked sending, campaign audit trail |
+| Customer profile (self-service) | Done | Edit name, view order stats, referral info, total spend, events attended, quick links to orders |
 
 ---
 
@@ -148,19 +137,19 @@ Features ranked by **impact vs effort** across all stages.
 | Priority | Feature | Stage | Impact | Effort |
 |---|---|---|---|---|
 | ~~1~~ | ~~Email notifications~~ | ~~MARKET~~ | ~~Done~~ | |
-| 2 | Certificate generation | DELIVER | High | Medium |
+| ~~2~~ | ~~Certificate generation~~ | ~~DELIVER~~ | ~~Done~~ | |
 | 3 | Payment gateway (Midtrans/Xendit) | SELL | High | Medium-High |
 | ~~4~~ | ~~Post-event email automation~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | ~~5~~ | ~~Customer segmentation/tags~~ | ~~RETAIN~~ | ~~Done~~ | |
-| 5 | Waitlist management | MARKET | Medium | Low-Medium |
+| ~~5~~ | ~~Waitlist management~~ | ~~MARKET~~ | ~~Done~~ | |
 | ~~6~~ | ~~Exportable financial reports~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | ~~7~~ | ~~Repeat attendee tracking~~ | ~~RETAIN~~ | ~~Done~~ | |
-| 7 | Blast/campaign system | MARKET | High | Medium-High |
-| 8 | Per-session attendance | DELIVER | Medium | Low |
-| 9 | Loyalty/points program | RETAIN | Medium | Medium |
+| ~~7~~ | ~~Blast/campaign system~~ | ~~MARKET~~ | ~~Done~~ | |
+| ~~8~~ | ~~Per-session attendance~~ | ~~DELIVER~~ | ~~Done~~ | |
+| ~~9~~ | ~~Loyalty/points program~~ | ~~RETAIN~~ | ~~Done~~ | |
 | 10 | Recurring class schedules | PLAN | Niche | High |
-| 11 | Live announcements | DELIVER | Low | Medium |
-| 12 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
+| ~~11~~ | ~~Live announcements~~ | ~~DELIVER~~ | ~~Done~~ | |
+| ~~12~~ | ~~Post-event surveys (NPS)~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | ~~13~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 
 ---
@@ -170,9 +159,9 @@ Features ranked by **impact vs effort** across all stages.
 | Stage | Progress | Feature Count | Done | Remaining |
 |---|---|---|---|---|
 | PLAN | 90% | 13 | 12 | 1 |
-| MARKET | 58% | 8 | 6 | 2 |
+| MARKET | 85% | 8 | 8 | 0 |
 | SELL | 95% | 12 | 11 | 1 |
-| DELIVER | 80% | 7 | 4 | 3 |
-| FOLLOW-UP | 70% | 7 | 5 | 2 |
-| RETAIN | 30% | 8 | 5 | 3 |
-| **TOTAL** | **~72%** | **55** | **43** | **12** |
+| DELIVER | 100% | 7 | 7 | 0 |
+| FOLLOW-UP | 100% | 7 | 7 | 0 |
+| RETAIN | 100% | 8 | 8 | 0 |
+| **TOTAL** | **~96%** | **55** | **53** | **2** |

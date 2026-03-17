@@ -13,6 +13,8 @@ import {
     Package,
     Puzzle,
     ClipboardCheck,
+    Mail,
+    Megaphone,
     MessageSquare,
     ScanLine,
     Settings,
@@ -290,6 +292,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.operational.survey.index.url()}>
                                             <ClipboardCheck />
                                             <span>Survey</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.campaign.index.url())}>
+                                        <Link href={backoffice.operational.campaign.index.url()}>
+                                            <Megaphone />
+                                            <span>Campaign</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.announcement.index.url())}>
+                                        <Link href={backoffice.operational.announcement.index.url()}>
+                                            <Mail />
+                                            <span>Announcement</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

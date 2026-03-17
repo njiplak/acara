@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
 use App\Models\Testimonial;
+use App\Models\Waitlist;
 use App\Utils\PriceResolver;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -93,8 +94,9 @@ class HomeController extends Controller
             );
         }
 
-        // Check customer's existing orders for this event
+        // Check customer's existing orders and waitlist for this event
         $customerOrderCatalogIds = [];
+        $customerWaitlistCatalogIds = [];
         $customerBalance = 0;
         if (Auth::guard('customer')->check()) {
             $customer = Auth::guard('customer')->user();
@@ -103,8 +105,18 @@ class HomeController extends Controller
                 ->whereNotIn('status', ['cancelled', 'rejected'])
                 ->pluck('catalog_id')
                 ->toArray();
+            $customerWaitlistCatalogIds = Waitlist::where('event_id', $event->id)
+                ->where('customer_id', $customer->id)
+                ->pluck('catalog_id')
+                ->toArray();
             $customerBalance = $customer->referral_balance;
         }
+
+        // Waitlist counts per catalog
+        $waitlistCounts = Waitlist::where('event_id', $event->id)
+            ->selectRaw('catalog_id, count(*) as count')
+            ->groupBy('catalog_id')
+            ->pluck('count', 'catalog_id');
 
         $settings = LandingPageSetting::instance();
 
@@ -125,6 +137,8 @@ class HomeController extends Controller
             'orderCounts' => $orderCounts,
             'pricingData' => $pricingData,
             'customerOrderCatalogIds' => $customerOrderCatalogIds,
+            'customerWaitlistCatalogIds' => $customerWaitlistCatalogIds,
+            'waitlistCounts' => $waitlistCounts,
             'customerBalance' => $customerBalance,
             'referralDiscount' => config('service-contract.referral.referee_discount', 0),
             'testimonials' => $testimonials,

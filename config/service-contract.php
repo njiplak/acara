@@ -13,6 +13,10 @@ return [
         'referrer_credit' => env('REFERRAL_REFERRER_CREDIT', 25000),
     ],
 
+    'loyalty' => [
+        'attendance_credit' => env('LOYALTY_ATTENDANCE_CREDIT', 1000),
+    ],
+
     'customer_tags' => [
         'big_spender_threshold' => env('CUSTOMER_TAG_BIG_SPENDER', 1000000),
         'active_days' => 90,

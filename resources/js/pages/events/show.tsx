@@ -2,7 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Check, ClipboardList, Clock, Copy, Link2, LoaderCircle, MapPin, Share2, Star, Tag, Ticket, Timer, Users, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
-import { store, validateVoucher } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { store, validateVoucher, joinWaitlist, leaveWaitlist } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
@@ -38,13 +38,15 @@ type Props = {
     orderCounts: Record<number, number>;
     pricingData: Record<number, ResolvedPricing>;
     customerOrderCatalogIds: number[];
+    customerWaitlistCatalogIds?: number[];
+    waitlistCounts?: Record<number, number>;
     customerBalance: number;
     referralDiscount: number;
     testimonials?: Testimonial[];
     prefillReferralCode?: string;
 };
 
-export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerBalance, referralDiscount, testimonials = [], prefillReferralCode = '' }: Props) {
+export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerWaitlistCatalogIds = [], waitlistCounts = {}, customerBalance, referralDiscount, testimonials = [], prefillReferralCode = '' }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
     const { auth } = usePage<SharedData>().props;
@@ -204,6 +206,9 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                                         const isFull = maxParticipant !== null && currentOrders >= maxParticipant;
                                         const alreadyOrdered = customerOrderCatalogIds.includes(catalog.id);
 
+                                        const onWaitlist = customerWaitlistCatalogIds.includes(catalog.id);
+                                        const waitlistCount = waitlistCounts[catalog.id] || 0;
+
                                         return (
                                             <CatalogCard
                                                 key={catalog.id}
@@ -212,6 +217,8 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                                                 isAuthenticated={!!customer}
                                                 isFull={isFull}
                                                 alreadyOrdered={alreadyOrdered}
+                                                onWaitlist={onWaitlist}
+                                                waitlistCount={waitlistCount}
                                                 currentOrders={currentOrders}
                                                 customerBalance={customerBalance}
                                                 referralDiscount={referralDiscount}
@@ -295,6 +302,8 @@ function CatalogCard({
     isAuthenticated,
     isFull,
     alreadyOrdered,
+    onWaitlist,
+    waitlistCount,
     currentOrders,
     customerBalance,
     referralDiscount,
@@ -306,6 +315,8 @@ function CatalogCard({
     isAuthenticated: boolean;
     isFull: boolean;
     alreadyOrdered: boolean;
+    onWaitlist: boolean;
+    waitlistCount: number;
     currentOrders: number;
     customerBalance: number;
     referralDiscount: number;
@@ -697,9 +708,41 @@ function CatalogCard({
                             Already Registered
                         </Button>
                     ) : isFull ? (
-                        <Button disabled variant="outline" className="w-full">
-                            Session Full
-                        </Button>
+                        onWaitlist ? (
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => {
+                                    fetch(leaveWaitlist.url(), {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                                        },
+                                        body: JSON.stringify({ event_id: eventId, catalog_id: catalog.id }),
+                                    }).then(() => router.reload());
+                                }}
+                            >
+                                On Waitlist ({waitlistCount}) — Click to Leave
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="secondary"
+                                className="w-full"
+                                onClick={() => {
+                                    fetch(joinWaitlist.url(), {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                                        },
+                                        body: JSON.stringify({ event_id: eventId, catalog_id: catalog.id }),
+                                    }).then(() => router.reload());
+                                }}
+                            >
+                                Session Full — Join Waitlist{waitlistCount > 0 ? ` (${waitlistCount} waiting)` : ''}
+                            </Button>
+                        )
                     ) : (
                         <Button onClick={handleRegister} disabled={submitting} className="w-full">
                             {submitting ? 'Registering...' : `Register - ${formatPrice(total)}`}

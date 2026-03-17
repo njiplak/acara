@@ -16,6 +16,7 @@ use App\Contract\Master\VenueContract;
 use App\Contract\Master\VoucherContract;
 use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
+use App\Contract\Operational\CampaignContract;
 use App\Contract\Operational\SurveyContract;
 use App\Contract\Operational\TestimonialContract;
 use App\Contract\Setting\PermissionContract;
@@ -37,6 +38,7 @@ use App\Service\Master\VenueService;
 use App\Service\Master\VoucherService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
+use App\Service\Operational\CampaignService;
 use App\Service\Operational\SurveyService;
 use App\Service\Operational\TestimonialService;
 use App\Service\Setting\PageService;
@@ -56,6 +58,7 @@ class ContractProvider extends ServiceProvider
         CustomerAuthContract::class => CustomerAuthService::class,
 
         // Operational
+        CampaignContract::class => CampaignService::class,
         CustomerContract::class => CustomerService::class,
         OrderContract::class => OrderService::class,
         SurveyContract::class => SurveyService::class,

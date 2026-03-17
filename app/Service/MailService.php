@@ -46,6 +46,39 @@ class MailService
         ]);
     }
 
+    public static function sendForCampaign(
+        string $slug,
+        string $to,
+        array $data = [],
+        int $campaignId,
+    ): void {
+        $template = MailTemplate::where('slug', $slug)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$template) {
+            return;
+        }
+
+        $exists = MailLog::where('mail_template_id', $template->id)
+            ->where('recipient_email', $to)
+            ->where('campaign_id', $campaignId)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        Mail::to($to)->queue(new TemplateMail($template, $data));
+
+        MailLog::create([
+            'mail_template_id' => $template->id,
+            'recipient_email' => $to,
+            'campaign_id' => $campaignId,
+            'sent_at' => now(),
+        ]);
+    }
+
     public static function sendForOrder(string $slug, Order $order, array $extraData = []): void
     {
         $order->loadMissing(['customer', 'event.venue']);

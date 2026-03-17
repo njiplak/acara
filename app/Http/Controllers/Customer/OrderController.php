@@ -11,6 +11,8 @@ use App\Models\LandingPageSetting;
 use App\Models\Order;
 use App\Models\Testimonial;
 use App\Models\Voucher;
+use App\Models\Waitlist;
+use App\Service\CertificateService;
 use App\Utils\WebResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -129,6 +131,18 @@ class OrderController extends Controller
         return $pdf->download("invoice-{$order->order_code}.pdf");
     }
 
+    public function certificate(Order $order)
+    {
+        abort_if($order->customer_id !== Auth::guard('customer')->id(), 403);
+        abort_if($order->status !== 'confirmed', 422, 'Certificate only available for confirmed orders.');
+        abort_if($order->checked_in_at === null, 422, 'Certificate only available after check-in.');
+
+        $pdfPath = CertificateService::generate($order);
+
+        return response()->download($pdfPath, "certificate-{$order->order_code}.pdf")
+            ->deleteFileAfterSend(true);
+    }
+
     public function validateVoucher()
     {
         $request = request();
@@ -201,5 +215,58 @@ class OrderController extends Controller
         $result = $this->service->cancelOrder($order->id);
 
         return WebResponse::response($result);
+    }
+
+    public function joinWaitlist()
+    {
+        $request = request();
+        $request->validate([
+            'event_id' => ['required', 'integer', 'exists:events,id'],
+            'catalog_id' => ['required', 'integer', 'exists:catalogs,id'],
+        ]);
+
+        $customerId = Auth::guard('customer')->id();
+        $eventId = (int) $request->input('event_id');
+        $catalogId = (int) $request->input('catalog_id');
+
+        $exists = Waitlist::where('customer_id', $customerId)
+            ->where('event_id', $eventId)
+            ->where('catalog_id', $catalogId)
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'You are already on the waitlist.'], 422);
+        }
+
+        $maxPosition = Waitlist::where('event_id', $eventId)
+            ->where('catalog_id', $catalogId)
+            ->max('position') ?? 0;
+
+        Waitlist::create([
+            'customer_id' => $customerId,
+            'event_id' => $eventId,
+            'catalog_id' => $catalogId,
+            'position' => $maxPosition + 1,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'You have been added to the waitlist!']);
+    }
+
+    public function leaveWaitlist()
+    {
+        $request = request();
+        $request->validate([
+            'event_id' => ['required', 'integer'],
+            'catalog_id' => ['required', 'integer'],
+        ]);
+
+        $customerId = Auth::guard('customer')->id();
+
+        Waitlist::where('customer_id', $customerId)
+            ->where('event_id', $request->input('event_id'))
+            ->where('catalog_id', $request->input('catalog_id'))
+            ->delete();
+
+        return response()->json(['success' => true, 'message' => 'You have been removed from the waitlist.']);
     }
 }

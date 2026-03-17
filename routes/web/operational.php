@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Operational\AnnouncementController;
+use App\Http\Controllers\Operational\CampaignController;
 use App\Http\Controllers\Operational\CustomerController;
 use App\Http\Controllers\Operational\OrderController;
 use App\Http\Controllers\Operational\SurveyController;
@@ -27,6 +29,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::get('/{id}/invoice', [OrderController::class, 'invoice'])->name('invoice');
         Route::post('/{id}/check-in', [OrderController::class, 'checkIn'])->name('check-in');
         Route::post('/{id}/undo-check-in', [OrderController::class, 'undoCheckIn'])->name('undo-check-in');
+        Route::post('/{id}/session-check-in', [OrderController::class, 'sessionCheckIn'])->name('session-check-in');
+        Route::post('/{id}/undo-session-check-in', [OrderController::class, 'undoSessionCheckIn'])->name('undo-session-check-in');
     });
 
     Route::group(['prefix' => 'check-in', 'as' => 'check-in.'], function () {
@@ -50,5 +54,25 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::put('/{id}', [SurveyController::class, 'update'])->name('update');
         Route::delete('/{id}', [SurveyController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [SurveyController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'campaign', 'as' => 'campaign.'], function () {
+        Route::get('/', [CampaignController::class, 'index'])->name('index');
+        Route::get('/fetch', [CampaignController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [CampaignController::class, 'create'])->name('create');
+        Route::post('/', [CampaignController::class, 'store'])->name('store');
+        Route::get('/preview-count', [CampaignController::class, 'previewCount'])->name('preview-count');
+        Route::get('/{id}', [CampaignController::class, 'show'])->name('show');
+        Route::post('/{id}/send', [CampaignController::class, 'send'])->name('send');
+        Route::delete('/{id}', [CampaignController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [CampaignController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'announcement', 'as' => 'announcement.'], function () {
+        Route::get('/', [AnnouncementController::class, 'index'])->name('index');
+        Route::get('/fetch', [AnnouncementController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
+        Route::get('/recipient-count', [AnnouncementController::class, 'recipientCount'])->name('recipient-count');
+        Route::post('/', [AnnouncementController::class, 'store'])->name('store');
     });
 });

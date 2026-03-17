@@ -59,6 +59,33 @@ class Customer extends Authenticatable
         ]);
     }
 
+    public function scopeMatchingAnyTags(Builder $query, array $tags): Builder
+    {
+        $activeDays = config('service-contract.customer_tags.active_days', 90);
+        $lapsedDays = config('service-contract.customer_tags.lapsed_days', 180);
+        $threshold = config('service-contract.customer_tags.big_spender_threshold', 1000000);
+
+        // Must have at least one confirmed order to be targetable
+        $query->whereRaw("(SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= 1");
+
+        return $query->where(function ($q) use ($tags, $activeDays, $lapsedDays, $threshold) {
+            foreach ($tags as $tag) {
+                match ($tag) {
+                    'new' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') = 1"),
+                    'returning' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') BETWEEN 2 AND 3"),
+                    'loyal' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= 4"),
+                    'active' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays)]),
+                    'lapsed' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ? AND (SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays), now()->subDays($lapsedDays)]),
+                    'inactive' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ?", [now()->subDays($lapsedDays)]),
+                    'no-show' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = 'confirmed' AND orders.checked_in_at IS NULL AND events.end_date < CURDATE()) > 0"),
+                    'big-spender' => $q->orWhereRaw("(SELECT COALESCE(SUM(orders.total_amount), 0) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') > ?", [$threshold]),
+                    'referrer' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders WHERE orders.referred_by = customers.id AND orders.status = 'confirmed') > 0"),
+                    default => null,
+                };
+            }
+        });
+    }
+
     public function getTagsAttribute(): array
     {
         $tags = [];

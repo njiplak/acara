@@ -126,13 +126,21 @@ class OrderController extends Controller
 
     public function scannerPage()
     {
-        return Inertia::render('operational/check-in/scanner');
+        $events = Event::where('status', 'published')
+            ->whereNotNull('schedule')
+            ->orderByDesc('start_date')
+            ->get(['id', 'name', 'schedule', 'start_date']);
+
+        return Inertia::render('operational/check-in/scanner', [
+            'events' => $events,
+        ]);
     }
 
     public function scanCheckIn(Request $request)
     {
         $request->validate([
             'order_code' => ['required', 'string'],
+            'session_index' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $order = Order::where('order_code', $request->order_code)->first();
@@ -141,7 +149,12 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
         }
 
-        $result = $this->service->checkIn($order->id);
+        // If session_index is provided, do per-session check-in
+        if ($request->has('session_index') && $request->session_index !== null) {
+            $result = $this->service->sessionCheckIn($order->id, (int) $request->session_index);
+        } else {
+            $result = $this->service->checkIn($order->id);
+        }
 
         if ($result instanceof \Exception) {
             return response()->json(['success' => false, 'message' => $result->getMessage()], 422);
@@ -150,7 +163,25 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Check-in successful!',
-            'order' => $result->load(['customer', 'event', 'catalog']),
+            'order' => $result->load(['customer', 'event', 'catalog', 'sessionAttendances']),
         ]);
+    }
+
+    public function sessionCheckIn(Request $request, $id)
+    {
+        $request->validate(['session_index' => ['required', 'integer', 'min:0']]);
+
+        $result = $this->service->sessionCheckIn($id, (int) $request->session_index);
+
+        return WebResponse::response($result);
+    }
+
+    public function undoSessionCheckIn(Request $request, $id)
+    {
+        $request->validate(['session_index' => ['required', 'integer', 'min:0']]);
+
+        $result = $this->service->undoSessionCheckIn($id, (int) $request->session_index);
+
+        return WebResponse::response($result);
     }
 }
