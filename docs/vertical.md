@@ -1,11 +1,11 @@
 # Vertical Value Chain — Event Management Platform
 
-## Current Stance (as of 2026-03-16)
+## Current Stance (as of 2026-03-17)
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    ███░░░     █████     ████░░       ███░░░░░       █░░░░░
- 90%       45%        95%       80%          40%            20%
+ ██████    ███░░░     █████     ████░░       ███░░░░░       ██░░░░
+ 90%       45%        95%       80%          40%            30%
 ```
 
 ---
@@ -122,7 +122,7 @@ Post-event actions that close the loop.
 
 ---
 
-## 6. RETAIN — 20%
+## 6. RETAIN — 30%
 
 Turn one-time attendees into repeat customers.
 
@@ -131,16 +131,16 @@ Turn one-time attendees into repeat customers.
 | Referral system (earn balance) | Done | Referrer gets credit when referee's order is confirmed |
 | Customer order history | Done | Customers can view all past orders |
 | Customer list + details (admin) | Done | View customers, their orders, delete |
-| Customer segmentation/tags | Not started | Tag customers: VIP, first-timer, no-show, high-spender |
+| Customer segmentation/tags | Done | Auto-computed tags: frequency (new/returning/loyal), recency (active/lapsed/inactive), behavior (no-show/big-spender/referrer). Filterable on customer list. |
+| Repeat attendee tracking | Done | Derived from computed tags — order count, total spend, recency, check-in rate tracked via SQL subqueries on customer list |
 | Loyalty/points program | Not started | Earn points per attendance, redeem for discounts |
-| Repeat attendee tracking | Not started | Identify regulars, track frequency, average spend |
 | Re-engagement campaigns | Not started | Targeted emails to lapsed or inactive customers |
 | Customer profile (self-service) | Not started | Customers edit profile, view history, manage preferences |
 
 ### What to develop next in RETAIN
-1. **Customer segmentation/tags** — Foundation for all targeted marketing. Tag by behavior (VIP, first-timer, frequent, lapsed).
-2. **Repeat attendee tracking** — Dashboard showing customer lifetime value, attendance frequency.
-3. **Loyalty/points program** — Builds on existing referral infrastructure. Points per order, redeemable as balance.
+1. **Loyalty/points program** — Builds on existing referral infrastructure. Points per order, redeemable as balance.
+2. **Re-engagement campaigns** — Targeted emails to lapsed or inactive customers. Now possible with tag-based filtering.
+3. **Customer profile (self-service)** — Customers edit profile, view history, manage preferences.
 
 ---
 
@@ -154,17 +154,17 @@ Features ranked by **impact vs effort** across all stages.
 | 2 | Certificate generation | DELIVER | High | Medium |
 | 3 | Payment gateway (Midtrans/Xendit) | SELL | High | Medium-High |
 | 4 | Post-event email automation | FOLLOW-UP | High | Medium |
-| 5 | Customer segmentation/tags | RETAIN | High | Low-Medium |
-| 6 | Waitlist management | MARKET | Medium | Low-Medium |
-| 7 | Exportable financial reports | FOLLOW-UP | Medium | Low |
-| 8 | Repeat attendee tracking | RETAIN | Medium | Low |
-| 9 | Blast/campaign system | MARKET | High | Medium-High |
-| 10 | Per-session attendance | DELIVER | Medium | Low |
-| 11 | Loyalty/points program | RETAIN | Medium | Medium |
-| 12 | Recurring class schedules | PLAN | Niche | High |
-| 13 | Live announcements | DELIVER | Low | Medium |
-| 14 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
-| ~~15~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
+| ~~5~~ | ~~Customer segmentation/tags~~ | ~~RETAIN~~ | ~~Done~~ | |
+| 5 | Waitlist management | MARKET | Medium | Low-Medium |
+| 6 | Exportable financial reports | FOLLOW-UP | Medium | Low |
+| ~~7~~ | ~~Repeat attendee tracking~~ | ~~RETAIN~~ | ~~Done~~ | |
+| 7 | Blast/campaign system | MARKET | High | Medium-High |
+| 8 | Per-session attendance | DELIVER | Medium | Low |
+| 9 | Loyalty/points program | RETAIN | Medium | Medium |
+| 10 | Recurring class schedules | PLAN | Niche | High |
+| 11 | Live announcements | DELIVER | Low | Medium |
+| 12 | Post-event surveys (NPS) | FOLLOW-UP | Medium | Medium |
+| ~~13~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 
 ---
 
@@ -177,5 +177,5 @@ Features ranked by **impact vs effort** across all stages.
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 80% | 7 | 4 | 3 |
 | FOLLOW-UP | 40% | 7 | 3 | 4 |
-| RETAIN | 20% | 8 | 3 | 5 |
-| **TOTAL** | **~62%** | **55** | **38** | **17** |
+| RETAIN | 30% | 8 | 5 | 3 |
+| **TOTAL** | **~65%** | **55** | **40** | **15** |

@@ -1,5 +1,16 @@
 import type { Model } from './model';
 
+export type CustomerTag =
+    | 'new'
+    | 'returning'
+    | 'loyal'
+    | 'active'
+    | 'lapsed'
+    | 'inactive'
+    | 'no-show'
+    | 'big-spender'
+    | 'referrer';
+
 export type Customer = Model & {
     name: string;
     email: string;
@@ -8,4 +19,5 @@ export type Customer = Model & {
     avatar?: string | null;
     referral_code?: string | null;
     referral_balance?: number;
+    tags?: CustomerTag[];
 };
