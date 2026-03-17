@@ -22,7 +22,7 @@ class CustomerTagFilter implements Filter
                 'active' => $query->whereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays)]),
                 'lapsed' => $query->whereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ? AND (SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays), now()->subDays($lapsedDays)]),
                 'inactive' => $query->whereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ?", [now()->subDays($lapsedDays)]),
-                'no-show' => $query->whereRaw("(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = 'confirmed' AND orders.checked_in_at IS NULL AND events.end_date < CURDATE()) > 0"),
+                'no-show' => $query->whereRaw("(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = 'confirmed' AND orders.checked_in_at IS NULL AND events.end_date < DATE('now')) > 0"),
                 'big-spender' => $query->whereRaw("(SELECT COALESCE(SUM(orders.total_amount), 0) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') > ?", [$threshold]),
                 'referrer' => $query->whereRaw("(SELECT COUNT(*) FROM orders WHERE orders.referred_by = customers.id AND orders.status = 'confirmed') > 0"),
                 default => null,

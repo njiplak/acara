@@ -54,7 +54,7 @@ class Customer extends Authenticatable
             DB::raw('(SELECT COUNT(*) FROM orders WHERE orders.customer_id = customers.id AND orders.status = \'confirmed\') as confirmed_orders_count'),
             DB::raw('(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = \'confirmed\') as last_confirmed_at'),
             DB::raw('(SELECT COALESCE(SUM(orders.total_amount), 0) FROM orders WHERE orders.customer_id = customers.id AND orders.status = \'confirmed\') as total_spend'),
-            DB::raw('(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = \'confirmed\' AND orders.checked_in_at IS NULL AND events.end_date < CURDATE()) as no_show_count'),
+            DB::raw('(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = \'confirmed\' AND orders.checked_in_at IS NULL AND events.end_date < DATE(\'now\')) as no_show_count'),
             DB::raw('(SELECT COUNT(*) FROM orders WHERE orders.referred_by = customers.id AND orders.status = \'confirmed\') as referral_count'),
         ]);
     }
@@ -77,7 +77,7 @@ class Customer extends Authenticatable
                     'active' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays)]),
                     'lapsed' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ? AND (SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') >= ?", [now()->subDays($activeDays), now()->subDays($lapsedDays)]),
                     'inactive' => $q->orWhereRaw("(SELECT MAX(orders.confirmed_at) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') < ?", [now()->subDays($lapsedDays)]),
-                    'no-show' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = 'confirmed' AND orders.checked_in_at IS NULL AND events.end_date < CURDATE()) > 0"),
+                    'no-show' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders JOIN events ON events.id = orders.event_id WHERE orders.customer_id = customers.id AND orders.status = 'confirmed' AND orders.checked_in_at IS NULL AND events.end_date < DATE('now')) > 0"),
                     'big-spender' => $q->orWhereRaw("(SELECT COALESCE(SUM(orders.total_amount), 0) FROM orders WHERE orders.customer_id = customers.id AND orders.status = 'confirmed') > ?", [$threshold]),
                     'referrer' => $q->orWhereRaw("(SELECT COUNT(*) FROM orders WHERE orders.referred_by = customers.id AND orders.status = 'confirmed') > 0"),
                     default => null,

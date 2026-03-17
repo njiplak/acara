@@ -3,10 +3,29 @@
 ## Current Stance (as of 2026-03-17)
 
 ```
- PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    ██████     █████     ██████       ██████         ██████
- 100%      100%       95%       100%         100%           100%
+ SOURCE ── PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN ── ANALYZE
+ ░░░░░░    ██████    ██████     █████     ██████       ██████         ██████     ░░░░░░
+ 0%        100%      100%       95%       100%         100%           100%       0%
 ```
+
+---
+
+## 0. SOURCE — 0%
+
+Procure vendors, budget, and resources before event planning begins.
+
+| Feature | Status | Notes |
+|---|---|---|
+| Vendor directory | Not started | Manage vendors (catering, AV, photographers) with contact info, rates, availability |
+| Per-event budget planning | Not started | Set budget upfront, allocate across vendor categories, track planned vs actual spend |
+| Procurement tracking | Not started | Track deposits, contracts, payment status per vendor per event |
+| Vendor performance ratings | Not started | Rate vendors post-event, build internal quality history for repeat sourcing decisions |
+
+### What to develop in SOURCE
+1. **Vendor directory** — Central vendor database with categories, contact info, and rates. Foundation for all other sourcing features.
+2. **Per-event budget planning** — Pre-event cost estimation vs post-event P&L (which already exists in PLAN). Connects sourcing decisions to event economics.
+3. **Procurement tracking** — Track vendor deposits and contracts. Completes the financial picture alongside revenue data.
+4. **Vendor performance ratings** — Close the sourcing loop — rate vendors after delivery to inform future events.
 
 ---
 
@@ -124,6 +143,31 @@ Turn one-time attendees into repeat customers.
 | Loyalty/points program | Done | Attendance reward (Rp 1,000 credit on check-in), builds on existing referral balance system, configurable via LOYALTY_ATTENDANCE_CREDIT env |
 | Re-engagement campaigns | Done | Tag-based targeting (OR logic), live preview count, mail template integration, chunked sending, campaign audit trail |
 | Customer profile (self-service) | Done | Edit name, view order stats, referral info, total spend, events attended, quick links to orders |
+| Community / pull engagement | Not started | Lightweight member feed, announcements hub, or WhatsApp group integration — pull-based engagement between events |
+
+### What to develop next in RETAIN
+1. **Community / pull engagement** — Current retention is push-only (campaigns, emails). A lightweight community layer (member feed, discussion, or WhatsApp integration) keeps attendees engaged between events without requiring admin effort per touchpoint.
+
+---
+
+## 7. ANALYZE — 0%
+
+Turn accumulated data into strategic insight across events.
+
+| Feature | Status | Notes |
+|---|---|---|
+| Cohort analysis | Not started | Track customer groups over time — e.g. "Q1 attendees: how many returned in Q2?" |
+| Customer LTV calculation | Not started | Lifetime value per customer and per segment, based on order history and projected behavior |
+| Pricing optimization insights | Not started | Historical fill-rate vs price-point analysis, suggest optimal pricing for new events |
+| Best day/time/venue correlations | Not started | Cross-event analysis of which schedules and venues correlate with higher fill rates and attendance |
+| Segment performance comparison | Not started | Compare revenue, retention, and attendance across customer tags (new vs returning vs loyal, etc.) |
+
+### What to develop in ANALYZE
+1. **Cohort analysis** — The foundation. Track how customer groups behave over time to measure true retention, not just campaign open rates.
+2. **Customer LTV calculation** — Know which segments and acquisition channels produce the most valuable customers. Informs MARKET spend and RETAIN priority.
+3. **Pricing optimization insights** — Use historical tier/fill-rate data to recommend pricing for new events. Turns the data from SELL into actionable advice for PLAN.
+4. **Best day/time/venue correlations** — Cross-event patterns that help organizers pick optimal schedules. Feeds back into PLAN.
+5. **Segment performance comparison** — Compare tag-based cohorts on revenue and retention. Makes segmentation in RETAIN actionable beyond just campaign targeting.
 
 ---
 
@@ -148,6 +192,16 @@ Features ranked by **impact vs effort** across all stages.
 | ~~11~~ | ~~Live announcements~~ | ~~DELIVER~~ | ~~Done~~ | |
 | ~~12~~ | ~~Post-event surveys (NPS)~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | ~~13~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
+| 14 | Cohort analysis | ANALYZE | High | Medium |
+| 15 | Customer LTV calculation | ANALYZE | High | Medium |
+| 16 | Vendor directory | SOURCE | Medium | Medium |
+| 17 | Per-event budget planning | SOURCE | Medium | Medium |
+| 18 | Pricing optimization insights | ANALYZE | Medium | Medium-High |
+| 19 | Community / pull engagement | RETAIN | Medium | Medium |
+| 20 | Best day/time/venue correlations | ANALYZE | Medium | Low-Medium |
+| 21 | Segment performance comparison | ANALYZE | Medium | Low-Medium |
+| 22 | Procurement tracking | SOURCE | Low-Medium | Medium |
+| 23 | Vendor performance ratings | SOURCE | Low | Low-Medium |
 
 ---
 
@@ -155,10 +209,12 @@ Features ranked by **impact vs effort** across all stages.
 
 | Stage | Progress | Feature Count | Done | Remaining |
 |---|---|---|---|---|
+| SOURCE | 0% | 4 | 0 | 4 |
 | PLAN | 100% | 13 | 13 | 0 |
 | MARKET | 100% | 8 | 8 | 0 |
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 100% | 7 | 7 | 0 |
 | FOLLOW-UP | 100% | 7 | 7 | 0 |
-| RETAIN | 100% | 8 | 8 | 0 |
-| **TOTAL** | **~98%** | **55** | **54** | **1** |
+| RETAIN | 89% | 9 | 8 | 1 |
+| ANALYZE | 0% | 5 | 0 | 5 |
+| **TOTAL** | **~82%** | **65** | **54** | **11** |
