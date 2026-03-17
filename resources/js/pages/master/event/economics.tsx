@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ArrowLeft, CheckCircle, DollarSign, PercentIcon, ShoppingBag, UserX, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle, DollarSign, Download, PercentIcon, ShoppingBag, UserX, Users } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -96,6 +96,12 @@ export default function EventEconomics({ event, economics }: Props) {
                         {event.venue && ` at ${event.venue.name}`}
                     </p>
                 </div>
+                <Button variant="outline" size="sm" asChild>
+                    <a href={`/master/event/${event.id}/economics/export`}>
+                        <Download className="mr-2 size-4" />
+                        Export Excel
+                    </a>
+                </Button>
             </div>
 
             {/* KPI Cards */}

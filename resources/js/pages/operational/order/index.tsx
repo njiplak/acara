@@ -1,6 +1,8 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
+import { Download } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import IndexPage from '@/components/index-page';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
@@ -102,6 +104,14 @@ export default function OrderIndex() {
             routes={routes}
             hideAdd
             disableSelect
+            headerActions={
+                <Button variant="outline" size="sm" asChild>
+                    <a href="/operational/order/export">
+                        <Download className="mr-2 size-4" />
+                        Export Excel
+                    </a>
+                </Button>
+            }
         />
     );
 }

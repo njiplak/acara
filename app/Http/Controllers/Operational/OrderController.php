@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Operational;
 
 use App\Contract\Operational\OrderContract;
+use App\Exports\OrderExport;
 use App\Http\Controllers\Controller;
+use App\Models\Event;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
 use App\Utils\WebResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -102,6 +106,22 @@ class OrderController extends Controller
         $result = $this->service->undoCheckIn($id);
 
         return WebResponse::response($result);
+    }
+
+    public function export(Request $request)
+    {
+        $eventId = $request->query('event_id') ? (int) $request->query('event_id') : null;
+        $date = now()->format('Y-m-d');
+
+        if ($eventId) {
+            $event = Event::find($eventId);
+            $slug = $event ? Str::slug($event->name) : $eventId;
+            $filename = "orders-{$slug}-{$date}.xlsx";
+        } else {
+            $filename = "orders-{$date}.xlsx";
+        }
+
+        return Excel::download(new OrderExport($eventId), $filename);
     }
 
     public function scannerPage()

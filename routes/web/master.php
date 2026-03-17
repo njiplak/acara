@@ -88,6 +88,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::get('/{id}', [EventController::class, 'show'])->name('show');
         Route::get('/{id}/registrants', [EventController::class, 'registrants'])->name('registrants');
         Route::get('/{id}/economics', [EventController::class, 'economics'])->name('economics');
+        Route::get('/{id}/economics/export', [EventController::class, 'exportEconomics'])->name('economics.export');
         Route::put('/{id}', [EventController::class, 'update'])->name('update');
         Route::delete('/{id}', [EventController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [EventController::class, 'destroy_bulk'])->name('destroy-bulk');

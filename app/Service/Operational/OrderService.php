@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\Order;
 use App\Models\Voucher;
 use App\Service\BaseService;
+use App\Service\MailService;
 use App\Utils\PriceResolver;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -188,6 +189,8 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
+            MailService::sendForOrder('order-placed', $order);
+
             return $order->fresh($this->relation);
         } catch (Exception $e) {
             DB::rollBack();
@@ -249,6 +252,8 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
+            MailService::sendForOrder('payment-confirmed', $order);
+
             return $order->fresh($this->relation);
         } catch (Exception $e) {
             DB::rollBack();
@@ -272,6 +277,10 @@ class OrderService extends BaseService implements OrderContract
             ]);
 
             DB::commit();
+
+            MailService::sendForOrder('order-rejected', $order, [
+                'rejection_reason' => $reason,
+            ]);
 
             return $order->fresh($this->relation);
         } catch (Exception $e) {

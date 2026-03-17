@@ -18,6 +18,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
     Route::group(['prefix' => 'order', 'as' => 'order.'], function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/fetch', [OrderController::class, 'fetch'])->name('fetch');
+        Route::get('/export', [OrderController::class, 'export'])->name('export');
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{id}/confirm', [OrderController::class, 'confirm'])->name('confirm');
         Route::post('/{id}/reject', [OrderController::class, 'reject'])->name('reject');

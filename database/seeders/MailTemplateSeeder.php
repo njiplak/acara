@@ -50,6 +50,14 @@ class MailTemplateSeeder extends Seeder
                 'variables' => ['customer_name', 'event_name', 'event_date', 'venue_name'],
                 'is_active' => true,
             ],
+            [
+                'slug' => 'post-event-thank-you',
+                'name' => 'Post-Event Thank You',
+                'subject' => 'Thank You for Attending {{event_name}}!',
+                'body' => '<h2>Thank You!</h2><p>Hi {{customer_name}},</p><p>Thank you for attending <strong>{{event_name}}</strong>. We hope you had a great experience!</p><p>We\'d love to hear your feedback — your thoughts help us make future events even better.</p><p>See you at the next event!</p>',
+                'variables' => ['customer_name', 'event_name'],
+                'is_active' => true,
+            ],
         ];
 
         foreach ($templates as $template) {

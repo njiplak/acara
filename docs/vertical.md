@@ -1,11 +1,11 @@
 # Vertical Value Chain — Event Management Platform
 
-## Current Stance (as of 2026-03-16)
+## Current Stance (as of 2026-03-17)
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    ███░░░     █████     ████░░       ███░░░░░       █░░░░░
- 90%       45%        95%       80%          40%            20%
+ ██████    ████░░     █████     ████░░       █████░░░       █░░░░░
+ 90%       58%        95%       80%          70%            20%
 ```
 
 ---
@@ -43,7 +43,7 @@ Attract attendees and drive registrations.
 |---|---|---|
 | Landing page + SEO settings | Done | Hero, CTA, meta tags, analytics IDs, social links |
 | Custom head scripts | Done | GTM, pixel injection |
-| Email/WA notifications | Not started | Order confirmation, payment reminder, event reminder (D-3, D-1) |
+| Email notifications | Done | Order placed, payment confirmed, order rejected, event reminder (D-3, D-1) via queued mail templates |
 | Blast/campaign to past attendees | Not started | Announce new events to previous customers by segment |
 | Testimonial display on public pages | Done | Highlighted testimonials on landing page (global) and event detail (per-event) |
 | Waitlist for sold-out events | Not started | Sign up when session full, auto-promote on cancellation |
@@ -51,9 +51,8 @@ Attract attendees and drive registrations.
 | Early bird countdown/urgency | Done | Live countdown for date-based tiers, "X spots left" for quantity-based tiers |
 
 ### What to develop next in MARKET
-1. **Email/WA notifications** — Order confirmation + event reminders. Reduces no-shows by 20-40%. Highest ROI feature in the entire platform.
-2. **Waitlist management** — Capture demand for sold-out sessions. Auto-notify when spot opens.
-3. **Blast/campaign system** — Re-engage past attendees when new events are published. Segment by event history.
+1. **Waitlist management** — Capture demand for sold-out sessions. Auto-notify when spot opens.
+2. **Blast/campaign system** — Re-engage past attendees when new events are published. Segment by event history.
 
 ---
 
@@ -101,7 +100,7 @@ Event-day execution and content delivery.
 
 ---
 
-## 5. FOLLOW-UP — 40%
+## 5. FOLLOW-UP — 70%
 
 Post-event actions that close the loop.
 
@@ -111,14 +110,12 @@ Post-event actions that close the loop.
 | Testimonial admin management | Done | List, highlight, manage in backoffice |
 | Post-event survey (NPS, detailed) | Not started | Multi-question surveys per event or catalog |
 | Certificate distribution | Not started | Auto-send certificates after event ends |
-| Post-event email (thank you, recap) | Not started | Automated email with event summary, feedback link, next events |
+| Post-event email (thank you, recap) | Done | Auto-sent to checked-in attendees day after event ends via scheduled command |
 | Recording/replay access | Done | Video embed (YouTube/Vimeo) as material type, availability window gating |
-| Financial reports (exportable) | Not started | Export event economics to Excel/PDF |
+| Financial reports (exportable) | Done | Excel export from event economics (summary + orders) and order list page |
 
 ### What to develop next in FOLLOW-UP
-1. **Post-event email** — Auto-send thank you + feedback link + next event promo after event ends.
-2. **Certificate distribution** — Auto-email certificates to checked-in attendees.
-3. **Exportable financial reports** — Excel/PDF export of event economics for bookkeeping.
+1. **Certificate distribution** — Auto-email certificates to checked-in attendees.
 
 ---
 
@@ -150,13 +147,13 @@ Features ranked by **impact vs effort** across all stages.
 
 | Priority | Feature | Stage | Impact | Effort |
 |---|---|---|---|---|
-| 1 | Email/WA notifications | MARKET | Very High | Medium |
+| ~~1~~ | ~~Email notifications~~ | ~~MARKET~~ | ~~Done~~ | |
 | 2 | Certificate generation | DELIVER | High | Medium |
 | 3 | Payment gateway (Midtrans/Xendit) | SELL | High | Medium-High |
-| 4 | Post-event email automation | FOLLOW-UP | High | Medium |
+| ~~4~~ | ~~Post-event email automation~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | 5 | Customer segmentation/tags | RETAIN | High | Low-Medium |
 | 6 | Waitlist management | MARKET | Medium | Low-Medium |
-| 7 | Exportable financial reports | FOLLOW-UP | Medium | Low |
+| ~~7~~ | ~~Exportable financial reports~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | 8 | Repeat attendee tracking | RETAIN | Medium | Low |
 | 9 | Blast/campaign system | MARKET | High | Medium-High |
 | 10 | Per-session attendance | DELIVER | Medium | Low |
@@ -173,9 +170,9 @@ Features ranked by **impact vs effort** across all stages.
 | Stage | Progress | Feature Count | Done | Remaining |
 |---|---|---|---|---|
 | PLAN | 90% | 13 | 12 | 1 |
-| MARKET | 45% | 8 | 5 | 3 |
+| MARKET | 58% | 8 | 6 | 2 |
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 80% | 7 | 4 | 3 |
-| FOLLOW-UP | 40% | 7 | 3 | 4 |
+| FOLLOW-UP | 70% | 7 | 5 | 2 |
 | RETAIN | 20% | 8 | 3 | 5 |
-| **TOTAL** | **~62%** | **55** | **38** | **17** |
+| **TOTAL** | **~69%** | **55** | **41** | **14** |

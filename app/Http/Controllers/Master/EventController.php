@@ -6,6 +6,7 @@ use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
 use App\Contract\Master\EventTemplateContract;
 use App\Contract\Master\VenueContract;
+use App\Exports\EventEconomicsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Models\Event;
@@ -16,7 +17,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EventController extends Controller
 {
@@ -260,6 +263,18 @@ class EventController extends Controller
                 'dailyRevenue' => $dailyRevenue,
             ],
         ]);
+    }
+
+    public function exportEconomics($id)
+    {
+        $event = $this->service->find($id, ['catalogs', 'venue']);
+        $slug = Str::slug($event->name);
+        $date = now()->format('Y-m-d');
+
+        return Excel::download(
+            new EventEconomicsExport($event),
+            "event-economics-{$slug}-{$date}.xlsx",
+        );
     }
 
     public function checkConflicts(HttpRequest $request)
