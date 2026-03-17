@@ -1,9 +1,22 @@
 import { router } from '@inertiajs/react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { index } from '@/routes/backoffice/operational/customer';
-import type { Customer } from '@/types/customer';
+import type { Customer, CustomerTag } from '@/types/customer';
+
+const tagConfig: Record<CustomerTag, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    new: { label: 'New', variant: 'secondary' },
+    returning: { label: 'Returning', variant: 'default' },
+    loyal: { label: 'Loyal', variant: 'default' },
+    active: { label: 'Active', variant: 'default' },
+    lapsed: { label: 'Lapsed', variant: 'outline' },
+    inactive: { label: 'Inactive', variant: 'destructive' },
+    'no-show': { label: 'No-show', variant: 'destructive' },
+    'big-spender': { label: 'Big Spender', variant: 'default' },
+    referrer: { label: 'Referrer', variant: 'secondary' },
+};
 
 type Props = {
     customer: Customer;
@@ -29,6 +42,15 @@ export default function CustomerShow({ customer }: Props) {
                 <div>
                     <h2 className="text-lg font-medium">{customer.name}</h2>
                     <p className="text-sm text-muted-foreground">{customer.email}</p>
+                    {customer.tags && customer.tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                            {customer.tags.map((tag) => (
+                                <Badge key={tag} variant={tagConfig[tag].variant}>
+                                    {tagConfig[tag].label}
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -11,6 +11,12 @@ return [
     'referral' => [
         'referee_discount' => env('REFERRAL_REFEREE_DISCOUNT', 25000),
         'referrer_credit' => env('REFERRAL_REFERRER_CREDIT', 25000),
-    ]
+    ],
+
+    'customer_tags' => [
+        'big_spender_threshold' => env('CUSTOMER_TAG_BIG_SPENDER', 1000000),
+        'active_days' => 90,
+        'lapsed_days' => 180,
+    ],
 
 ];

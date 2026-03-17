@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Operational;
 
 use App\Contract\Operational\CustomerContract;
+use App\Filters\CustomerTagFilter;
 use App\Http\Controllers\Controller;
 use App\Utils\WebResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class CustomerController extends Controller
 {
@@ -24,18 +26,20 @@ class CustomerController extends Controller
 
     public function fetch()
     {
-        $data = $this->service->all(
-            allowedFilters: [],
-            allowedSorts: [],
+        $data = $this->service->allWithTags(
+            allowedFilters: [
+                AllowedFilter::custom('tags', new CustomerTagFilter()),
+            ],
+            allowedSorts: ['name', 'email', 'created_at'],
             withPaginate: true,
-            perPage: request()->get('per_page', 10)
+            perPage: request()->get('per_page', 10),
         );
         return response()->json($data);
     }
 
     public function show($id)
     {
-        $data = $this->service->find($id);
+        $data = $this->service->findWithTags($id);
         return Inertia::render('operational/customer/show', [
             'customer' => $data,
         ]);

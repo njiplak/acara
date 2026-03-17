@@ -1,6 +1,8 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 
+import CustomerTagFilter from '@/components/customer-tag-filter';
 import IndexPage from '@/components/index-page';
+import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
 import {
@@ -9,7 +11,19 @@ import {
     fetch as fetchRoute,
     show,
 } from '@/routes/backoffice/operational/customer';
-import type { Customer } from '@/types/customer';
+import type { Customer, CustomerTag } from '@/types/customer';
+
+const tagConfig: Record<CustomerTag, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    new: { label: 'New', variant: 'secondary' },
+    returning: { label: 'Returning', variant: 'default' },
+    loyal: { label: 'Loyal', variant: 'default' },
+    active: { label: 'Active', variant: 'default' },
+    lapsed: { label: 'Lapsed', variant: 'outline' },
+    inactive: { label: 'Inactive', variant: 'destructive' },
+    'no-show': { label: 'No-show', variant: 'destructive' },
+    'big-spender': { label: 'Big Spender', variant: 'default' },
+    referrer: { label: 'Referrer', variant: 'secondary' },
+};
 
 const helper = createColumnHelper<Customer>();
 
@@ -54,6 +68,24 @@ const columns: ColumnDef<Customer, any>[] = [
         enableHiding: false,
         cell: (ctx) => ctx.getValue() || '-',
     }),
+    helper.display({
+        id: 'tags',
+        header: 'Tags',
+        enableColumnFilter: false,
+        cell: (ctx) => {
+            const tags = ctx.row.original.tags ?? [];
+            if (tags.length === 0) return <span className="text-muted-foreground">-</span>;
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {tags.map((tag) => (
+                        <Badge key={tag} variant={tagConfig[tag].variant}>
+                            {tagConfig[tag].label}
+                        </Badge>
+                    ))}
+                </div>
+            );
+        },
+    }),
     createDateColumn<Customer>('created_at'),
 ];
 
@@ -74,6 +106,7 @@ export default function CustomerIndex() {
             columns={columns}
             routes={routes}
             hideAdd
+            filterComponent={<CustomerTagFilter />}
         />
     );
 }
