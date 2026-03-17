@@ -4,13 +4,13 @@
 
 ```
  PLAN ──── MARKET ──── SELL ──── DELIVER ──── FOLLOW-UP ──── RETAIN
- ██████    █████░     █████     ██████       ██████         ██████
- 90%       85%        95%       100%         100%           100%
+ ██████    ██████     █████     ██████       ██████         ██████
+ 100%      100%       95%       100%         100%           100%
 ```
 
 ---
 
-## 1. PLAN — 90%
+## 1. PLAN — 100%
 
 Plan, configure, and evaluate events before they go live.
 
@@ -28,14 +28,11 @@ Plan, configure, and evaluate events before they go live.
 | Event templates | Done | Save/reuse event configs, create from template |
 | Event economics (per-event P&L) | Done | Revenue, fill rate, check-in rate, discounts, charts |
 | Resource conflict detection | Done | Venue and speaker overlap warnings on event form |
-| Recurring class schedules | Not started | Auto-generate instances from weekly template |
-
-### What to develop next in PLAN
-- **Recurring class schedules** — Define weekly templates, auto-generate events for a date range. Only needed if platform targets studios/gyms with repeating classes.
+| Recurring class schedules | Done | Generate recurring events from template — pick days of week, date range, venue. Bulk-creates draft events with date suffix in name |
 
 ---
 
-## 2. MARKET — 85%
+## 2. MARKET — 100%
 
 Attract attendees and drive registrations.
 
@@ -147,7 +144,7 @@ Features ranked by **impact vs effort** across all stages.
 | ~~7~~ | ~~Blast/campaign system~~ | ~~MARKET~~ | ~~Done~~ | |
 | ~~8~~ | ~~Per-session attendance~~ | ~~DELIVER~~ | ~~Done~~ | |
 | ~~9~~ | ~~Loyalty/points program~~ | ~~RETAIN~~ | ~~Done~~ | |
-| 10 | Recurring class schedules | PLAN | Niche | High |
+| ~~10~~ | ~~Recurring class schedules~~ | ~~PLAN~~ | ~~Done~~ | |
 | ~~11~~ | ~~Live announcements~~ | ~~DELIVER~~ | ~~Done~~ | |
 | ~~12~~ | ~~Post-event surveys (NPS)~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
 | ~~13~~ | ~~Recording/replay access~~ | ~~FOLLOW-UP~~ | ~~Done~~ | |
@@ -158,10 +155,10 @@ Features ranked by **impact vs effort** across all stages.
 
 | Stage | Progress | Feature Count | Done | Remaining |
 |---|---|---|---|---|
-| PLAN | 90% | 13 | 12 | 1 |
-| MARKET | 85% | 8 | 8 | 0 |
+| PLAN | 100% | 13 | 13 | 0 |
+| MARKET | 100% | 8 | 8 | 0 |
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 100% | 7 | 7 | 0 |
 | FOLLOW-UP | 100% | 7 | 7 | 0 |
 | RETAIN | 100% | 8 | 8 | 0 |
-| **TOTAL** | **~96%** | **55** | **53** | **2** |
+| **TOTAL** | **~98%** | **55** | **54** | **1** |

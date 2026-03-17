@@ -1,5 +1,8 @@
+import { Link } from '@inertiajs/react';
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
+import { CalendarPlus } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import IndexPage from '@/components/index-page';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
@@ -8,6 +11,7 @@ import {
     destroy as destroyRoute,
     destroyBulk,
     fetch as fetchRoute,
+    generate,
     show,
 } from '@/routes/backoffice/master/event-template';
 import type { Model } from '@/types/model';
@@ -44,6 +48,20 @@ const columns: ColumnDef<EventTemplate, any>[] = [
         },
     }),
     createDateColumn<EventTemplate>('created_at'),
+    helper.display({
+        id: 'generate',
+        header: '',
+        enableColumnFilter: false,
+        enableHiding: false,
+        cell: (ctx) => (
+            <Button variant="outline" size="sm" asChild>
+                <Link href={generate(ctx.row.original.id).url}>
+                    <CalendarPlus className="size-4" />
+                    Generate
+                </Link>
+            </Button>
+        ),
+    }),
 ];
 
 const routes = { fetch: fetchRoute, destroy: destroyRoute, destroyBulk, show, create };

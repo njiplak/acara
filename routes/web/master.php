@@ -73,6 +73,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::get('/create', [EventTemplateController::class, 'create'])->name('create');
         Route::post('/', [EventTemplateController::class, 'store'])->name('store');
         Route::get('/{id}', [EventTemplateController::class, 'show'])->name('show');
+        Route::get('/{id}/generate', [EventTemplateController::class, 'generateForm'])->name('generate');
+        Route::post('/{id}/generate', [EventTemplateController::class, 'generate'])->name('generate.store');
         Route::put('/{id}', [EventTemplateController::class, 'update'])->name('update');
         Route::delete('/{id}', [EventTemplateController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [EventTemplateController::class, 'destroy_bulk'])->name('destroy-bulk');

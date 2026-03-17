@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers\Master;
 
+use App\Contract\Master\EventContract;
 use App\Contract\Master\EventTemplateContract;
+use App\Contract\Master\VenueContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventTemplateRequest;
 use App\Utils\WebResponse;
+use Carbon\Carbon;
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
@@ -69,5 +74,91 @@ class EventTemplateController extends Controller
     {
         $data = $this->service->bulkDeleteByIds($request->ids ?? []);
         return WebResponse::response($data, 'backoffice.master.event-template.index');
+    }
+
+    public function generateForm($id, VenueContract $venueService)
+    {
+        $template = $this->service->find($id);
+
+        $venues = $venueService->all(
+            allowedFilters: [],
+            allowedSorts: [],
+            withPaginate: false,
+        );
+
+        return Inertia::render('master/event-template/generate', [
+            'template' => $template,
+            'venues' => $venues,
+        ]);
+    }
+
+    public function generate(HttpRequest $request, $id, EventContract $eventService)
+    {
+        $request->validate([
+            'days' => ['required', 'array', 'min:1'],
+            'days.*' => ['required', 'integer', 'between:0,6'],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after:start_date'],
+            'event_time' => ['required', 'string'],
+            'venue_id' => ['nullable', 'integer', 'exists:venues,id'],
+        ]);
+
+        $template = $this->service->find($id);
+        $td = $template->template_data;
+
+        $days = $request->input('days');
+        $startDate = Carbon::parse($request->input('start_date'));
+        $endDate = Carbon::parse($request->input('end_date'));
+        $eventTime = $request->input('event_time');
+        $venueId = $request->input('venue_id');
+
+        $created = 0;
+
+        try {
+            DB::beginTransaction();
+
+            $current = $startDate->copy();
+            while ($current->lte($endDate)) {
+                if (in_array($current->dayOfWeek, $days)) {
+                    $dateSuffix = $current->format('D j M');
+                    $eventName = $template->name . ' — ' . $dateSuffix;
+                    $dateString = $current->toDateString();
+
+                    $eventData = [
+                        'name' => $eventName,
+                        'description' => $td['description'] ?? null,
+                        'start_date' => $dateString,
+                        'end_date' => $dateString,
+                        'status' => 'draft',
+                        'payment_method' => $td['payment_method'] ?? 'manual',
+                        'material_require_checkin' => $td['material_require_checkin'] ?? true,
+                        'venue_id' => $venueId,
+                        'schedule' => $td['schedule'] ?? null,
+                        'catalogs' => collect($td['catalogs'] ?? [])->map(fn($c) => [
+                            'catalog_id' => $c['catalog_id'],
+                            'max_participant' => $c['max_participant'] ?? null,
+                            'pricing_type' => $c['pricing_type'] ?? 'fixed',
+                            'pricing_tiers' => $c['pricing_tiers'] ?? [],
+                        ])->toArray(),
+                    ];
+
+                    $result = $eventService->create($eventData);
+                    if (!($result instanceof \Exception)) {
+                        $created++;
+                    }
+                }
+
+                $current->addDay();
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('backoffice.master.event.index')
+                ->with('success', "Generated {$created} events from template.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return WebResponse::response($e, 'backoffice.master.event-template.index');
+        }
     }
 }
