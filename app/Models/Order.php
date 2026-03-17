@@ -82,6 +82,11 @@ class Order extends Model
         return $this->hasOne(Testimonial::class);
     }
 
+    public function surveyResponse(): HasOne
+    {
+        return $this->hasOne(SurveyResponse::class);
+    }
+
     public function addons(): BelongsToMany
     {
         return $this->belongsToMany(Addon::class)->withPivot('addon_name', 'addon_price');

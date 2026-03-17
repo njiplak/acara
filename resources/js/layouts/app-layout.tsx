@@ -12,6 +12,7 @@ import {
     MapPin,
     Package,
     Puzzle,
+    ClipboardCheck,
     MessageSquare,
     ScanLine,
     Settings,
@@ -281,6 +282,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.operational.testimonial.index.url()}>
                                             <MessageSquare />
                                             <span>Testimonial</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.survey.index.url())}>
+                                        <Link href={backoffice.operational.survey.index.url()}>
+                                            <ClipboardCheck />
+                                            <span>Survey</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

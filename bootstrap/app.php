@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('mail:send-event-reminders')->dailyAt('08:00');
         $schedule->command('mail:send-post-event-emails')->dailyAt('10:00');
+        $schedule->command('mail:send-post-event-survey')->dailyAt('10:30');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

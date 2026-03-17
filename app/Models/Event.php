@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Event extends Model
 {
@@ -53,5 +54,10 @@ class Event extends Model
     public function materials(): HasMany
     {
         return $this->hasMany(EventMaterial::class);
+    }
+
+    public function survey(): HasOne
+    {
+        return $this->hasOne(Survey::class);
     }
 }

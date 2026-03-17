@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Operational\CustomerController;
 use App\Http\Controllers\Operational\OrderController;
+use App\Http\Controllers\Operational\SurveyController;
 use App\Http\Controllers\Operational\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +38,17 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::get('/', [TestimonialController::class, 'index'])->name('index');
         Route::get('/fetch', [TestimonialController::class, 'fetch'])->name('fetch');
         Route::post('/{id}/toggle-highlight', [TestimonialController::class, 'toggleHighlight'])->name('toggle-highlight');
+    });
+
+    Route::group(['prefix' => 'survey', 'as' => 'survey.'], function () {
+        Route::get('/', [SurveyController::class, 'index'])->name('index');
+        Route::get('/fetch', [SurveyController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [SurveyController::class, 'create'])->name('create');
+        Route::post('/', [SurveyController::class, 'store'])->name('store');
+        Route::get('/{id}/results', [SurveyController::class, 'results'])->name('results');
+        Route::get('/{id}', [SurveyController::class, 'show'])->name('show');
+        Route::put('/{id}', [SurveyController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SurveyController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [SurveyController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 });
