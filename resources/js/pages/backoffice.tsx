@@ -1,10 +1,13 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
-import { AlertTriangle, BarChart3, Calendar, ClipboardList, DollarSign, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { AlertTriangle, BarChart3, Cake, Calendar, Check, ClipboardList, DollarSign, Gift, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
     ChartContainer,
     ChartTooltip,
@@ -106,6 +109,15 @@ type UpcomingEvent = Event & {
     total_orders_count: number;
 };
 
+type BirthdayCustomer = {
+    id: number;
+    name: string;
+    email: string;
+    avatar: string | null;
+    date_of_birth: string;
+    has_birthday_voucher: boolean;
+};
+
 type Props = {
     stats: Stats;
     trends: Trends;
@@ -116,6 +128,7 @@ type Props = {
     statusBreakdown: Record<string, number>;
     recentOrders: Order[];
     upcomingEvents: UpcomingEvent[];
+    birthdayCustomers: BirthdayCustomer[];
 };
 
 function TrendIndicator({ value }: { value: number }) {
@@ -129,7 +142,7 @@ function TrendIndicator({ value }: { value: number }) {
     );
 }
 
-export default function Backoffice({ stats, trends, alerts, topReferrers, voucherPerformance, revenueChart, statusBreakdown, recentOrders, upcomingEvents }: Props) {
+export default function Backoffice({ stats, trends, alerts, topReferrers, voucherPerformance, revenueChart, statusBreakdown, recentOrders, upcomingEvents, birthdayCustomers }: Props) {
     const pieData = Object.entries(statusBreakdown).map(([status, count]) => ({
         name: statusConfig[status as OrderStatus]?.label || status,
         value: count,
@@ -255,6 +268,26 @@ export default function Backoffice({ stats, trends, alerts, topReferrers, vouche
                                     </Button>
                                 </div>
                             )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Today's Birthdays */}
+            {birthdayCustomers.length > 0 && (
+                <Card className="border-pink-200 dark:border-pink-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Cake className="size-4 text-pink-500" />
+                            Today's Birthdays
+                        </CardTitle>
+                        <CardDescription>{birthdayCustomers.length} customer{birthdayCustomers.length > 1 ? 's' : ''} celebrating today</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {birthdayCustomers.map((bc) => (
+                                <BirthdayCustomerRow key={bc.id} customer={bc} />
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
@@ -525,6 +558,78 @@ export default function Backoffice({ stats, trends, alerts, topReferrers, vouche
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
+function BirthdayCustomerRow({ customer }: { customer: BirthdayCustomer }) {
+    const [showForm, setShowForm] = useState(false);
+    const [sent, setSent] = useState(customer.has_birthday_voucher);
+    const [value, setValue] = useState('50000');
+
+    const handleSend = () => {
+        router.post(`/operational/customer/${customer.id}/birthday-voucher`, {
+            value: parseInt(value),
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSent(true);
+                setShowForm(false);
+                toast.success(`Birthday voucher sent to ${customer.name}`);
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] as string || 'Failed to send voucher');
+            },
+        });
+    };
+
+    const age = new Date().getFullYear() - new Date(customer.date_of_birth).getFullYear();
+
+    return (
+        <div className="flex items-center justify-between rounded-md border px-3 py-2">
+            <div className="flex items-center gap-3">
+                {customer.avatar ? (
+                    <img src={customer.avatar} alt="" className="size-8 rounded-full" />
+                ) : (
+                    <div className="flex size-8 items-center justify-center rounded-full bg-pink-100 text-xs font-medium text-pink-700 dark:bg-pink-900 dark:text-pink-200">
+                        {customer.name.charAt(0).toUpperCase()}
+                    </div>
+                )}
+                <div>
+                    <p className="text-sm font-medium">{customer.name}</p>
+                    <p className="text-xs text-muted-foreground">Turning {age}</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                {sent ? (
+                    <Badge variant="secondary" className="gap-1">
+                        <Check className="size-3" />
+                        Voucher Sent
+                    </Badge>
+                ) : showForm ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="number"
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                            className="h-8 w-28"
+                            placeholder="Amount"
+                        />
+                        <Button size="sm" onClick={handleSend}>
+                            <Gift className="size-3.5" />
+                            Send
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setShowForm(false)}>
+                            Cancel
+                        </Button>
+                    </div>
+                ) : (
+                    <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>
+                        <Gift className="size-3.5" />
+                        Send Voucher
+                    </Button>
+                )}
+            </div>
         </div>
     );
 }

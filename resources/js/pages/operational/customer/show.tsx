@@ -56,6 +56,22 @@ export default function CustomerShow({ customer }: Props) {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">Phone</span>
+                    <span className="text-sm">{customer.phone || '-'}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">Date of Birth</span>
+                    <span className="text-sm">
+                        {customer.date_of_birth
+                            ? new Date(customer.date_of_birth).toLocaleDateString('en-GB', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                              })
+                            : '-'}
+                    </span>
+                </div>
+                <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium text-muted-foreground">Google ID</span>
                     <span className="text-sm">{customer.google_id || '-'}</span>
                 </div>

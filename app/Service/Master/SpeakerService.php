@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class SpeakerService extends BaseService implements SpeakerContract
 {
-    protected array $relation = ['catalogs', 'media'];
+    protected array $relation = ['media'];
     protected array $fileKeys = ['photo'];
 
     public function __construct(Speaker $model)
@@ -21,9 +21,6 @@ class SpeakerService extends BaseService implements SpeakerContract
     {
         try {
             DB::beginTransaction();
-            $catalogIds = $payloads['catalog_ids'] ?? [];
-            unset($payloads['catalog_ids']);
-
             // Remove file keys from payloads before creating
             foreach ($this->fileKeys as $fileKey) {
                 unset($payloads[$fileKey]);
@@ -39,10 +36,8 @@ class SpeakerService extends BaseService implements SpeakerContract
                     });
             }
 
-            $model->catalogs()->sync($catalogIds);
-
             DB::commit();
-            return $model->fresh(['catalogs', 'media']);
+            return $model->fresh(['media']);
         } catch (\Exception $e) {
             DB::rollBack();
             return $e;
@@ -53,9 +48,6 @@ class SpeakerService extends BaseService implements SpeakerContract
     {
         try {
             DB::beginTransaction();
-            $catalogIds = $payloads['catalog_ids'] ?? [];
-            unset($payloads['catalog_ids']);
-
             // Remove file keys from payloads before updating
             foreach ($this->fileKeys as $fileKey) {
                 if (isset($payloads[$fileKey])) {
@@ -74,10 +66,8 @@ class SpeakerService extends BaseService implements SpeakerContract
                     });
             }
 
-            $model->catalogs()->sync($catalogIds);
-
             DB::commit();
-            return $model->fresh(['catalogs', 'media']);
+            return $model->fresh(['media']);
         } catch (\Exception $e) {
             DB::rollBack();
             return $e;

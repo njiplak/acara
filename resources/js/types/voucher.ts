@@ -10,6 +10,7 @@ export type Voucher = Model & {
     max_discount: number | null;
     event_id: number | null;
     catalog_id: number | null;
+    customer_id: number | null;
     max_uses: number | null;
     max_uses_per_customer: number;
     min_order_amount: number | null;

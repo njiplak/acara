@@ -16,6 +16,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
         Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [CustomerController::class, 'destroy_bulk'])->name('destroy-bulk');
+        Route::post('/{id}/birthday-voucher', [CustomerController::class, 'generateBirthdayVoucher'])->name('birthday-voucher');
     });
 
     Route::group(['prefix' => 'order', 'as' => 'order.'], function () {

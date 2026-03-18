@@ -17,8 +17,7 @@ class SpeakerRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'title' => ['nullable', 'string', 'max:255'],
             'bio' => ['nullable', 'string'],
-            'catalog_ids' => ['nullable', 'array'],
-            'catalog_ids.*' => ['exists:catalogs,id'],
+
             'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }

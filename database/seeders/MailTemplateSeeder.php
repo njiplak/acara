@@ -83,6 +83,14 @@ class MailTemplateSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'slug' => 'birthday-voucher',
+                'name' => 'Birthday Voucher',
+                'subject' => 'Happy Birthday, {{customer_name}}!',
+                'body' => '<h2>Happy Birthday!</h2><p>Hi {{customer_name}},</p><p>Wishing you a wonderful birthday! As a special gift, here is a discount code just for you:</p><p style="text-align:center;font-size:24px;font-weight:bold;letter-spacing:2px;padding:16px;background:#f5f5f5;border-radius:8px;">{{voucher_code}}</p><p><strong>Discount:</strong> {{voucher_value}}<br><strong>Valid until:</strong> {{valid_until}}</p><p>Use this code on your next order. Enjoy your special day!</p>',
+                'variables' => ['customer_name', 'voucher_code', 'voucher_value', 'valid_until'],
+                'is_active' => true,
+            ],
+            [
                 'slug' => 'certificate-distribution',
                 'name' => 'Certificate Distribution',
                 'subject' => 'Your Certificate for {{event_name}}',

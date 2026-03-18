@@ -114,6 +114,10 @@ class OrderService extends BaseService implements OrderContract
                     abort(422, 'This promo code has expired.');
                 }
 
+                if ($voucher->customer_id && $voucher->customer_id !== $payloads['customer_id']) {
+                    abort(422, 'This promo code is not valid for your account.');
+                }
+
                 if ($voucher->event_id && $voucher->event_id !== $event->id) {
                     abort(422, 'This promo code is not valid for this event.');
                 }

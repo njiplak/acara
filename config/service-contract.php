@@ -17,6 +17,11 @@ return [
         'attendance_credit' => env('LOYALTY_ATTENDANCE_CREDIT', 1000),
     ],
 
+    'birthday' => [
+        'default_voucher_value' => env('BIRTHDAY_VOUCHER_VALUE', 50000),
+        'voucher_validity_days' => 7,
+    ],
+
     'customer_tags' => [
         'big_spender_threshold' => env('CUSTOMER_TAG_BIG_SPENDER', 1000000),
         'active_days' => 90,

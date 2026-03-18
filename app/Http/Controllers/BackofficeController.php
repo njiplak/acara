@@ -125,6 +125,19 @@ class BackofficeController extends Controller
             'voucher' => $voucherMap->get($row->voucher_id),
         ])->filter(fn($v) => $v['voucher'] !== null)->values();
 
+        // Today's birthdays
+        $todayMd = $now->format('m-d');
+        $birthdayCustomers = Customer::whereNotNull('date_of_birth')
+            ->whereRaw("strftime('%m-%d', date_of_birth) = ?", [$todayMd])
+            ->select('id', 'name', 'email', 'avatar', 'date_of_birth')
+            ->get()
+            ->map(function ($customer) use ($now) {
+                $customer->has_birthday_voucher = Voucher::where('customer_id', $customer->id)
+                    ->where('code', 'LIKE', "BDAY{$now->year}%")
+                    ->exists();
+                return $customer;
+            });
+
         // Revenue chart — last 30 days
         $revenueChart = Order::where('status', 'confirmed')
             ->where('confirmed_at', '>=', $now->subDays(29)->startOfDay())
@@ -192,6 +205,7 @@ class BackofficeController extends Controller
             'statusBreakdown' => $statusBreakdown,
             'recentOrders' => $recentOrders,
             'upcomingEvents' => $upcomingEvents,
+            'birthdayCustomers' => $birthdayCustomers,
         ]);
     }
 }

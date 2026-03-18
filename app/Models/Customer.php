@@ -17,6 +17,8 @@ class Customer extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'date_of_birth',
         'password',
         'google_id',
         'avatar',
@@ -33,8 +35,14 @@ class Customer extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'date_of_birth' => 'date',
             'password' => 'hashed',
         ];
+    }
+
+    public function isProfileComplete(): bool
+    {
+        return !is_null($this->phone) && !is_null($this->date_of_birth);
     }
 
     public function orders(): HasMany

@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList, Copy, Share2, UserRound, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, Copy, Gift, Share2, UserRound, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/Customer/OrderController';
@@ -26,7 +26,13 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
     refunded: { label: 'Refunded', variant: 'secondary' },
 };
 
-export default function CustomerOrdersIndex({ orders, referralCode, referralBalance, logoUrl }: { orders: Order[]; referralCode: string; referralBalance: number; logoUrl?: string | null }) {
+type BirthdayVoucher = {
+    code: string;
+    value: number;
+    valid_until: string;
+};
+
+export default function CustomerOrdersIndex({ orders, referralCode, referralBalance, logoUrl, birthdayVoucher }: { orders: Order[]; referralCode: string; referralBalance: number; logoUrl?: string | null; birthdayVoucher?: BirthdayVoucher | null }) {
     const { auth, name } = usePage<SharedData>().props;
     const customer = auth.customer!;
     const appName = (name as string) || 'Acara';
@@ -85,6 +91,11 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                         </Link>
 
                         <h1 className="mb-6 text-2xl font-bold tracking-tight text-foreground">My Orders</h1>
+
+                        {/* Birthday voucher banner */}
+                        {birthdayVoucher && (
+                            <BirthdayBanner voucher={birthdayVoucher} />
+                        )}
 
                         {/* Referral info card */}
                         <ReferralCard code={referralCode} balance={referralBalance} />
@@ -190,6 +201,44 @@ function ReferralCard({ code, balance }: { code: string; balance: number }) {
                         <p className="text-xs text-muted-foreground">Balance</p>
                         <p className="font-semibold text-foreground">{formatPrice(balance)}</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function BirthdayBanner({ voucher }: { voucher: BirthdayVoucher }) {
+    const [copied, setCopied] = useState(false);
+
+    const copyCode = () => {
+        navigator.clipboard.writeText(voucher.code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="mb-6 rounded-lg border border-pink-200 bg-pink-50 p-4 dark:border-pink-800 dark:bg-pink-950">
+            <div className="flex items-start gap-3">
+                <Gift className="mt-0.5 size-5 shrink-0 text-pink-600 dark:text-pink-400" />
+                <div className="flex-1">
+                    <p className="text-sm font-semibold text-pink-900 dark:text-pink-100">
+                        Happy Birthday!
+                    </p>
+                    <p className="mt-1 text-sm text-pink-800 dark:text-pink-200">
+                        Use code{' '}
+                        <button
+                            onClick={copyCode}
+                            className="inline-flex items-center gap-1 rounded bg-pink-100 px-1.5 py-0.5 font-mono text-xs font-bold text-pink-900 transition-colors hover:bg-pink-200 dark:bg-pink-900 dark:text-pink-100 dark:hover:bg-pink-800"
+                        >
+                            {voucher.code}
+                            <Copy className="size-3" />
+                        </button>
+                        {copied && <span className="ml-1 text-xs text-pink-600 dark:text-pink-400">Copied!</span>}
+                        {' '}for {formatPrice(voucher.value)} off your next order!
+                    </p>
+                    <p className="mt-1 text-xs text-pink-600 dark:text-pink-400">
+                        Valid until {formatDate(voucher.valid_until)}
+                    </p>
                 </div>
             </div>
         </div>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Master;
 
-use App\Contract\Master\CatalogContract;
 use App\Contract\Master\SpeakerContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SpeakerRequest;
@@ -13,12 +12,10 @@ use Inertia\Inertia;
 class SpeakerController extends Controller
 {
     protected SpeakerContract $service;
-    protected CatalogContract $catalogService;
 
-    public function __construct(SpeakerContract $service, CatalogContract $catalogService)
+    public function __construct(SpeakerContract $service)
     {
         $this->service = $service;
-        $this->catalogService = $catalogService;
     }
 
     public function index()
@@ -40,15 +37,7 @@ class SpeakerController extends Controller
 
     public function create()
     {
-        $catalogs = $this->catalogService->all(
-            allowedFilters: [],
-            allowedSorts: [],
-            withPaginate: false,
-        );
-
-        return Inertia::render('master/speaker/form', [
-            'catalogs' => $catalogs,
-        ]);
+        return Inertia::render('master/speaker/form');
     }
 
     public function store(SpeakerRequest $request)
@@ -59,16 +48,10 @@ class SpeakerController extends Controller
 
     public function show($id)
     {
-        $data = $this->service->find($id, ['catalogs', 'media']);
-        $catalogs = $this->catalogService->all(
-            allowedFilters: [],
-            allowedSorts: [],
-            withPaginate: false,
-        );
+        $data = $this->service->find($id, ['media']);
 
         return Inertia::render('master/speaker/form', [
             'speaker' => $data,
-            'catalogs' => $catalogs,
         ]);
     }
 

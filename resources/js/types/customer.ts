@@ -14,6 +14,8 @@ export type CustomerTag =
 export type Customer = Model & {
     name: string;
     email: string;
+    phone?: string | null;
+    date_of_birth?: string | null;
     email_verified_at?: string | null;
     google_id?: string | null;
     avatar?: string | null;

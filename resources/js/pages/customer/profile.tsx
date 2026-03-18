@@ -38,6 +38,8 @@ export default function CustomerProfile({ stats, logoUrl }: Props) {
 
     const { data, setData, put, processing, errors } = useForm({
         name: customer.name,
+        phone: customer.phone || '',
+        date_of_birth: customer.date_of_birth ? customer.date_of_birth.split('T')[0] : '',
     });
 
     const handleSave = (e: React.FormEvent) => {
@@ -131,6 +133,28 @@ export default function CustomerProfile({ stats, logoUrl }: Props) {
                                                     <p className="text-xs text-destructive">{errors.name}</p>
                                                 )}
                                             </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label>Phone</Label>
+                                                <Input
+                                                    type="tel"
+                                                    value={data.phone}
+                                                    onChange={(e) => setData('phone', e.target.value)}
+                                                />
+                                                {errors.phone && (
+                                                    <p className="text-xs text-destructive">{errors.phone}</p>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label>Date of Birth</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={data.date_of_birth}
+                                                    onChange={(e) => setData('date_of_birth', e.target.value)}
+                                                />
+                                                {errors.date_of_birth && (
+                                                    <p className="text-xs text-destructive">{errors.date_of_birth}</p>
+                                                )}
+                                            </div>
                                             <div className="flex gap-2">
                                                 <Button type="submit" size="sm" disabled={processing}>
                                                     <Check className="size-3.5" />
@@ -143,6 +167,8 @@ export default function CustomerProfile({ stats, logoUrl }: Props) {
                                                     onClick={() => {
                                                         setEditing(false);
                                                         setData('name', customer.name);
+                                                        setData('phone', customer.phone || '');
+                                                        setData('date_of_birth', customer.date_of_birth ? customer.date_of_birth.split('T')[0] : '');
                                                     }}
                                                 >
                                                     Cancel
@@ -161,6 +187,14 @@ export default function CustomerProfile({ stats, logoUrl }: Props) {
                                                 </button>
                                             </div>
                                             <p className="text-sm text-muted-foreground">{customer.email}</p>
+                                            {customer.phone && (
+                                                <p className="text-sm text-muted-foreground">{customer.phone}</p>
+                                            )}
+                                            {customer.date_of_birth && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Born {formatDate(customer.date_of_birth)}
+                                                </p>
+                                            )}
                                             <p className="mt-1 text-xs text-muted-foreground">
                                                 Member since {formatDate(customer.created_at)}
                                             </p>

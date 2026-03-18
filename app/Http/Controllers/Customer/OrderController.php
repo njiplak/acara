@@ -37,11 +37,27 @@ class OrderController extends Controller
 
         $settings = LandingPageSetting::instance();
 
+        // Check for active birthday voucher
+        $birthdayVoucher = Voucher::where('customer_id', $customer->id)
+            ->where('is_active', true)
+            ->where('valid_until', '>=', now())
+            ->where('code', 'LIKE', 'BDAY%')
+            ->where(function ($q) {
+                $q->whereNull('max_uses')
+                    ->orWhereRaw('(SELECT COUNT(*) FROM orders WHERE orders.voucher_id = vouchers.id AND orders.status NOT IN (\'cancelled\', \'rejected\', \'refunded\')) < vouchers.max_uses');
+            })
+            ->first();
+
         return Inertia::render('customer/orders/index', [
             'orders' => $orders,
             'referralCode' => $customer->referral_code,
             'referralBalance' => $customer->referral_balance,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
+            'birthdayVoucher' => $birthdayVoucher ? [
+                'code' => $birthdayVoucher->code,
+                'value' => $birthdayVoucher->value,
+                'valid_until' => $birthdayVoucher->valid_until->toDateString(),
+            ] : null,
         ]);
     }
 
@@ -164,6 +180,9 @@ class OrderController extends Controller
         }
         if ($voucher->valid_until && now()->gt($voucher->valid_until)) {
             return response()->json(['valid' => false, 'message' => 'This promo code has expired.']);
+        }
+        if ($voucher->customer_id && $voucher->customer_id !== $customerId) {
+            return response()->json(['valid' => false, 'message' => 'This promo code is not valid for your account.']);
         }
         if ($voucher->event_id && $voucher->event_id !== $eventId) {
             return response()->json(['valid' => false, 'message' => 'This promo code is not valid for this event.']);

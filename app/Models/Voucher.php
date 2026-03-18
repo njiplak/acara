@@ -19,6 +19,7 @@ class Voucher extends Model
         'max_discount',
         'event_id',
         'catalog_id',
+        'customer_id',
         'max_uses',
         'max_uses_per_customer',
         'min_order_amount',
@@ -36,6 +37,11 @@ class Voucher extends Model
             'valid_from' => 'datetime',
             'valid_until' => 'datetime',
         ];
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function event(): BelongsTo

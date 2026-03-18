@@ -14,8 +14,12 @@ export type AuthCustomer = {
     id: number;
     name: string;
     email: string;
+    phone: string | null;
+    date_of_birth: string | null;
     avatar: string | null;
     referral_code: string | null;
+    referral_balance: number;
+    created_at: string;
 };
 
 export type Auth = {

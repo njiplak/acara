@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Operational;
 use App\Contract\Operational\CustomerContract;
 use App\Filters\CustomerTagFilter;
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
+use App\Models\Voucher;
+use App\Service\MailService;
 use App\Utils\WebResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -55,5 +59,52 @@ class CustomerController extends Controller
     {
         $data = $this->service->bulkDeleteByIds($request->ids ?? []);
         return WebResponse::response($data, 'backoffice.operational.customer.index');
+    }
+
+    public function generateBirthdayVoucher(Request $request, $id)
+    {
+        $request->validate([
+            'value' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $customer = Customer::findOrFail($id);
+        abort_if(!$customer->date_of_birth, 422, 'Customer has no date of birth set.');
+
+        $year = now()->year;
+        $exists = Voucher::where('customer_id', $customer->id)
+            ->where('code', 'LIKE', "BDAY{$year}%")
+            ->exists();
+        abort_if($exists, 422, 'Birthday voucher already generated for this customer this year.');
+
+        do {
+            $code = 'BDAY' . $year . strtoupper(Str::random(4));
+        } while (Voucher::where('code', $code)->exists());
+
+        $voucher = Voucher::create([
+            'code' => $code,
+            'name' => "Birthday {$year} - {$customer->name}",
+            'type' => 'fixed',
+            'value' => $request->value,
+            'max_uses' => 1,
+            'max_uses_per_customer' => 1,
+            'customer_id' => $customer->id,
+            'valid_from' => now(),
+            'valid_until' => now()->addDays(config('service-contract.birthday.voucher_validity_days', 7)),
+            'is_active' => true,
+            'stackable_with_referral' => true,
+        ]);
+
+        MailService::send(
+            slug: 'birthday-voucher',
+            to: $customer->email,
+            data: [
+                'customer_name' => $customer->name,
+                'voucher_code' => $voucher->code,
+                'voucher_value' => 'Rp ' . number_format($voucher->value, 0, ',', '.'),
+                'valid_until' => $voucher->valid_until->format('d M Y'),
+            ],
+        );
+
+        return WebResponse::response($voucher);
     }
 }

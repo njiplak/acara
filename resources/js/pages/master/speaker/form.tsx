@@ -4,30 +4,25 @@ import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { FormResponse } from '@/lib/constant';
 import { index, store, update } from '@/routes/backoffice/master/speaker';
-import type { Catalog } from '@/types/catalog';
 import type { Speaker } from '@/types/speaker';
 
 type Props = {
     speaker?: Speaker;
-    catalogs?: Catalog[];
 };
 
-export default function SpeakerForm({ speaker, catalogs = [] }: Props) {
-    const initialCatalogIds = speaker?.catalogs?.map((c: Catalog) => c.id) ?? [];
-
+export default function SpeakerForm({ speaker }: Props) {
     const { data, setData, post, errors, processing } = useForm({
         name: speaker?.name ?? '',
         title: speaker?.title ?? '',
         bio: speaker?.bio ?? '',
         photo: null as File | null,
-        catalog_ids: initialCatalogIds,
     });
 
     const currentPhoto = speaker?.media?.[0]?.original_url;
@@ -43,15 +38,6 @@ export default function SpeakerForm({ speaker, catalogs = [] }: Props) {
         } else {
             post(store().url, { ...FormResponse, forceFormData: true });
         }
-    };
-
-    const toggleCatalog = (id: number) => {
-        setData(
-            'catalog_ids',
-            data.catalog_ids.includes(id)
-                ? data.catalog_ids.filter((c) => c !== id)
-                : [...data.catalog_ids, id],
-        );
     };
 
     return (
@@ -127,39 +113,6 @@ export default function SpeakerForm({ speaker, catalogs = [] }: Props) {
                     </div>
                 </CardContent>
             </Card>
-
-            {catalogs.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Catalogs</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="mb-3 text-xs text-muted-foreground">
-                            Select which catalogs this speaker is associated with
-                        </p>
-                        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                            {catalogs.map((catalog) => (
-                                <label
-                                    key={catalog.id}
-                                    className="flex items-center gap-2 rounded-md border p-3 text-sm"
-                                >
-                                    <Checkbox
-                                        checked={data.catalog_ids.includes(catalog.id)}
-                                        onCheckedChange={() => toggleCatalog(catalog.id)}
-                                    />
-                                    <div className="flex flex-col">
-                                        <span className="font-medium">{catalog.name}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                            Rp {Number(catalog.price).toLocaleString('id-ID')}
-                                        </span>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                        <InputError message={errors?.catalog_ids} />
-                    </CardContent>
-                </Card>
-            )}
 
             <div className="flex flex-col gap-2 sm:flex-row">
                 <Button

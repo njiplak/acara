@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Contract\Auth\CustomerAuthContract;
 use App\Http\Controllers\Controller;
 use App\Utils\WebResponse;
+use Inertia\Inertia;
 
 class CustomerAuthController extends Controller
 {
@@ -24,7 +25,15 @@ class CustomerAuthController extends Controller
     {
         $result = $this->service->handleProviderCallback('google');
 
-        return WebResponse::response($result, 'home');
+        if ($result instanceof \Exception) {
+            return WebResponse::response($result, 'home');
+        }
+
+        if (!$result->isProfileComplete()) {
+            return Inertia::location(route('customer.profile.complete'));
+        }
+
+        return Inertia::location(route('customer.orders.index'));
     }
 
     public function logout()
