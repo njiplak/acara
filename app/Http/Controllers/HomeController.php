@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Event;
+use App\Models\Faq;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
 use App\Models\Testimonial;
@@ -61,11 +63,24 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
+        $faqs = Faq::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $articles = Article::where('is_published', true)
+            ->whereNotNull('published_at')
+            ->with('author:id,name', 'media')
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+
         return Inertia::render('home', [
             'settings' => $settings,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
             'events' => $events,
             'testimonials' => $testimonials,
+            'faqs' => $faqs,
+            'articles' => $articles,
         ]);
     }
 

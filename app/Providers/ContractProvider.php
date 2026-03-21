@@ -7,10 +7,12 @@ use App\Contract\Auth\UserAuthContract;
 use App\Contract\AuthContract;
 use App\Contract\BaseContract;
 use App\Contract\Master\AddonContract;
+use App\Contract\Master\ArticleContract;
 use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
 use App\Contract\Master\EventMaterialContract;
 use App\Contract\Master\EventTemplateContract;
+use App\Contract\Master\FaqContract;
 use App\Contract\Master\SpeakerContract;
 use App\Contract\Master\VenueContract;
 use App\Contract\Master\VoucherContract;
@@ -29,10 +31,12 @@ use App\Service\Auth\UserAuthService;
 use App\Service\AuthService;
 use App\Service\BaseService;
 use App\Service\Master\AddonService;
+use App\Service\Master\ArticleService;
 use App\Service\Master\CatalogService;
 use App\Service\Master\EventMaterialService;
 use App\Service\Master\EventService;
 use App\Service\Master\EventTemplateService;
+use App\Service\Master\FaqService;
 use App\Service\Master\SpeakerService;
 use App\Service\Master\VenueService;
 use App\Service\Master\VoucherService;
@@ -67,10 +71,12 @@ class ContractProvider extends ServiceProvider
 
         // Master
         AddonContract::class => AddonService::class,
+        ArticleContract::class => ArticleService::class,
         CatalogContract::class => CatalogService::class,
         EventContract::class => EventService::class,
         EventMaterialContract::class => EventMaterialService::class,
         EventTemplateContract::class => EventTemplateService::class,
+        FaqContract::class => FaqService::class,
         SpeakerContract::class => SpeakerService::class,
         VenueContract::class => VenueService::class,
         VoucherContract::class => VoucherService::class,

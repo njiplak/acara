@@ -4,9 +4,11 @@ import {
     CalendarDays,
     ChevronsUpDown,
     ClipboardList,
+    CircleHelp,
     Copy,
     FileText,
     Globe,
+    Newspaper,
     LayoutDashboard,
     LogOut,
     MapPin,
@@ -245,6 +247,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.master.eventTemplate.index.url()}>
                                             <Copy />
                                             <span>Templates</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.article.index.url())}>
+                                        <Link href={backoffice.master.article.index.url()}>
+                                            <Newspaper />
+                                            <span>Article</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.faq.index.url())}>
+                                        <Link href={backoffice.master.faq.index.url()}>
+                                            <CircleHelp />
+                                            <span>FAQ</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

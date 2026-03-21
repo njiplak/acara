@@ -1,16 +1,29 @@
 <?php
 
+use App\Http\Controllers\Master\ArticleController;
 use App\Http\Controllers\Master\AddonController;
 use App\Http\Controllers\Master\CatalogController;
 use App\Http\Controllers\Master\EventController;
 use App\Http\Controllers\Master\EventMaterialController;
 use App\Http\Controllers\Master\EventTemplateController;
+use App\Http\Controllers\Master\FaqController;
 use App\Http\Controllers\Master\SpeakerController;
 use App\Http\Controllers\Master\VenueController;
 use App\Http\Controllers\Master\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.master.'], function () {
+
+    Route::group(['prefix' => 'article', 'as' => 'article.'], function () {
+        Route::get('/', [ArticleController::class, 'index'])->name('index');
+        Route::get('/fetch', [ArticleController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [ArticleController::class, 'create'])->name('create');
+        Route::post('/', [ArticleController::class, 'store'])->name('store');
+        Route::get('/{id}', [ArticleController::class, 'show'])->name('show');
+        Route::put('/{id}', [ArticleController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ArticleController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [ArticleController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
 
     Route::group(['prefix' => 'addon', 'as' => 'addon.'], function () {
         Route::get('/', [AddonController::class, 'index'])->name('index');
@@ -78,6 +91,17 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::put('/{id}', [EventTemplateController::class, 'update'])->name('update');
         Route::delete('/{id}', [EventTemplateController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [EventTemplateController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'faq', 'as' => 'faq.'], function () {
+        Route::get('/', [FaqController::class, 'index'])->name('index');
+        Route::get('/fetch', [FaqController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [FaqController::class, 'create'])->name('create');
+        Route::post('/', [FaqController::class, 'store'])->name('store');
+        Route::get('/{id}', [FaqController::class, 'show'])->name('show');
+        Route::put('/{id}', [FaqController::class, 'update'])->name('update');
+        Route::delete('/{id}', [FaqController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [FaqController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
     Route::group(['prefix' => 'event', 'as' => 'event.'], function () {

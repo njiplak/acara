@@ -1,10 +1,14 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Calendar, ClipboardList, Star, Users } from 'lucide-react';
+import { ArrowRight, Calendar, ChevronDown, ClipboardList, Star, Users } from 'lucide-react';
+import * as React from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
+import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
 import { showEvent } from '@/actions/App/Http/Controllers/HomeController';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
+import type { Article } from '@/types/article';
 import type { Event } from '@/types/event';
+import type { Faq } from '@/types/faq';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
 import type { Testimonial } from '@/types/testimonial';
 
@@ -34,7 +38,7 @@ function getLowestPrice(event: Event): number | null {
     return Math.min(...event.catalogs.map((c) => c.price));
 }
 
-export default function Home({ settings, events, logoUrl, testimonials = [] }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null; testimonials?: Testimonial[] }) {
+export default function Home({ settings, events, logoUrl, testimonials = [], faqs = [], articles = [] }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null; testimonials?: Testimonial[]; faqs?: Faq[]; articles?: Article[] }) {
     const name = settings.business_name || 'Acara';
     const { auth } = usePage<SharedData>().props;
     const customer = auth.customer;
@@ -64,30 +68,35 @@ export default function Home({ settings, events, logoUrl, testimonials = [] }: {
                         )}
                         <span className="text-lg font-semibold tracking-tight text-foreground">{name}</span>
                     </Link>
-                    {customer ? (
-                        <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
+                        <Link href={blogIndex.url()} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                            Blog
+                        </Link>
+                        {customer ? (
+                            <>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href="/customer/orders">
+                                        <ClipboardList className="size-4" />
+                                        My Orders
+                                    </Link>
+                                </Button>
+                                <div className="flex items-center gap-2">
+                                    {customer.avatar ? (
+                                        <img src={customer.avatar} alt={customer.name} className="size-7 rounded-full" />
+                                    ) : (
+                                        <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                            {customer.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <span className="hidden text-sm font-medium sm:inline">{customer.name}</span>
+                                </div>
+                            </>
+                        ) : (
                             <Button asChild variant="outline" size="sm">
-                                <Link href="/customer/orders">
-                                    <ClipboardList className="size-4" />
-                                    My Orders
-                                </Link>
+                                <a href={redirect.url()}>Sign in</a>
                             </Button>
-                            <div className="flex items-center gap-2">
-                                {customer.avatar ? (
-                                    <img src={customer.avatar} alt={customer.name} className="size-7 rounded-full" />
-                                ) : (
-                                    <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                                        {customer.name.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                                <span className="hidden text-sm font-medium sm:inline">{customer.name}</span>
-                            </div>
-                        </div>
-                    ) : (
-                        <Button asChild variant="outline" size="sm">
-                            <a href={redirect.url()}>Sign in</a>
-                        </Button>
-                    )}
+                        )}
+                    </div>
                 </header>
 
                 {/* Hero */}
@@ -152,6 +161,76 @@ export default function Home({ settings, events, logoUrl, testimonials = [] }: {
                             <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {testimonials.map((t) => (
                                     <TestimonialCard key={t.id} testimonial={t} />
+                                ))}
+                            </div>
+                        </section>
+                    </>
+                )}
+
+                {/* Latest Articles */}
+                {articles.length > 0 && (
+                    <>
+                        <div className="mx-6 h-px bg-border lg:mx-12" />
+                        <section className="px-6 py-12 lg:px-12 lg:py-16">
+                            <div className="mb-8 flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Latest Articles</h2>
+                                    <p className="mt-1 text-sm text-muted-foreground">Insights and updates from our team</p>
+                                </div>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={blogIndex.url()}>
+                                        View All
+                                        <ArrowRight className="ml-1.5 size-3.5" />
+                                    </Link>
+                                </Button>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {articles.map((article) => (
+                                    <Link
+                                        key={article.id}
+                                        href={blogShow.url({ article: article.slug })}
+                                        className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-foreground/20 hover:bg-accent/50"
+                                    >
+                                        {article.media?.[0]?.original_url && (
+                                            <div className="aspect-video overflow-hidden">
+                                                <img
+                                                    src={article.media[0].original_url}
+                                                    alt={article.title}
+                                                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex flex-1 flex-col p-5">
+                                            {article.published_at && (
+                                                <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                    <Calendar className="size-3.5" />
+                                                    {new Date(article.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </p>
+                                            )}
+                                            <h3 className="text-base font-semibold text-foreground group-hover:text-foreground/90">{article.title}</h3>
+                                            {article.excerpt && (
+                                                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
+                                            )}
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+                    </>
+                )}
+
+                {/* FAQ */}
+                {faqs.length > 0 && (
+                    <>
+                        <div className="mx-6 h-px bg-border lg:mx-12" />
+                        <section className="px-6 py-12 lg:px-12 lg:py-16">
+                            <div className="mb-8 text-center">
+                                <h2 className="text-xl font-semibold tracking-tight text-foreground">Frequently Asked Questions</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">Find answers to common questions</p>
+                            </div>
+                            <div className="mx-auto max-w-2xl divide-y">
+                                {faqs.map((faq) => (
+                                    <FaqItem key={faq.id} faq={faq} />
                                 ))}
                             </div>
                         </section>
@@ -239,6 +318,28 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function FaqItem({ faq }: { faq: Faq }) {
+    const [open, setOpen] = React.useState(false);
+
+    return (
+        <div className="py-4">
+            <button
+                type="button"
+                className="flex w-full items-center justify-between text-left"
+                onClick={() => setOpen(!open)}
+            >
+                <span className="text-sm font-medium text-foreground">{faq.question}</span>
+                <ChevronDown
+                    className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+                />
+            </button>
+            {open && (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{faq.answer}</p>
+            )}
         </div>
     );
 }
