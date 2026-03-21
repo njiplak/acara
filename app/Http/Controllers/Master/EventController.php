@@ -89,7 +89,8 @@ class EventController extends Controller
                     'start_date' => '',
                     'end_date' => '',
                     'status' => 'draft',
-                    'payment_method' => $td['payment_method'] ?? 'manual',
+                    'payment_gateway' => $td['payment_gateway'] ?? 'manual',
+                    'currency' => $td['currency'] ?? 'IDR',
                     'venue_id' => null,
                     'material_require_checkin' => $td['material_require_checkin'] ?? true,
                     'schedule' => $td['schedule'] ?? [],
@@ -182,7 +183,8 @@ class EventController extends Controller
 
         $templateData = [
             'description' => $event->description,
-            'payment_method' => $event->payment_method,
+            'payment_gateway' => $event->payment_gateway,
+            'currency' => $event->currency,
             'material_require_checkin' => $event->material_require_checkin,
             'schedule' => $event->schedule ?? [],
             'catalogs' => $event->catalogs->map(fn($c) => [

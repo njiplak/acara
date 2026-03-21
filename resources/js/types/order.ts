@@ -7,6 +7,23 @@ import type { Voucher } from './voucher';
 
 export type OrderStatus = 'pending_payment' | 'waiting_confirmation' | 'confirmed' | 'rejected' | 'cancelled' | 'refunded';
 
+export type PaymentGateway = 'manual' | 'xendit' | 'stripe' | 'midtrans';
+
+export type PaymentTransaction = Model & {
+    order_id: number;
+    gateway: PaymentGateway;
+    gateway_transaction_id: string | null;
+    gateway_reference: string | null;
+    method: string | null;
+    currency: string;
+    amount: number;
+    gateway_fee: number | null;
+    status: 'pending' | 'paid' | 'failed' | 'expired' | 'refunded' | 'partial_refund' | 'cancelled';
+    paid_at: string | null;
+    expires_at: string | null;
+    metadata: { redirect_url?: string } | null;
+};
+
 export type OrderAddonPivot = {
     addon_name: string;
     addon_price: number;
@@ -24,6 +41,7 @@ export type Order = Model & {
     balance_used: number;
     total_amount: number;
     status: OrderStatus;
+    payment_gateway: PaymentGateway;
     payment_proof: string | null;
     paid_at: string | null;
     confirmed_at: string | null;
@@ -42,4 +60,6 @@ export type Order = Model & {
     confirmed_by_user?: { id: number; name: string };
     referrer?: Customer;
     voucher?: Voucher;
+    latest_transaction?: PaymentTransaction;
+    payment_transactions?: PaymentTransaction[];
 };

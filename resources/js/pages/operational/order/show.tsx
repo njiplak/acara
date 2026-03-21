@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { checkIn, confirm, index, refund, reject, undoCheckIn } from '@/routes/backoffice/operational/order';
-import type { Order, OrderStatus } from '@/types/order';
+import type { Order, OrderStatus, PaymentTransaction } from '@/types/order';
 
 function formatPrice(price: number) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
@@ -168,8 +168,55 @@ export default function OrderShow({ order }: Props) {
                 </div>
             )}
 
-            {/* Payment Proof */}
-            {order.payment_proof && (
+            {/* Payment Info */}
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold">Payment</h2>
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Gateway</span>
+                        <Badge variant="outline" className="capitalize">{order.payment_gateway}</Badge>
+                    </div>
+                    {order.payment_transactions && order.payment_transactions.length > 0 && (
+                        <>
+                            {order.payment_transactions.map((tx: PaymentTransaction) => (
+                                <div key={tx.id} className="rounded-md border p-3 space-y-1.5">
+                                    <div className="flex justify-between">
+                                        <span className="text-xs text-muted-foreground">Status</span>
+                                        <Badge variant={tx.status === 'paid' ? 'default' : tx.status === 'pending' ? 'secondary' : 'destructive'} className="text-xs capitalize">
+                                            {tx.status}
+                                        </Badge>
+                                    </div>
+                                    {tx.method && (
+                                        <div className="flex justify-between">
+                                            <span className="text-xs text-muted-foreground">Method</span>
+                                            <span className="text-xs capitalize">{tx.method.replace(/_/g, ' ')}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                        <span className="text-xs text-muted-foreground">Amount</span>
+                                        <span className="text-xs">{tx.currency} {formatPrice(tx.amount)}</span>
+                                    </div>
+                                    {tx.gateway_fee != null && (
+                                        <div className="flex justify-between">
+                                            <span className="text-xs text-muted-foreground">Gateway Fee</span>
+                                            <span className="text-xs">{formatPrice(tx.gateway_fee)}</span>
+                                        </div>
+                                    )}
+                                    {tx.paid_at && (
+                                        <div className="flex justify-between">
+                                            <span className="text-xs text-muted-foreground">Paid at</span>
+                                            <span className="text-xs">{formatDate(tx.paid_at)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Payment Proof (manual only) */}
+            {order.payment_gateway === 'manual' && order.payment_proof && (
                 <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                     <h2 className="mb-3 text-sm font-semibold">Payment Proof</h2>
                     <img
@@ -301,12 +348,15 @@ export default function OrderShow({ order }: Props) {
                             <span className="text-sm text-muted-foreground">Confirmed at</span>
                             <span className="text-sm">{formatDate(order.confirmed_at)}</span>
                         </div>
-                        {order.confirmed_by_user && (
-                            <div className="flex justify-between">
-                                <span className="text-sm text-muted-foreground">Confirmed by</span>
-                                <span className="text-sm">{order.confirmed_by_user.name}</span>
-                            </div>
-                        )}
+                        <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Confirmed by</span>
+                            <span className="text-sm">
+                                {order.confirmed_by_user
+                                    ? order.confirmed_by_user.name
+                                    : <span className="capitalize text-muted-foreground">Auto-confirmed ({order.payment_gateway})</span>
+                                }
+                            </span>
+                        </div>
                     </div>
                 </div>
             )}

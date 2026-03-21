@@ -27,7 +27,8 @@ type EventTemplate = {
     description: string | null;
     template_data: {
         description?: string;
-        payment_method?: string;
+        payment_gateway?: string;
+        currency?: string;
         schedule?: any[];
         catalogs?: any[];
     };

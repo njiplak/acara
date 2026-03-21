@@ -75,9 +75,9 @@ const columns: ColumnDef<Event, any>[] = [
             </Badge>
         ),
     }),
-    helper.accessor('payment_method', {
-        id: 'payment_method',
-        header: 'Payment',
+    helper.accessor('payment_gateway', {
+        id: 'payment_gateway',
+        header: 'Gateway',
         enableColumnFilter: false,
         enableHiding: false,
         cell: (ctx) => (

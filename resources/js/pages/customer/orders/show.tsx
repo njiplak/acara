@@ -3,7 +3,7 @@ import { ArrowLeft, Calendar, CheckCircle, Clock, Download, ExternalLink, File, 
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
-import { cancel, certificate, index, pay } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { cancel, certificate, index, pay, redirectToPayment } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { store as storeTestimonial } from '@/actions/App/Http/Controllers/Customer/TestimonialController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -323,38 +323,60 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                             <div className="mt-4 rounded-lg border bg-card p-5">
                                 <h2 className="mb-3 text-sm font-semibold text-foreground">Payment</h2>
 
-                                {paymentInstruction && (
-                                    <div className="mb-4 rounded-md bg-accent/50 p-4">
-                                        <p className="text-xs font-medium text-muted-foreground mb-2">Payment Instructions:</p>
-                                        <p className="text-sm whitespace-pre-wrap text-foreground">{paymentInstruction}</p>
-                                    </div>
-                                )}
+                                {order.payment_gateway === 'manual' ? (
+                                    <>
+                                        {paymentInstruction && (
+                                            <div className="mb-4 rounded-md bg-accent/50 p-4">
+                                                <p className="text-xs font-medium text-muted-foreground mb-2">Payment Instructions:</p>
+                                                <p className="text-sm whitespace-pre-wrap text-foreground">{paymentInstruction}</p>
+                                            </div>
+                                        )}
 
-                                <form onSubmit={handleUpload} className="space-y-3">
-                                    <div>
-                                        <label className="text-sm font-medium text-foreground">Upload Payment Proof</label>
-                                        <p className="text-xs text-muted-foreground mt-0.5">Upload a screenshot or photo of your transfer receipt (max 2MB)</p>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
-                                            onChange={(e) => setData('payment_proof', e.target.files?.[0] || null)}
-                                        />
-                                        {errors.payment_proof && (
-                                            <p className="mt-1 text-xs text-destructive">{errors.payment_proof}</p>
+                                        <form onSubmit={handleUpload} className="space-y-3">
+                                            <div>
+                                                <label className="text-sm font-medium text-foreground">Upload Payment Proof</label>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Upload a screenshot or photo of your transfer receipt (max 2MB)</p>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
+                                                    onChange={(e) => setData('payment_proof', e.target.files?.[0] || null)}
+                                                />
+                                                {errors.payment_proof && (
+                                                    <p className="mt-1 text-xs text-destructive">{errors.payment_proof}</p>
+                                                )}
+                                            </div>
+                                            <Button type="submit" disabled={processing || !data.payment_proof} className="gap-2">
+                                                <Upload className="size-4" />
+                                                {processing ? 'Uploading...' : 'Submit Payment Proof'}
+                                            </Button>
+                                        </form>
+                                    </>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Complete your payment via <span className="font-medium capitalize text-foreground">{order.payment_gateway}</span> to confirm your registration.
+                                        </p>
+                                        <Button
+                                            onClick={() => router.post(redirectToPayment.url({ order: order.id }))}
+                                            className="gap-2"
+                                        >
+                                            <ExternalLink className="size-4" />
+                                            Pay Now
+                                        </Button>
+                                        {order.latest_transaction?.expires_at && (
+                                            <p className="text-xs text-muted-foreground">
+                                                Payment link expires on {formatDate(order.latest_transaction.expires_at)}
+                                            </p>
                                         )}
                                     </div>
-                                    <Button type="submit" disabled={processing || !data.payment_proof} className="gap-2">
-                                        <Upload className="size-4" />
-                                        {processing ? 'Uploading...' : 'Submit Payment Proof'}
-                                    </Button>
-                                </form>
+                                )}
                             </div>
                         )}
 
-                        {/* Payment proof preview for waiting_confirmation */}
-                        {order.status === 'waiting_confirmation' && order.payment_proof && (
+                        {/* Payment proof preview for waiting_confirmation (manual only) */}
+                        {order.status === 'waiting_confirmation' && order.payment_gateway === 'manual' && order.payment_proof && (
                             <div className="mt-4 rounded-lg border bg-card p-5">
                                 <h2 className="mb-3 text-sm font-semibold text-foreground">Payment Proof</h2>
                                 <img
@@ -477,7 +499,11 @@ function StatusMessage({ order }: { order: Order }) {
                     <Clock className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
                     <div>
                         <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Payment Required</p>
-                        <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-300">Please complete your payment and upload the proof below.</p>
+                        <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-300">
+                            {order.payment_gateway === 'manual'
+                                ? 'Please complete your payment and upload the proof below.'
+                                : 'Please complete your payment by clicking the Pay Now button below.'}
+                        </p>
                     </div>
                 </div>
             );

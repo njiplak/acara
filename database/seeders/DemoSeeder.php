@@ -87,7 +87,7 @@ class DemoSeeder extends Seeder
                 'start_date' => $now->copy()->subDays(30)->format('Y-m-d'),
                 'end_date' => $now->copy()->subDays(30)->format('Y-m-d'),
                 'status' => 'published',
-                'payment_method' => 'manual',
+                'payment_gateway' => 'manual',
                 'venue_id' => $venues->where('name', 'Beachfront Shala')->first()?->id,
                 'material_require_checkin' => true,
                 'schedule' => [
@@ -103,7 +103,7 @@ class DemoSeeder extends Seeder
                 'start_date' => $now->copy()->subDays(14)->format('Y-m-d'),
                 'end_date' => $now->copy()->subDays(14)->format('Y-m-d'),
                 'status' => 'published',
-                'payment_method' => 'qris',
+                'payment_gateway' => 'manual',
                 'venue_id' => $venues->where('name', 'Ubud Wellness Center')->first()?->id,
                 'material_require_checkin' => true,
                 'schedule' => [
@@ -119,7 +119,7 @@ class DemoSeeder extends Seeder
                 'start_date' => $now->copy()->addDays(7)->format('Y-m-d'),
                 'end_date' => $now->copy()->addDays(9)->format('Y-m-d'),
                 'status' => 'published',
-                'payment_method' => 'qris',
+                'payment_gateway' => 'manual',
                 'venue_id' => $venues->where('name', 'Kawakib Studio Seminyak')->first()?->id,
                 'material_require_checkin' => false,
                 'schedule' => [
@@ -136,7 +136,7 @@ class DemoSeeder extends Seeder
                 'start_date' => $now->copy()->addDays(30)->format('Y-m-d'),
                 'end_date' => $now->copy()->addDays(30)->format('Y-m-d'),
                 'status' => 'published',
-                'payment_method' => 'manual',
+                'payment_gateway' => 'manual',
                 'venue_id' => $venues->where('name', 'Beachfront Shala')->first()?->id,
                 'material_require_checkin' => true,
                 'schedule' => [
@@ -152,7 +152,7 @@ class DemoSeeder extends Seeder
                 'start_date' => $now->copy()->addDays(60)->format('Y-m-d'),
                 'end_date' => $now->copy()->addDays(62)->format('Y-m-d'),
                 'status' => 'draft',
-                'payment_method' => 'manual',
+                'payment_gateway' => 'manual',
                 'venue_id' => $venues->where('name', 'Beachfront Shala')->first()?->id,
                 'material_require_checkin' => false,
                 'schedule' => [],

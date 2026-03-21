@@ -74,6 +74,16 @@ const columns: ColumnDef<Order, any>[] = [
         enableColumnFilter: false,
         cell: (ctx) => <span className="font-medium">{formatPrice(ctx.getValue())}</span>,
     }),
+    helper.accessor('payment_gateway', {
+        id: 'payment_gateway',
+        header: 'Gateway',
+        enableColumnFilter: false,
+        cell: (ctx) => (
+            <Badge variant="outline" className="capitalize">
+                {ctx.getValue() ?? 'manual'}
+            </Badge>
+        ),
+    }),
     helper.accessor('status', {
         id: 'status',
         header: 'Status',

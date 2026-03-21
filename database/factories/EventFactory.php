@@ -19,7 +19,8 @@ class EventFactory extends Factory
             'start_date' => $startDate,
             'end_date' => $this->faker->dateTimeBetween($startDate, $startDate->format('Y-m-d') . ' +7 days'),
             'status' => $this->faker->randomElement(['draft', 'published']),
-            'payment_method' => $this->faker->randomElement(['manual', 'qris']),
+            'payment_gateway' => $this->faker->randomElement(['manual', 'xendit', 'stripe']),
+            'currency' => 'IDR',
         ];
     }
 }

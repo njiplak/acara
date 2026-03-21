@@ -47,7 +47,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $data = $this->service->find($id, ['customer', 'event', 'catalog', 'addons', 'confirmedByUser', 'referrer', 'voucher']);
+        $data = $this->service->find($id, ['customer', 'event', 'catalog', 'addons', 'confirmedByUser', 'referrer', 'voucher', 'paymentTransactions']);
 
         return Inertia::render('operational/order/show', [
             'order' => $data,

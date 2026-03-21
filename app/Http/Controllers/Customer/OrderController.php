@@ -13,6 +13,7 @@ use App\Models\Testimonial;
 use App\Models\Voucher;
 use App\Models\Waitlist;
 use App\Service\CertificateService;
+use App\Service\Payment\PaymentService;
 use App\Utils\WebResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -68,7 +69,20 @@ class OrderController extends Controller
 
         $result = $this->service->placeOrder($payloads);
 
-        return WebResponse::response($result, ['customer.orders.show', ['order' => $result instanceof \Exception ? 0 : $result->id]]);
+        if ($result instanceof \Exception) {
+            return WebResponse::response($result);
+        }
+
+        // For gateway orders with a redirect URL, redirect to gateway checkout
+        $transaction = $result->latestTransaction;
+        if ($transaction && $transaction->gateway !== 'manual') {
+            $redirectUrl = $transaction->metadata['redirect_url'] ?? null;
+            if ($redirectUrl) {
+                return Inertia::location($redirectUrl);
+            }
+        }
+
+        return WebResponse::response($result, ['customer.orders.show', ['order' => $result->id]]);
     }
 
     public function show(Order $order)
@@ -110,6 +124,8 @@ class OrderController extends Controller
             && $order->checked_in_at !== null
             && $testimonial === null;
 
+        $order->load('latestTransaction');
+
         return Inertia::render('customer/orders/show', [
             'order' => $order,
             'paymentInstruction' => $settings->payment_instruction,
@@ -120,9 +136,49 @@ class OrderController extends Controller
         ]);
     }
 
+    public function redirectToPayment(Order $order)
+    {
+        abort_if($order->customer_id !== Auth::guard('customer')->id(), 403);
+        abort_if($order->payment_gateway === 'manual', 422, 'Manual payment does not support online checkout.');
+        abort_if($order->status !== 'pending_payment', 422, 'Order is not awaiting payment.');
+
+        // Check for existing pending transaction with a valid redirect URL
+        $existingTransaction = $order->paymentTransactions()
+            ->where('status', 'pending')
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        if ($existingTransaction) {
+            $redirectUrl = $existingTransaction->metadata['redirect_url'] ?? null;
+            if ($redirectUrl) {
+                return Inertia::location($redirectUrl);
+            }
+        }
+
+        // No valid transaction — create a new charge
+        $paymentService = app(PaymentService::class);
+        $transaction = $paymentService->initiatePayment($order);
+
+        if ($transaction instanceof \Exception) {
+            return back()->with('error', 'Failed to initiate payment. Please try again.');
+        }
+
+        $redirectUrl = $transaction->metadata['redirect_url'] ?? null;
+        if ($redirectUrl) {
+            return Inertia::location($redirectUrl);
+        }
+
+        return redirect()->route('customer.orders.show', $order);
+    }
+
     public function pay(PaymentProofRequest $request, Order $order)
     {
         abort_if($order->customer_id !== Auth::guard('customer')->id(), 403);
+        abort_if($order->payment_gateway !== 'manual', 422, 'Payment proof upload is only for manual payments.');
 
         $path = $request->file('payment_proof')->store('payment-proofs', 'public');
 

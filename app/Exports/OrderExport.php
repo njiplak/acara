@@ -42,6 +42,7 @@ class OrderExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             'Referral Discount',
             'Balance Used',
             'Total Amount',
+            'Payment Gateway',
             'Status',
             'Created At',
             'Confirmed At',
@@ -63,6 +64,7 @@ class OrderExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             $order->referral_discount,
             $order->balance_used,
             $order->total_amount,
+            ucfirst($order->payment_gateway ?? 'manual'),
             ucfirst(str_replace('_', ' ', $order->status)),
             $order->created_at?->format('Y-m-d H:i'),
             $order->confirmed_at?->format('Y-m-d H:i') ?? '-',
@@ -77,10 +79,11 @@ class OrderExport implements FromQuery, WithHeadings, WithMapping, WithStyles
         $sheet->getColumnDimension('C')->setWidth(30);
         $sheet->getColumnDimension('D')->setWidth(25);
         $sheet->getColumnDimension('E')->setWidth(20);
-        $sheet->getColumnDimension('L')->setWidth(20);
-        $sheet->getColumnDimension('M')->setWidth(18);
+        $sheet->getColumnDimension('L')->setWidth(18);
+        $sheet->getColumnDimension('M')->setWidth(20);
         $sheet->getColumnDimension('N')->setWidth(18);
         $sheet->getColumnDimension('O')->setWidth(18);
+        $sheet->getColumnDimension('P')->setWidth(18);
 
         return [
             1 => ['font' => ['bold' => true]],

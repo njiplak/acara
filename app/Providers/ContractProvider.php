@@ -46,6 +46,7 @@ use App\Service\Setting\PermissionService;
 use App\Service\Setting\RoleService;
 use App\Service\Setting\MailTemplateService;
 use App\Service\Setting\SettingService;
+use App\Service\Payment\PaymentGatewayManager;
 use Illuminate\Support\ServiceProvider;
 
 class ContractProvider extends ServiceProvider
@@ -87,6 +88,8 @@ class ContractProvider extends ServiceProvider
         foreach ($this->bindings as $contract => $service) {
             $this->app->bind($contract, $service);
         }
+
+        $this->app->singleton(PaymentGatewayManager::class);
     }
 
     public function boot(): void {}

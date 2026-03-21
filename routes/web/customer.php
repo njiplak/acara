@@ -20,6 +20,7 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
             Route::post('/', [OrderController::class, 'store'])->name('store');
             Route::get('/{order}', [OrderController::class, 'show'])->name('show');
             Route::post('/{order}/pay', [OrderController::class, 'pay'])->name('pay');
+            Route::post('/{order}/pay-online', [OrderController::class, 'redirectToPayment'])->name('pay-online');
             Route::get('/{order}/invoice', [OrderController::class, 'invoice'])->name('invoice');
             Route::get('/{order}/certificate', [OrderController::class, 'certificate'])->name('certificate');
             Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');

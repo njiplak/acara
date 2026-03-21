@@ -39,7 +39,8 @@ export type Event = Model & {
     start_date: string;
     end_date: string;
     status: 'draft' | 'published';
-    payment_method: 'manual' | 'qris';
+    payment_gateway: 'manual' | 'xendit' | 'stripe' | 'midtrans';
+    currency: string;
     schedule?: ScheduleItem[] | null;
     material_require_checkin?: boolean;
     venue_id?: number | null;

@@ -36,6 +36,7 @@ class Order extends Model
         'referred_by',
         'voucher_id',
         'voucher_discount',
+        'payment_gateway',
     ];
 
     protected function casts(): array
@@ -96,6 +97,16 @@ class Order extends Model
     public function addons(): BelongsToMany
     {
         return $this->belongsToMany(Addon::class)->withPivot('addon_name', 'addon_price');
+    }
+
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function latestTransaction(): HasOne
+    {
+        return $this->hasOne(PaymentTransaction::class)->latestOfMany();
     }
 
     public static function generateOrderCode(): string

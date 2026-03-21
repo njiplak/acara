@@ -82,7 +82,8 @@ export default function EventForm({ event, catalogs = [], venues = [], fromTempl
         start_date: event?.start_date ?? '',
         end_date: event?.end_date ?? '',
         status: event?.status ?? 'draft',
-        payment_method: event?.payment_method ?? 'manual',
+        payment_gateway: event?.payment_gateway ?? 'manual',
+        currency: event?.currency ?? 'IDR',
         venue_id: event?.venue_id ?? '',
         material_require_checkin: event?.material_require_checkin ?? true,
         schedule: initialSchedule,
@@ -287,23 +288,43 @@ export default function EventForm({ event, catalogs = [], venues = [], fromTempl
                             <InputError message={errors?.status} />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <Label>Payment Method</Label>
+                            <Label>Payment Gateway</Label>
                             <Select
-                                value={data.payment_method}
-                                onValueChange={(val) => setData('payment_method', val as any)}
+                                value={data.payment_gateway}
+                                onValueChange={(val) => setData('payment_gateway', val as any)}
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="manual">Manual</SelectItem>
-                                    <SelectItem value="qris">QRIS</SelectItem>
+                                    <SelectItem value="manual">Manual Transfer</SelectItem>
+                                    <SelectItem value="xendit">Xendit</SelectItem>
+                                    <SelectItem value="stripe">Stripe</SelectItem>
+                                    <SelectItem value="midtrans">Midtrans</SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
-                                How customers pay for this event — manual transfer or QRIS scan
+                                How customers pay for this event
                             </p>
-                            <InputError message={errors?.payment_method} />
+                            <InputError message={errors?.payment_gateway} />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Currency</Label>
+                            <Select
+                                value={data.currency}
+                                onValueChange={(val) => setData('currency', val as any)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="IDR">IDR</SelectItem>
+                                    <SelectItem value="USD">USD</SelectItem>
+                                    <SelectItem value="SGD">SGD</SelectItem>
+                                    <SelectItem value="EUR">EUR</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors?.currency} />
                         </div>
                     </div>
                     {venues.length > 0 && (

@@ -17,7 +17,7 @@ class EventSeeder extends Seeder
                 'start_date' => '2026-04-01',
                 'end_date' => '2026-04-03',
                 'status' => 'published',
-                'payment_method' => 'qris',
+                'payment_gateway' => 'manual',
             ],
             [
                 'name' => 'Summer Yoga Festival',
@@ -25,7 +25,7 @@ class EventSeeder extends Seeder
                 'start_date' => '2026-06-15',
                 'end_date' => '2026-06-17',
                 'status' => 'draft',
-                'payment_method' => 'manual',
+                'payment_gateway' => 'manual',
             ],
         ];
 

@@ -10,8 +10,10 @@ use App\Models\Event;
 use App\Models\Order;
 use App\Models\SessionAttendance;
 use App\Models\Voucher;
+use App\Models\PaymentTransaction;
 use App\Service\BaseService;
 use App\Service\MailService;
+use App\Service\Payment\PaymentService;
 use App\Service\WaitlistService;
 use App\Utils\PriceResolver;
 use Exception;
@@ -186,6 +188,7 @@ class OrderService extends BaseService implements OrderContract
                 'voucher_id' => $voucherId,
                 'voucher_discount' => $voucherDiscount,
                 'status' => 'pending_payment',
+                'payment_gateway' => $event->payment_gateway,
                 'notes' => $payloads['notes'] ?? null,
             ]);
 
@@ -197,7 +200,24 @@ class OrderService extends BaseService implements OrderContract
 
             MailService::sendForOrder('order-placed', $order);
 
-            return $order->fresh($this->relation);
+            $order = $order->fresh($this->relation);
+
+            // Auto-confirm free orders (discounts made total = 0)
+            if ($totalAmount <= 0) {
+                return $this->confirmOrder($order->id);
+            }
+
+            // Initiate payment for non-manual gateways
+            if ($event->payment_gateway !== 'manual') {
+                $paymentService = app(PaymentService::class);
+                $transaction = $paymentService->initiatePayment($order);
+
+                if (!$transaction instanceof Exception) {
+                    $order->setRelation('latestTransaction', $transaction);
+                }
+            }
+
+            return $order;
         } catch (Exception $e) {
             DB::rollBack();
             return $e;
@@ -233,14 +253,18 @@ class OrderService extends BaseService implements OrderContract
         }
     }
 
-    public function confirmOrder(int $orderId, int $userId): mixed
+    public function confirmOrder(int $orderId, ?int $userId = null): mixed
     {
         try {
             DB::beginTransaction();
 
             $order = Order::findOrFail($orderId);
 
-            abort_if($order->status !== 'waiting_confirmation', 422, 'Order cannot be confirmed.');
+            abort_if(
+                !in_array($order->status, ['waiting_confirmation', 'pending_payment']),
+                422,
+                'Order cannot be confirmed.'
+            );
 
             $order->update([
                 'status' => 'confirmed',
@@ -312,6 +336,11 @@ class OrderService extends BaseService implements OrderContract
                 'status' => 'cancelled',
             ]);
 
+            // Cancel any pending payment transactions
+            PaymentTransaction::where('order_id', $order->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
+
             // Restore customer's balance that was used
             if ($order->balance_used > 0) {
                 Customer::where('id', $order->customer_id)->increment('referral_balance', $order->balance_used);
@@ -344,6 +373,17 @@ class OrderService extends BaseService implements OrderContract
                 'refund_reason' => $reason,
                 'confirmed_by' => $userId,
             ]);
+
+            // Initiate gateway refund for non-manual orders
+            if ($order->payment_gateway !== 'manual') {
+                $paidTransaction = PaymentTransaction::where('order_id', $order->id)
+                    ->where('status', 'paid')
+                    ->first();
+
+                if ($paidTransaction) {
+                    app(PaymentService::class)->initiateRefund($paidTransaction, $order->total_amount, $reason);
+                }
+            }
 
             // Reverse referrer credit
             if ($order->referred_by) {

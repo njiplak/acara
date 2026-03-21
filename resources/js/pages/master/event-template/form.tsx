@@ -28,7 +28,8 @@ export default function EventTemplateForm({ template }: Props) {
         description: template?.description ?? '',
         template_data: template?.template_data ?? {
             description: '',
-            payment_method: 'manual',
+            payment_gateway: 'manual',
+            currency: 'IDR',
             material_require_checkin: true,
             schedule: [],
             catalogs: [],
@@ -95,16 +96,33 @@ export default function EventTemplateForm({ template }: Props) {
                             Default event description when using this template
                         </p>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Payment Method</Label>
-                        <select
-                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                            value={templateData.payment_method ?? 'manual'}
-                            onChange={(e) => setData('template_data', { ...templateData, payment_method: e.target.value })}
-                        >
-                            <option value="manual">Manual</option>
-                            <option value="qris">QRIS</option>
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Payment Gateway</Label>
+                            <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                                value={templateData.payment_gateway ?? 'manual'}
+                                onChange={(e) => setData('template_data', { ...templateData, payment_gateway: e.target.value })}
+                            >
+                                <option value="manual">Manual Transfer</option>
+                                <option value="xendit">Xendit</option>
+                                <option value="stripe">Stripe</option>
+                                <option value="midtrans">Midtrans</option>
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Currency</Label>
+                            <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                                value={templateData.currency ?? 'IDR'}
+                                onChange={(e) => setData('template_data', { ...templateData, currency: e.target.value })}
+                            >
+                                <option value="IDR">IDR</option>
+                                <option value="USD">USD</option>
+                                <option value="SGD">SGD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
                     </div>
 
                     {templateData.catalogs && templateData.catalogs.length > 0 && (
