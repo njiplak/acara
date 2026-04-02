@@ -16,10 +16,26 @@ class Addon extends Model
         'description',
         'strike_price',
         'price',
+        'status',
+        'is_standalone',
+        'payment_gateway',
+        'currency',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_standalone' => 'boolean',
+        ];
+    }
 
     public function catalogs(): BelongsToMany
     {
         return $this->belongsToMany(Catalog::class);
+    }
+
+    public function scopePublishedStandalone($query)
+    {
+        return $query->where('status', 'published')->where('is_standalone', true);
     }
 }

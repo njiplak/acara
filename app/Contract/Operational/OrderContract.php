@@ -7,6 +7,7 @@ use App\Contract\BaseContract;
 interface OrderContract extends BaseContract
 {
     public function placeOrder(array $payloads): mixed;
+    public function placeAddonOrder(array $payloads): mixed;
     public function uploadPaymentProof(int $orderId, string $proofPath): mixed;
     public function confirmOrder(int $orderId, ?int $userId = null): mixed;
     public function rejectOrder(int $orderId, int $userId, string $reason): mixed;

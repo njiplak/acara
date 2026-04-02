@@ -3,7 +3,7 @@ import { ArrowRight, Calendar, ChevronDown, ClipboardList, Star, Users } from 'l
 import * as React from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
-import { showEvent } from '@/actions/App/Http/Controllers/HomeController';
+import { showAddons, showEvent } from '@/actions/App/Http/Controllers/HomeController';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Article } from '@/types/article';
@@ -83,6 +83,9 @@ export default function Home({ settings, events, logoUrl, testimonials = [], faq
                         <span className="text-lg font-semibold tracking-tight text-foreground">{name}</span>
                     </Link>
                     <div className="flex items-center gap-3">
+                        <Link href={showAddons.url()} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                            Add-ons
+                        </Link>
                         <Link href={blogIndex.url()} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                             Blog
                         </Link>

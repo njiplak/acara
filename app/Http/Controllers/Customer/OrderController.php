@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Contract\Operational\OrderContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentProofRequest;
+use App\Http\Requests\PlaceAddonOrderRequest;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Models\EventMaterial;
 use App\Models\LandingPageSetting;
@@ -85,6 +86,29 @@ class OrderController extends Controller
         return WebResponse::response($result, ['customer.orders.show', ['order' => $result->id]]);
     }
 
+    public function storeAddon(PlaceAddonOrderRequest $request)
+    {
+        $payloads = $request->validated();
+        $payloads['customer_id'] = Auth::guard('customer')->id();
+
+        $result = $this->service->placeAddonOrder($payloads);
+
+        if ($result instanceof \Exception) {
+            return WebResponse::response($result);
+        }
+
+        // For gateway orders with a redirect URL, redirect to gateway checkout
+        $transaction = $result->latestTransaction;
+        if ($transaction && $transaction->gateway !== 'manual') {
+            $redirectUrl = $transaction->metadata['redirect_url'] ?? null;
+            if ($redirectUrl) {
+                return Inertia::location($redirectUrl);
+            }
+        }
+
+        return WebResponse::response($result, ['customer.orders.show', ['order' => $result->id]]);
+    }
+
     public function show(Order $order)
     {
         abort_if($order->customer_id !== Auth::guard('customer')->id(), 403);
@@ -95,7 +119,7 @@ class OrderController extends Controller
 
         // Load materials for confirmed orders based on event config
         $materials = [];
-        if ($order->status === 'confirmed') {
+        if ($order->status === 'confirmed' && $order->event_id) {
             $canViewMaterials = $order->event->material_require_checkin
                 ? $order->checked_in_at !== null
                 : true;
@@ -121,6 +145,7 @@ class OrderController extends Controller
 
         $testimonial = Testimonial::where('order_id', $order->id)->first();
         $canSubmitTestimonial = $order->status === 'confirmed'
+            && $order->event_id !== null
             && $order->checked_in_at !== null
             && $testimonial === null;
 

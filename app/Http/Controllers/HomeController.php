@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Addon;
 use App\Models\Article;
 use App\Models\Event;
 use App\Models\Faq;
@@ -158,6 +159,27 @@ class HomeController extends Controller
             'referralDiscount' => config('service-contract.referral.referee_discount', 0),
             'testimonials' => $testimonials,
             'prefillReferralCode' => $prefillReferralCode,
+        ]);
+    }
+
+    public function showAddons()
+    {
+        $addons = Addon::publishedStandalone()
+            ->orderBy('name')
+            ->get();
+
+        $settings = LandingPageSetting::instance();
+
+        $customerBalance = 0;
+        if (Auth::guard('customer')->check()) {
+            $customerBalance = Auth::guard('customer')->user()->referral_balance;
+        }
+
+        return Inertia::render('addons/index', [
+            'settings' => $settings,
+            'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
+            'addons' => $addons,
+            'customerBalance' => $customerBalance,
         ]);
     }
 }

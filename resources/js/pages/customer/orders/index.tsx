@@ -127,8 +127,17 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                                                         <Badge variant="default" className="bg-green-600">Checked In</Badge>
                                                     )}
                                                 </div>
-                                                <h3 className="mt-1.5 font-semibold text-foreground">{order.event?.name}</h3>
-                                                <p className="text-sm text-muted-foreground">{order.catalog?.name}</p>
+                                                <h3 className="mt-1.5 font-semibold text-foreground">
+                                                    {order.event?.name || 'Add-on Purchase'}
+                                                </h3>
+                                                {order.catalog && (
+                                                    <p className="text-sm text-muted-foreground">{order.catalog.name}</p>
+                                                )}
+                                                {!order.event_id && order.addons && order.addons.length > 0 && (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {order.addons.map(a => a.pivot?.addon_name || a.name).join(', ')}
+                                                    </p>
+                                                )}
                                                 {order.event && (
                                                     <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                                         <Calendar className="size-3" />

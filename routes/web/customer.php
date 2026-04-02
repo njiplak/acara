@@ -18,6 +18,7 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
         Route::group(['prefix' => 'orders', 'as' => 'orders.'], function () {
             Route::get('/', [OrderController::class, 'index'])->name('index');
             Route::post('/', [OrderController::class, 'store'])->name('store');
+            Route::post('/addon', [OrderController::class, 'storeAddon'])->name('store-addon');
             Route::get('/{order}', [OrderController::class, 'show'])->name('show');
             Route::post('/{order}/pay', [OrderController::class, 'pay'])->name('pay');
             Route::post('/{order}/pay-online', [OrderController::class, 'redirectToPayment'])->name('pay-online');

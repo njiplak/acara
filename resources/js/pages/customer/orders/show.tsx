@@ -180,27 +180,43 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                             </div>
                         )}
 
-                        {/* Event & Session */}
+                        {/* Event & Session (or Addon-only order) */}
                         <div className="mt-6 rounded-lg border bg-card p-5">
-                            <h2 className="mb-3 text-sm font-semibold text-foreground">Event & Session</h2>
+                            <h2 className="mb-3 text-sm font-semibold text-foreground">
+                                {order.event_id ? 'Event & Session' : 'Add-on Purchase'}
+                            </h2>
                             <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Event</span>
-                                    <span className="text-sm font-medium text-foreground">{order.event?.name}</span>
-                                </div>
                                 {order.event && (
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">Date</span>
-                                        <div className="flex items-center gap-1.5 text-sm text-foreground">
-                                            <Calendar className="size-3.5" />
-                                            <span>{formatDate(order.event.start_date)}</span>
+                                    <>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">Event</span>
+                                            <span className="text-sm font-medium text-foreground">{order.event.name}</span>
                                         </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">Date</span>
+                                            <div className="flex items-center gap-1.5 text-sm text-foreground">
+                                                <Calendar className="size-3.5" />
+                                                <span>{formatDate(order.event.start_date)}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                {order.catalog && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-muted-foreground">Session</span>
+                                        <span className="text-sm font-medium text-foreground">{order.catalog.name}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Session</span>
-                                    <span className="text-sm font-medium text-foreground">{order.catalog?.name}</span>
-                                </div>
+                                {!order.event_id && order.addons && order.addons.length > 0 && (
+                                    <div className="space-y-1.5">
+                                        {order.addons.map((addon) => (
+                                            <div key={addon.id} className="flex justify-between">
+                                                <span className="text-sm text-muted-foreground">{addon.pivot?.addon_name || addon.name}</span>
+                                                <span className="text-sm font-medium text-foreground">{formatPrice(addon.pivot?.addon_price || addon.price)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -208,10 +224,12 @@ export default function CustomerOrderShow({ order, paymentInstruction, materials
                         <div className="mt-4 rounded-lg border bg-card p-5">
                             <h2 className="mb-3 text-sm font-semibold text-foreground">Pricing</h2>
                             <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">{order.catalog?.name}</span>
-                                    <span className="text-sm text-foreground">{formatPrice(order.catalog_price)}</span>
-                                </div>
+                                {order.catalog && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-muted-foreground">{order.catalog.name}</span>
+                                        <span className="text-sm text-foreground">{formatPrice(order.catalog_price)}</span>
+                                    </div>
+                                )}
                                 {order.addons && order.addons.length > 0 && (
                                     <>
                                         {order.addons.map((addon) => (

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MaskedInput } from '@/components/masked-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { FormResponse } from '@/lib/constant';
@@ -23,6 +25,10 @@ export default function AddonForm({ addon }: Props) {
         description: addon?.description ?? '',
         strike_price: addon?.strike_price ?? '',
         price: addon?.price ?? '',
+        status: addon?.status ?? 'draft',
+        is_standalone: addon?.is_standalone ?? false,
+        payment_gateway: addon?.payment_gateway ?? 'manual',
+        currency: addon?.currency ?? 'IDR',
     });
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -98,6 +104,93 @@ export default function AddonForm({ addon }: Props) {
                                 Original price shown crossed out to indicate a discount (leave empty if no discount)
                             </p>
                             <InputError message={errors?.strike_price} />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Status</Label>
+                            <Select
+                                value={data.status}
+                                onValueChange={(val) => setData('status', val as any)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="published">Published</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Only published add-ons are visible on the landing page
+                            </p>
+                            <InputError message={errors?.status} />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Payment Gateway</Label>
+                            <Select
+                                value={data.payment_gateway}
+                                onValueChange={(val) => setData('payment_gateway', val as any)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="manual">Manual</SelectItem>
+                                    <SelectItem value="xendit">Xendit</SelectItem>
+                                    <SelectItem value="stripe">Stripe</SelectItem>
+                                    <SelectItem value="midtrans">Midtrans</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                How customers pay for standalone purchases of this add-on
+                            </p>
+                            <InputError message={errors?.payment_gateway} />
+                        </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Currency</Label>
+                            <Select
+                                value={data.currency}
+                                onValueChange={(val) => setData('currency', val)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="IDR">IDR</SelectItem>
+                                    <SelectItem value="USD">USD</SelectItem>
+                                    <SelectItem value="SGD">SGD</SelectItem>
+                                    <SelectItem value="EUR">EUR</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors?.currency} />
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <Label>Standalone Purchase</Label>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="is_standalone"
+                                    checked={data.is_standalone}
+                                    onCheckedChange={(val) => setData('is_standalone', val === true)}
+                                />
+                                <label htmlFor="is_standalone" className="text-sm text-muted-foreground">
+                                    Allow standalone purchase
+                                </label>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Allow this add-on to be purchased independently via the landing page
+                            </p>
+                            <InputError message={errors?.is_standalone} />
                         </div>
                     </div>
                 </CardContent>

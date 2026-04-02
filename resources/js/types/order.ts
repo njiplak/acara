@@ -32,8 +32,8 @@ export type OrderAddonPivot = {
 export type Order = Model & {
     order_code: string;
     customer_id: number;
-    event_id: number;
-    catalog_id: number;
+    event_id: number | null;
+    catalog_id: number | null;
     catalog_price: number;
     addons_total: number;
     referral_discount: number;

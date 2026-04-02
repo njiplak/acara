@@ -18,6 +18,10 @@ class AddonRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'strike_price' => ['nullable', 'numeric', 'min:0'],
             'price' => ['required', 'numeric', 'min:0'],
+            'status' => ['required', 'string', 'in:draft,published'],
+            'is_standalone' => ['nullable', 'boolean'],
+            'payment_gateway' => ['required', 'string', 'in:manual,xendit,stripe,midtrans'],
+            'currency' => ['required', 'string', 'size:3', 'in:IDR,USD,SGD,EUR'],
         ];
     }
 }

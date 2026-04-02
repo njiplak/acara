@@ -224,6 +224,94 @@ class OrderService extends BaseService implements OrderContract
         }
     }
 
+    public function placeAddonOrder(array $payloads): mixed
+    {
+        try {
+            DB::beginTransaction();
+
+            $addonIds = $payloads['addon_ids'];
+            $addons = Addon::whereIn('id', $addonIds)
+                ->where('status', 'published')
+                ->where('is_standalone', true)
+                ->get();
+
+            abort_if($addons->isEmpty(), 422, 'No valid add-ons selected.');
+
+            // Use the first addon's payment gateway
+            $paymentGateway = $addons->first()->payment_gateway;
+
+            $addonsTotal = 0;
+            $addonPivotData = [];
+            foreach ($addons as $addon) {
+                $addonsTotal += $addon->price;
+                $addonPivotData[$addon->id] = [
+                    'addon_name' => $addon->name,
+                    'addon_price' => $addon->price,
+                ];
+            }
+
+            $subtotal = $addonsTotal;
+
+            // Handle referral balance usage
+            $balanceUsed = 0;
+            if (!empty($payloads['use_balance'])) {
+                $customer = Customer::findOrFail($payloads['customer_id']);
+                if ($customer->referral_balance > 0) {
+                    $balanceUsed = min($customer->referral_balance, $subtotal);
+                    $customer->decrement('referral_balance', $balanceUsed);
+                }
+            }
+
+            $totalAmount = $subtotal - $balanceUsed;
+
+            $order = Order::create([
+                'order_code' => Order::generateOrderCode(),
+                'customer_id' => $payloads['customer_id'],
+                'event_id' => null,
+                'catalog_id' => null,
+                'catalog_price' => 0,
+                'addons_total' => $addonsTotal,
+                'referral_discount' => 0,
+                'balance_used' => $balanceUsed,
+                'total_amount' => $totalAmount,
+                'referred_by' => null,
+                'voucher_id' => null,
+                'voucher_discount' => 0,
+                'status' => 'pending_payment',
+                'payment_gateway' => $paymentGateway,
+                'notes' => $payloads['notes'] ?? null,
+            ]);
+
+            $order->addons()->sync($addonPivotData);
+
+            DB::commit();
+
+            MailService::sendForOrder('order-placed', $order);
+
+            $order = $order->fresh($this->relation);
+
+            // Auto-confirm free orders
+            if ($totalAmount <= 0) {
+                return $this->confirmOrder($order->id);
+            }
+
+            // Initiate payment for non-manual gateways
+            if ($paymentGateway !== 'manual') {
+                $paymentService = app(PaymentService::class);
+                $transaction = $paymentService->initiatePayment($order);
+
+                if (!$transaction instanceof Exception) {
+                    $order->setRelation('latestTransaction', $transaction);
+                }
+            }
+
+            return $order;
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $e;
+        }
+    }
+
     public function uploadPaymentProof(int $orderId, string $proofPath): mixed
     {
         try {
@@ -349,7 +437,9 @@ class OrderService extends BaseService implements OrderContract
             DB::commit();
 
             // Notify waitlisted customers (after commit so spot is actually free)
-            WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+            if ($order->event_id && $order->catalog_id) {
+                WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+            }
 
             return $order->fresh($this->relation);
         } catch (Exception $e) {
@@ -407,7 +497,9 @@ class OrderService extends BaseService implements OrderContract
             DB::commit();
 
             // Notify waitlisted customers (after commit so spot is actually free)
-            WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+            if ($order->event_id && $order->catalog_id) {
+                WaitlistService::notifyIfSpotAvailable($order->event_id, $order->catalog_id);
+            }
 
             return $order->fresh($this->relation);
         } catch (Exception $e) {

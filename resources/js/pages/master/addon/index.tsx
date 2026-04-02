@@ -1,5 +1,6 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 
+import { Badge } from '@/components/ui/badge';
 import IndexPage from '@/components/index-page';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
@@ -34,15 +35,34 @@ const columns: ColumnDef<Addon, any>[] = [
         enableHiding: false,
         cell: (ctx) => `Rp ${Number(ctx.getValue()).toLocaleString('id-ID')}`,
     }),
-    helper.accessor('strike_price', {
-        id: 'strike_price',
-        header: 'Strike Price',
+    helper.accessor('status', {
+        id: 'status',
+        header: 'Status',
         enableColumnFilter: false,
         enableHiding: false,
-        cell: (ctx) => {
-            const val = ctx.getValue();
-            return val ? `Rp ${Number(val).toLocaleString('id-ID')}` : '-';
-        },
+        cell: (ctx) => (
+            <Badge variant={ctx.getValue() === 'published' ? 'default' : 'secondary'}>
+                {ctx.getValue()}
+            </Badge>
+        ),
+    }),
+    helper.accessor('is_standalone', {
+        id: 'is_standalone',
+        header: 'Standalone',
+        enableColumnFilter: false,
+        enableHiding: false,
+        cell: (ctx) => ctx.getValue() ? 'Yes' : 'No',
+    }),
+    helper.accessor('payment_gateway', {
+        id: 'payment_gateway',
+        header: 'Gateway',
+        enableColumnFilter: false,
+        enableHiding: false,
+        cell: (ctx) => (
+            <Badge variant="outline" className="uppercase">
+                {ctx.getValue()}
+            </Badge>
+        ),
     }),
     createDateColumn<Addon>('created_at'),
 ];
