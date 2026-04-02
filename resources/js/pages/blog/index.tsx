@@ -25,14 +25,34 @@ export default function BlogIndex({
     logoUrl?: string | null;
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
+    const description = `Latest articles and updates from ${name}`;
+    const canonicalUrl = articles.current_page > 1
+        ? `${appUrl}/blog?page=${articles.current_page}`
+        : `${appUrl}/blog`;
 
     return (
         <>
             <Head>
                 <title>Blog - {name}</title>
-                <meta name="description" content={`Latest articles and updates from ${name}`} />
+                <meta name="description" content={description} />
+                <link rel="canonical" href={canonicalUrl} />
+
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content={`Blog - ${name}`} />
+                <meta property="og:description" content={description} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:site_name" content={name} />
+                {settings.og_image && <meta property="og:image" content={settings.og_image} />}
+
+                <meta name="twitter:card" content="summary" />
+                <meta name="twitter:title" content={`Blog - ${name}`} />
+                <meta name="twitter:description" content={description} />
+                {settings.og_image && <meta name="twitter:image" content={settings.og_image} />}
+
+                {articles.prev_page_url && <link rel="prev" href={articles.prev_page_url} />}
+                {articles.next_page_url && <link rel="next" href={articles.next_page_url} />}
             </Head>
 
             <div className="relative flex min-h-svh flex-col bg-background">

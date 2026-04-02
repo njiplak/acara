@@ -19,19 +19,63 @@ export default function BlogShow({
     logoUrl?: string | null;
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
     const featuredImage = article.media?.[0]?.original_url;
     const publishedDate = article.published_at
         ? new Date(article.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
         : null;
+    const canonicalUrl = `${appUrl}/blog/${article.slug}`;
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: article.title,
+        ...(article.excerpt && { description: article.excerpt }),
+        ...(featuredImage && { image: featuredImage }),
+        url: canonicalUrl,
+        datePublished: article.published_at,
+        ...(article.updated_at && { dateModified: article.updated_at }),
+        ...(article.author && {
+            author: {
+                '@type': 'Person',
+                name: article.author.name,
+            },
+        }),
+        publisher: {
+            '@type': 'Organization',
+            name,
+            ...(logoUrl && { logo: { '@type': 'ImageObject', url: logoUrl } }),
+        },
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': canonicalUrl,
+        },
+    };
 
     return (
         <>
             <Head>
                 <title>{article.title} - {name}</title>
                 {article.excerpt && <meta name="description" content={article.excerpt} />}
+                <link rel="canonical" href={canonicalUrl} />
+
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={article.title} />
+                <meta property="og:url" content={canonicalUrl} />
+                {article.excerpt && <meta property="og:description" content={article.excerpt} />}
                 {featuredImage && <meta property="og:image" content={featuredImage} />}
+                <meta property="og:site_name" content={name} />
+                {article.published_at && <meta property="article:published_time" content={article.published_at} />}
+                {article.updated_at && <meta property="article:modified_time" content={article.updated_at} />}
+                {article.author && <meta property="article:author" content={article.author.name} />}
+
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={article.title} />
+                {article.excerpt && <meta name="twitter:description" content={article.excerpt} />}
+                {featuredImage && <meta name="twitter:image" content={featuredImage} />}
+
+                <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
             </Head>
 
             <div className="relative flex min-h-svh flex-col bg-background">

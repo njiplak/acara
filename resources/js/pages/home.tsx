@@ -40,17 +40,31 @@ function getLowestPrice(event: Event): number | null {
 
 export default function Home({ settings, events, logoUrl, testimonials = [], faqs = [], articles = [] }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null; testimonials?: Testimonial[]; faqs?: Faq[]; articles?: Article[] }) {
     const name = settings.business_name || 'Acara';
-    const { auth } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
+    const title = settings.meta_title || name;
+    const description = settings.meta_description || '';
 
     return (
         <>
             <Head>
-                <title>{settings.meta_title || name}</title>
-                {settings.meta_description && <meta name="description" content={settings.meta_description} />}
+                <title>{title}</title>
+                {description && <meta name="description" content={description} />}
                 {settings.meta_keywords && <meta name="keywords" content={settings.meta_keywords} />}
-                {settings.og_image && <meta property="og:image" content={settings.og_image} />}
                 {settings.google_site_verification && <meta name="google-site-verification" content={settings.google_site_verification} />}
+                <link rel="canonical" href={appUrl} />
+
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content={title} />
+                {description && <meta property="og:description" content={description} />}
+                <meta property="og:url" content={appUrl} />
+                <meta property="og:site_name" content={name} />
+                {settings.og_image && <meta property="og:image" content={settings.og_image} />}
+
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={title} />
+                {description && <meta name="twitter:description" content={description} />}
+                {settings.og_image && <meta name="twitter:image" content={settings.og_image} />}
             </Head>
 
             <div className="relative flex min-h-svh flex-col bg-background">
