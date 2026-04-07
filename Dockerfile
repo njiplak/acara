@@ -37,7 +37,7 @@ RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 # ==============================================================================
 # Stage 3: Compile PHP to opcache binary cache (strip source)
 # ==============================================================================
-FROM dunglas/frankenphp:latest-php8.4-alpine AS compiler
+FROM dunglas/frankenphp:1-php8.4-alpine AS compiler
 
 RUN install-php-extensions \
     bcmath \
@@ -112,7 +112,7 @@ RUN find /app/vendor -name '*.php' \
 # ==============================================================================
 # Stage 4: Final production image (clean, no source)
 # ==============================================================================
-FROM dunglas/frankenphp:latest-php8.4-alpine
+FROM dunglas/frankenphp:1-php8.4-alpine
 
 RUN install-php-extensions \
     bcmath \
