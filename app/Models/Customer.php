@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use LucasDotVin\Soulbscription\Models\Concerns\HasSubscriptions;
 
 class Customer extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, HasSubscriptions, Notifiable;
 
     protected $fillable = [
         'name',

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Master\ArticleController;
 use App\Http\Controllers\Master\AddonController;
+use App\Http\Controllers\Master\SubscriptionPlanController;
+use App\Http\Controllers\Master\SubscriptionFeatureController;
 use App\Http\Controllers\Master\CatalogController;
 use App\Http\Controllers\Master\EventController;
 use App\Http\Controllers\Master\EventMaterialController;
@@ -102,6 +104,28 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::put('/{id}', [FaqController::class, 'update'])->name('update');
         Route::delete('/{id}', [FaqController::class, 'destroy'])->name('destroy');
         Route::post('/destroy-bulk', [FaqController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'subscription-plan', 'as' => 'subscription-plan.'], function () {
+        Route::get('/', [SubscriptionPlanController::class, 'index'])->name('index');
+        Route::get('/fetch', [SubscriptionPlanController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [SubscriptionPlanController::class, 'create'])->name('create');
+        Route::post('/', [SubscriptionPlanController::class, 'store'])->name('store');
+        Route::get('/{id}', [SubscriptionPlanController::class, 'show'])->name('show');
+        Route::put('/{id}', [SubscriptionPlanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SubscriptionPlanController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [SubscriptionPlanController::class, 'destroy_bulk'])->name('destroy-bulk');
+    });
+
+    Route::group(['prefix' => 'subscription-feature', 'as' => 'subscription-feature.'], function () {
+        Route::get('/', [SubscriptionFeatureController::class, 'index'])->name('index');
+        Route::get('/fetch', [SubscriptionFeatureController::class, 'fetch'])->name('fetch');
+        Route::get('/create', [SubscriptionFeatureController::class, 'create'])->name('create');
+        Route::post('/', [SubscriptionFeatureController::class, 'store'])->name('store');
+        Route::get('/{id}', [SubscriptionFeatureController::class, 'show'])->name('show');
+        Route::put('/{id}', [SubscriptionFeatureController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SubscriptionFeatureController::class, 'destroy'])->name('destroy');
+        Route::post('/destroy-bulk', [SubscriptionFeatureController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
     Route::group(['prefix' => 'event', 'as' => 'event.'], function () {

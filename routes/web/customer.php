@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Customer\SubscriptionController;
 use App\Http\Controllers\Customer\SurveyController;
 use App\Http\Controllers\Customer\TestimonialController;
 use App\Http\Middleware\EnsureProfileComplete;
@@ -33,6 +34,14 @@ Route::group(['middleware' => RedirectIfNotCustomer::class, 'prefix' => 'custome
         Route::post('/waitlist/leave', [OrderController::class, 'leaveWaitlist'])->name('waitlist.leave');
 
         Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');
+
+        Route::group(['prefix' => 'subscription', 'as' => 'subscription.'], function () {
+            Route::get('/', [SubscriptionController::class, 'index'])->name('index');
+            Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
+            Route::post('/{subscriptionOrder}/upload-proof', [SubscriptionController::class, 'uploadProof'])->name('upload-proof');
+            Route::post('/{subscriptionOrder}/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
+            Route::post('/cancel-subscription', [SubscriptionController::class, 'cancelSubscription'])->name('cancel-subscription');
+        });
 
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');

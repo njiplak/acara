@@ -4,6 +4,7 @@ use App\Http\Controllers\Operational\AnnouncementController;
 use App\Http\Controllers\Operational\CampaignController;
 use App\Http\Controllers\Operational\CustomerController;
 use App\Http\Controllers\Operational\OrderController;
+use App\Http\Controllers\Operational\SubscriptionOrderController;
 use App\Http\Controllers\Operational\SurveyController;
 use App\Http\Controllers\Operational\TestimonialController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,14 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/{id}/undo-check-in', [OrderController::class, 'undoCheckIn'])->name('undo-check-in');
         Route::post('/{id}/session-check-in', [OrderController::class, 'sessionCheckIn'])->name('session-check-in');
         Route::post('/{id}/undo-session-check-in', [OrderController::class, 'undoSessionCheckIn'])->name('undo-session-check-in');
+    });
+
+    Route::group(['prefix' => 'subscription-order', 'as' => 'subscription-order.'], function () {
+        Route::get('/', [SubscriptionOrderController::class, 'index'])->name('index');
+        Route::get('/fetch', [SubscriptionOrderController::class, 'fetch'])->name('fetch');
+        Route::get('/{id}', [SubscriptionOrderController::class, 'show'])->name('show');
+        Route::post('/{id}/confirm', [SubscriptionOrderController::class, 'confirm'])->name('confirm');
+        Route::post('/{id}/reject', [SubscriptionOrderController::class, 'reject'])->name('reject');
     });
 
     Route::group(['prefix' => 'check-in', 'as' => 'check-in.'], function () {

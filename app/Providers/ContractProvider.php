@@ -15,6 +15,8 @@ use App\Contract\Master\EventTemplateContract;
 use App\Contract\Master\FaqContract;
 use App\Contract\Master\SpeakerContract;
 use App\Contract\Master\VenueContract;
+use App\Contract\Master\SubscriptionFeatureContract;
+use App\Contract\Master\SubscriptionPlanContract;
 use App\Contract\Master\VoucherContract;
 use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
@@ -39,6 +41,8 @@ use App\Service\Master\EventTemplateService;
 use App\Service\Master\FaqService;
 use App\Service\Master\SpeakerService;
 use App\Service\Master\VenueService;
+use App\Service\Master\SubscriptionFeatureService;
+use App\Service\Master\SubscriptionPlanService;
 use App\Service\Master\VoucherService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
@@ -78,6 +82,8 @@ class ContractProvider extends ServiceProvider
         EventTemplateContract::class => EventTemplateService::class,
         FaqContract::class => FaqService::class,
         SpeakerContract::class => SpeakerService::class,
+        SubscriptionPlanContract::class => SubscriptionPlanService::class,
+        SubscriptionFeatureContract::class => SubscriptionFeatureService::class,
         VenueContract::class => VenueService::class,
         VoucherContract::class => VoucherService::class,
 

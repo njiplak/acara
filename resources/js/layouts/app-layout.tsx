@@ -15,6 +15,9 @@ import {
     Package,
     Puzzle,
     ClipboardCheck,
+    CreditCard,
+    Crown,
+    Gem,
     Mail,
     Megaphone,
     MessageSquare,
@@ -266,6 +269,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.subscriptionPlan.index.url())}>
+                                        <Link href={backoffice.master.subscriptionPlan.index.url()}>
+                                            <Crown />
+                                            <span>Subscription Plans</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.subscriptionFeature.index.url())}>
+                                        <Link href={backoffice.master.subscriptionFeature.index.url()}>
+                                            <Gem />
+                                            <span>Sub. Features</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
@@ -310,6 +329,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                         <Link href={backoffice.operational.survey.index.url()}>
                                             <ClipboardCheck />
                                             <span>Survey</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.subscriptionOrder.index.url())}>
+                                        <Link href={backoffice.operational.subscriptionOrder.index.url()}>
+                                            <CreditCard />
+                                            <span>Sub. Orders</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

@@ -1,9 +1,10 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList, Copy, Gift, Share2, UserRound, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, Copy, Crown, Gift, Share2, UserRound, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { show as profileShow } from '@/actions/App/Http/Controllers/Customer/ProfileController';
+import { index as subscriptionIndex } from '@/actions/App/Http/Controllers/Customer/SubscriptionController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
@@ -96,6 +97,21 @@ export default function CustomerOrdersIndex({ orders, referralCode, referralBala
                         {birthdayVoucher && (
                             <BirthdayBanner voucher={birthdayVoucher} />
                         )}
+
+                        {/* Membership link */}
+                        <Link
+                            href={subscriptionIndex.url()}
+                            className="mb-6 flex items-center justify-between rounded-lg border bg-card p-4 transition-colors hover:border-foreground/20 hover:bg-accent/50"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Crown className="size-5 text-amber-500" />
+                                <div>
+                                    <p className="text-sm font-semibold text-foreground">Membership</p>
+                                    <p className="text-xs text-muted-foreground">View plans & manage your subscription</p>
+                                </div>
+                            </div>
+                            <ArrowLeft className="size-4 rotate-180 text-muted-foreground" />
+                        </Link>
 
                         {/* Referral info card */}
                         <ReferralCard code={referralCode} balance={referralBalance} />
