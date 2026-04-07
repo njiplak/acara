@@ -12,6 +12,7 @@ COPY resources/ resources/
 COPY vite.config.ts tsconfig.json tailwind.config.* postcss.config.* ./
 COPY public/ public/
 
+ENV DOCKER_BUILD=1
 RUN bun run build
 
 
@@ -64,8 +65,7 @@ COPY app/ app/
 COPY bootstrap/ bootstrap/
 COPY config/ config/
 COPY database/ database/
-COPY public/index.php public/index.php
-COPY public/robots.txt public/robots.txt
+COPY public/ public/
 COPY resources/views/ resources/views/
 COPY routes/ routes/
 COPY storage/ storage/
