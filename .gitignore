@@ -28,3 +28,6 @@ yarn-error.log
 /.zed
 .claude/worktrees/
 *.txt
+**/caddy
+frankenphp
+frankenphp-worker.php
