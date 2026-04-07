@@ -1,0 +1,67 @@
+# ==============================================================================
+# Acara - Event Management Platform
+# Client Deployment Configuration
+#
+# Usage:
+#   1. Copy .env.example to .env and configure your settings
+#   2. Run: docker compose -f docker-compose.client.yml up -d
+#   3. Access the app at http://localhost (or your configured domain)
+#
+# First time setup:
+#   docker compose -f docker-compose.client.yml exec app php artisan key:generate
+#   docker compose -f docker-compose.client.yml exec app php artisan migrate --seed
+# ==============================================================================
+
+services:
+  app:
+    image: ghcr.io/njiplak/acara:latest
+    container_name: acara-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - app-storage:/app/storage/app
+      - app-database:/app/database
+      - app-logs:/app/storage/logs
+    environment:
+      APP_NAME: "${APP_NAME:-Acara}"
+      APP_ENV: production
+      APP_KEY: "${APP_KEY}"
+      APP_DEBUG: "false"
+      APP_URL: "${APP_URL:-http://localhost}"
+      DB_CONNECTION: "${DB_CONNECTION:-sqlite}"
+      DB_HOST: "${DB_HOST:-}"
+      DB_PORT: "${DB_PORT:-}"
+      DB_DATABASE: "${DB_DATABASE:-/app/database/database.sqlite}"
+      DB_USERNAME: "${DB_USERNAME:-}"
+      DB_PASSWORD: "${DB_PASSWORD:-}"
+      MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+      MAIL_HOST: "${MAIL_HOST:-}"
+      MAIL_PORT: "${MAIL_PORT:-587}"
+      MAIL_USERNAME: "${MAIL_USERNAME:-}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD:-}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@example.com}"
+      MAIL_FROM_NAME: "${APP_NAME:-Acara}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+      GOOGLE_REDIRECT_URI: "${APP_URL}/customer/auth/google/callback"
+      PAYMENT_DEFAULT_GATEWAY: "${PAYMENT_DEFAULT_GATEWAY:-manual}"
+      XENDIT_ENABLED: "${XENDIT_ENABLED:-false}"
+      XENDIT_SECRET_KEY: "${XENDIT_SECRET_KEY:-}"
+      XENDIT_PUBLIC_KEY: "${XENDIT_PUBLIC_KEY:-}"
+      XENDIT_WEBHOOK_TOKEN: "${XENDIT_WEBHOOK_TOKEN:-}"
+      STRIPE_ENABLED: "${STRIPE_ENABLED:-false}"
+      STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
+      STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY:-}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  app-storage:
+  app-database:
+  app-logs:
