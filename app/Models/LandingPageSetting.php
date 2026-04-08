@@ -48,6 +48,7 @@ class LandingPageSetting extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('logo')->singleFile();
+        $this->addMediaCollection('hero_image')->singleFile();
         $this->addMediaCollection('certificate_template')->singleFile();
     }
 }

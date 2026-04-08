@@ -8,6 +8,8 @@ use App\Models\Event;
 use App\Models\Faq;
 use App\Models\LandingPageSetting;
 use App\Models\Order;
+use App\Models\Speaker;
+use App\Models\SubscriptionPlan;
 use App\Models\Testimonial;
 use App\Models\Waitlist;
 use App\Utils\PriceResolver;
@@ -75,10 +77,20 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
+        $speakers = Speaker::with('media')->get();
+
+        $plans = SubscriptionPlan::where('is_active', true)
+            ->with('features')
+            ->orderBy('sort_order')
+            ->get();
+
         return Inertia::render('home', [
             'settings' => $settings,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
+            'heroImageUrl' => $settings->getFirstMediaUrl('hero_image') ?: null,
             'events' => $events,
+            'speakers' => $speakers,
+            'plans' => $plans,
             'testimonials' => $testimonials,
             'faqs' => $faqs,
             'articles' => $articles,

@@ -14,6 +14,9 @@ use App\Models\MailTemplate;
 use App\Models\Order;
 use App\Models\SessionAttendance;
 use App\Models\Speaker;
+use App\Models\SubscriptionFeature;
+use App\Models\SubscriptionOrder;
+use App\Models\SubscriptionPlan;
 use App\Models\Survey;
 use App\Models\SurveyResponse;
 use App\Models\Testimonial;
@@ -73,6 +76,9 @@ class DemoSeeder extends Seeder
 
         // ─── Announcements ─────────────────────────────────────
         $this->seedAnnouncements($events);
+
+        // ─── Membership Subscriptions ──────────────────────────
+        $this->seedSubscriptions($customers, $admin);
     }
 
     private function seedEvents($venues, $catalogs, $speakers): array
@@ -805,5 +811,232 @@ class DemoSeeder extends Seeder
                 );
             }
         }
+    }
+
+    private function seedSubscriptions(array $customers, $admin): void
+    {
+        $now = Carbon::now();
+
+        // ─── Features ──────────────────────────────────────────
+        $features = [];
+        $featureData = [
+            [
+                'name' => 'WhatsApp Group Access',
+                'description' => 'Akses ke grup WhatsApp eksklusif untuk diskusi dan networking sesama member.',
+                'consumable' => false,
+            ],
+            [
+                'name' => 'Exclusive Content',
+                'description' => 'Akses ke konten eksklusif: rekaman workshop, artikel, dan materi premium.',
+                'consumable' => false,
+            ],
+            [
+                'name' => 'Early Event Access',
+                'description' => 'Akses pendaftaran lebih awal untuk event baru sebelum dibuka ke publik.',
+                'consumable' => false,
+            ],
+            [
+                'name' => 'Monthly Consultation',
+                'description' => 'Sesi konsultasi pribadi bulanan dengan instruktur.',
+                'consumable' => true,
+                'periodicity_type' => 'Month',
+                'periodicity' => 1,
+            ],
+            [
+                'name' => 'Event Discount',
+                'description' => 'Diskon khusus member untuk semua event.',
+                'consumable' => false,
+            ],
+        ];
+
+        foreach ($featureData as $data) {
+            $features[] = SubscriptionFeature::updateOrCreate(
+                ['name' => $data['name']],
+                $data,
+            );
+        }
+
+        // ─── Plans ─────────────────────────────────────────────
+        $plans = [];
+        $planData = [
+            [
+                'name' => 'Basic',
+                'description' => 'Paket dasar untuk akses komunitas dan konten eksklusif.',
+                'price' => 99000,
+                'periodicity_type' => 'Month',
+                'periodicity' => 1,
+                'grace_days' => 3,
+                'is_active' => true,
+                'resources' => [
+                    ['label' => 'WhatsApp Group', 'url' => 'https://chat.whatsapp.com/example-basic'],
+                ],
+                'sort_order' => 1,
+                'features' => ['WhatsApp Group Access', 'Exclusive Content'],
+            ],
+            [
+                'name' => 'Premium',
+                'description' => 'Akses penuh termasuk early access event, diskon, dan konsultasi bulanan.',
+                'price' => 249000,
+                'periodicity_type' => 'Month',
+                'periodicity' => 1,
+                'grace_days' => 5,
+                'is_active' => true,
+                'resources' => [
+                    ['label' => 'WhatsApp Group', 'url' => 'https://chat.whatsapp.com/example-premium'],
+                    ['label' => 'Resource Library', 'url' => 'https://drive.google.com/drive/example-premium'],
+                ],
+                'sort_order' => 2,
+                'features' => ['WhatsApp Group Access', 'Exclusive Content', 'Early Event Access', 'Monthly Consultation', 'Event Discount'],
+            ],
+            [
+                'name' => 'VIP',
+                'description' => 'Paket tahunan dengan semua benefit Premium plus prioritas di semua event.',
+                'price' => 2499000,
+                'periodicity_type' => 'Year',
+                'periodicity' => 1,
+                'grace_days' => 7,
+                'is_active' => true,
+                'resources' => [
+                    ['label' => 'WhatsApp Group', 'url' => 'https://chat.whatsapp.com/example-vip'],
+                    ['label' => 'Resource Library', 'url' => 'https://drive.google.com/drive/example-vip'],
+                    ['label' => 'VIP Portal', 'url' => 'https://portal.example.com/vip'],
+                ],
+                'sort_order' => 3,
+                'features' => ['WhatsApp Group Access', 'Exclusive Content', 'Early Event Access', 'Monthly Consultation', 'Event Discount'],
+            ],
+        ];
+
+        foreach ($planData as $data) {
+            $featureNames = $data['features'];
+            unset($data['features']);
+
+            $plan = SubscriptionPlan::updateOrCreate(
+                ['name' => $data['name']],
+                $data,
+            );
+
+            // Attach features to plan
+            $featureIds = collect($features)
+                ->whereIn('name', $featureNames)
+                ->pluck('id')
+                ->toArray();
+            $plan->features()->syncWithoutDetaching($featureIds);
+
+            $plans[$plan->name] = $plan;
+        }
+
+        // ─── Subscriptions & Orders ────────────────────────────
+        $basicPlan = $plans['Basic'];
+        $premiumPlan = $plans['Premium'];
+
+        // Active Basic subscribers (subscribed ~20 days ago)
+        foreach (array_slice($customers, 0, 3) as $customer) {
+            $startDate = $now->copy()->subDays(20);
+            $expiration = $startDate->copy()->addMonth();
+
+            if ($customer->missingSubscriptionTo($basicPlan)) {
+                $customer->subscribeTo($basicPlan, expiration: $expiration, startDate: $startDate);
+            }
+
+            SubscriptionOrder::updateOrCreate(
+                ['customer_id' => $customer->id, 'plan_id' => $basicPlan->id, 'type' => 'new'],
+                [
+                    'order_code' => SubscriptionOrder::generateOrderCode(),
+                    'amount' => $basicPlan->price,
+                    'status' => 'confirmed',
+                    'paid_at' => $startDate->copy()->subDay(),
+                    'confirmed_at' => $startDate,
+                    'confirmed_by' => $admin->id,
+                ],
+            );
+        }
+
+        // Active Premium subscribers (subscribed ~15 days ago)
+        foreach (array_slice($customers, 3, 2) as $customer) {
+            $startDate = $now->copy()->subDays(15);
+            $expiration = $startDate->copy()->addMonth();
+
+            if ($customer->missingSubscriptionTo($premiumPlan)) {
+                $customer->subscribeTo($premiumPlan, expiration: $expiration, startDate: $startDate);
+            }
+
+            SubscriptionOrder::updateOrCreate(
+                ['customer_id' => $customer->id, 'plan_id' => $premiumPlan->id, 'type' => 'new'],
+                [
+                    'order_code' => SubscriptionOrder::generateOrderCode(),
+                    'amount' => $premiumPlan->price,
+                    'status' => 'confirmed',
+                    'paid_at' => $startDate->copy()->subDay(),
+                    'confirmed_at' => $startDate,
+                    'confirmed_by' => $admin->id,
+                ],
+            );
+        }
+
+        // Customer who upgraded from Basic to Premium (switched ~5 days ago)
+        $upgrader = $customers[5];
+        $originalStart = $now->copy()->subDays(25);
+
+        if ($upgrader->missingSubscriptionTo($premiumPlan)) {
+            // Create initial Basic subscription then switch
+            $basicExpiration = $originalStart->copy()->addMonth();
+            $upgrader->subscribeTo($basicPlan, expiration: $basicExpiration, startDate: $originalStart);
+            $premiumExpiration = $now->copy()->subDays(5)->addMonth();
+            $upgrader->switchTo($premiumPlan, expiration: $premiumExpiration);
+        }
+
+        // Original Basic order
+        SubscriptionOrder::updateOrCreate(
+            ['customer_id' => $upgrader->id, 'plan_id' => $basicPlan->id, 'type' => 'new'],
+            [
+                'order_code' => SubscriptionOrder::generateOrderCode(),
+                'amount' => $basicPlan->price,
+                'status' => 'confirmed',
+                'paid_at' => $originalStart->copy()->subDay(),
+                'confirmed_at' => $originalStart,
+                'confirmed_by' => $admin->id,
+            ],
+        );
+
+        // Upgrade order with pro-rate credit
+        $daysRemaining = $now->copy()->subDays(5)->diffInDays($originalStart->copy()->addMonth());
+        $proRateCredit = (int) ($basicPlan->price * $daysRemaining / 30);
+
+        SubscriptionOrder::updateOrCreate(
+            ['customer_id' => $upgrader->id, 'plan_id' => $premiumPlan->id, 'type' => 'upgrade'],
+            [
+                'order_code' => SubscriptionOrder::generateOrderCode(),
+                'amount' => $premiumPlan->price - $proRateCredit,
+                'pro_rate_credit' => $proRateCredit,
+                'status' => 'confirmed',
+                'paid_at' => $now->copy()->subDays(6),
+                'confirmed_at' => $now->copy()->subDays(5),
+                'confirmed_by' => $admin->id,
+            ],
+        );
+
+        // Pending subscription order (waiting for payment confirmation)
+        $pendingCustomer = $customers[6];
+        SubscriptionOrder::updateOrCreate(
+            ['customer_id' => $pendingCustomer->id, 'plan_id' => $basicPlan->id, 'type' => 'new'],
+            [
+                'order_code' => SubscriptionOrder::generateOrderCode(),
+                'amount' => $basicPlan->price,
+                'status' => 'waiting_confirmation',
+                'paid_at' => $now->copy()->subDays(2),
+            ],
+        );
+
+        // Cancelled subscription order
+        $cancelledCustomer = $customers[7];
+        SubscriptionOrder::updateOrCreate(
+            ['customer_id' => $cancelledCustomer->id, 'plan_id' => $premiumPlan->id, 'type' => 'new'],
+            [
+                'order_code' => SubscriptionOrder::generateOrderCode(),
+                'amount' => $premiumPlan->price,
+                'status' => 'cancelled',
+                'notes' => 'Batal karena ingin menunggu bulan depan.',
+            ],
+        );
     }
 }

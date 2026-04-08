@@ -21,6 +21,7 @@ We are looking for a small group of early adopters to use Kawakib Acara for thei
 - Collect feedback and testimonials after each event
 - Run post-event surveys with NPS scoring
 - Access analytics, revenue reports, and customer segmentation
+- Offer membership subscriptions with monthly plans and gated resources
 - Use the referral and loyalty system to keep your attendees coming back
 
 **Priority support.** You get direct access to the founder. If something breaks or confuses you, I want to hear about it immediately.
@@ -65,7 +66,7 @@ The platform is already functional across the full event lifecycle:
 | **Sell** | Order management, manual payment (bank transfer, QRIS), vouchers, referral discounts, invoices |
 | **Deliver** | QR check-in, per-session attendance, materials distribution, certificates, live announcements |
 | **Follow-up** | Feedback collection, NPS surveys, thank-you emails, recording access, financial reports |
-| **Retain** | Referral system, customer segmentation, loyalty credits, re-engagement campaigns |
+| **Retain** | Membership subscriptions, referral system, customer segmentation, loyalty credits, re-engagement campaigns |
 
 This is not a prototype. It is a working platform. You are among the first to use it, which means your input carries real weight.
 

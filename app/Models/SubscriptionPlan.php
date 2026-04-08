@@ -31,4 +31,11 @@ class SubscriptionPlan extends Plan
             'periodicity' => 'integer',
         ];
     }
+
+    public function features()
+    {
+        return $this->belongsToMany(config('soulbscription.models.feature'), 'feature_plan', 'plan_id', 'feature_id')
+            ->using(config('soulbscription.models.feature_plan'))
+            ->withPivot(['charges']);
+    }
 }

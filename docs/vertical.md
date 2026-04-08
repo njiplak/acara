@@ -135,6 +135,7 @@ Turn one-time attendees into repeat customers.
 
 | Feature | Status | Notes |
 |---|---|---|
+| Membership subscription | Done | Monthly plans with feature gating and resource access (WhatsApp groups, exclusive content). Subscribe, cancel, upgrade with pro-rate. Built on laravel-soulbscription. Admin manages plans and features via Master panel. Customer-facing page at /customer/subscription |
 | Referral system (earn balance) | Done | Referrer gets credit when referee's order is confirmed |
 | Customer order history | Done | Customers can view all past orders |
 | Customer list + details (admin) | Done | View customers, their orders, delete |
@@ -215,6 +216,6 @@ Features ranked by **impact vs effort** across all stages.
 | SELL | 95% | 12 | 11 | 1 |
 | DELIVER | 100% | 7 | 7 | 0 |
 | FOLLOW-UP | 100% | 7 | 7 | 0 |
-| RETAIN | 89% | 9 | 8 | 1 |
+| RETAIN | 90% | 10 | 9 | 1 |
 | ANALYZE | 0% | 5 | 0 | 5 |
-| **TOTAL** | **~82%** | **65** | **54** | **11** |
+| **TOTAL** | **~83%** | **66** | **55** | **11** |

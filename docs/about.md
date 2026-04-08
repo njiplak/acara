@@ -80,6 +80,7 @@ Close the loop after the event ends.
 
 Turn one-time attendees into regulars.
 
+- Offer membership subscriptions with monthly plans and gated resources
 - Run a referral program where attendees earn balance for bringing friends
 - Segment customers automatically by frequency, recency, and behavior
 - Award loyalty credits based on attendance
@@ -92,7 +93,7 @@ Turn one-time attendees into regulars.
 
 **One platform, not ten.** Most organizers juggle separate tools for landing pages, email, ticketing, check-in, and follow-up. Kawakib Acara handles all of it in one place. Your data stays connected across every stage.
 
-**Built for repeat events.** This is not a tool for one-off concerts. It is built for businesses that run events regularly. Templates, recurring schedules, customer segmentation, and loyalty programs all reflect that.
+**Built for repeat events.** This is not a tool for one-off concerts. It is built for businesses that run events regularly. Templates, recurring schedules, customer segmentation, membership subscriptions, and loyalty programs all reflect that.
 
 **The lifecycle does not end at the door.** Most event tools stop at check-in. Kawakib Acara keeps going: feedback collection, surveys, certificates, referral programs, and re-engagement campaigns. The post-event experience is where retention happens.
 

@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Calendar, ChevronDown, ClipboardList, Star, Users } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronDown, ClipboardList, Star, Users } from 'lucide-react';
 import * as React from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
@@ -10,6 +11,8 @@ import type { Article } from '@/types/article';
 import type { Event } from '@/types/event';
 import type { Faq } from '@/types/faq';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
+import type { Speaker } from '@/types/speaker';
+import type { SubscriptionPlan } from '@/types/subscription';
 import type { Testimonial } from '@/types/testimonial';
 
 function formatDateRange(start: string, end: string) {
@@ -38,7 +41,27 @@ function getLowestPrice(event: Event): number | null {
     return Math.min(...event.catalogs.map((c) => c.price));
 }
 
-export default function Home({ settings, events, logoUrl, testimonials = [], faqs = [], articles = [] }: { settings: LandingPageSetting; events: Event[]; logoUrl?: string | null; testimonials?: Testimonial[]; faqs?: Faq[]; articles?: Article[] }) {
+export default function Home({
+    settings,
+    events,
+    logoUrl,
+    heroImageUrl,
+    speakers = [],
+    plans = [],
+    testimonials = [],
+    faqs = [],
+    articles = [],
+}: {
+    settings: LandingPageSetting;
+    events: Event[];
+    logoUrl?: string | null;
+    heroImageUrl?: string | null;
+    speakers?: Speaker[];
+    plans?: SubscriptionPlan[];
+    testimonials?: Testimonial[];
+    faqs?: Faq[];
+    articles?: Article[];
+}) {
     const name = settings.business_name || 'Acara';
     const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
@@ -68,155 +91,81 @@ export default function Home({ settings, events, logoUrl, testimonials = [], faq
             </Head>
 
             <div className="relative flex min-h-svh flex-col bg-background">
-                <div className="h-px w-full bg-border" />
+                {/* Hero Section */}
+                <HeroSection
+                    name={name}
+                    logoUrl={logoUrl}
+                    heroImageUrl={heroImageUrl}
+                    settings={settings}
+                    customer={customer}
+                    events={events}
+                />
 
-                {/* Header */}
-                <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-12">
-                    <Link href="/" className="flex items-center gap-2.5">
-                        {logoUrl ? (
-                            <img src={logoUrl} alt={name} className="h-8 w-auto object-contain" />
-                        ) : (
-                            <div className="flex size-8 items-center justify-center rounded-md bg-foreground">
-                                <span className="text-sm font-bold tracking-tight text-background">{name.charAt(0)}</span>
-                            </div>
-                        )}
-                        <span className="text-lg font-semibold tracking-tight text-foreground">{name}</span>
-                    </Link>
-                    <div className="flex items-center gap-3">
-                        <Link href={showAddons.url()} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                            Add-ons
-                        </Link>
-                        <Link href={blogIndex.url()} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                            Blog
-                        </Link>
-                        {customer ? (
-                            <>
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href="/customer/orders">
-                                        <ClipboardList className="size-4" />
-                                        My Orders
-                                    </Link>
-                                </Button>
-                                <div className="flex items-center gap-2">
-                                    {customer.avatar ? (
-                                        <img src={customer.avatar} alt={customer.name} className="size-7 rounded-full" />
-                                    ) : (
-                                        <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                                            {customer.name.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
-                                    <span className="hidden text-sm font-medium sm:inline">{customer.name}</span>
-                                </div>
-                            </>
-                        ) : (
-                            <Button asChild variant="outline" size="sm">
-                                <a href={redirect.url()}>Sign in</a>
-                            </Button>
-                        )}
-                    </div>
-                </header>
+                {/* About Section - Animated Text */}
+                <AboutSection settings={settings} />
 
-                {/* Hero */}
-                <section className="flex flex-col items-center px-6 py-16 text-center lg:px-12 lg:py-24">
-                    {settings.hero_badge_text && (
-                        <p className="mb-4 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                            {settings.hero_badge_text}
-                        </p>
-                    )}
+                {/* Events Section */}
+                {events.length > 0 && (
+                    <EventsSection events={events} settings={settings} />
+                )}
 
-                    <h1 className="max-w-2xl text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                        {settings.hero_title || name}
-                    </h1>
+                {/* Instructors Section */}
+                {speakers.length > 0 && (
+                    <InstructorsSection speakers={speakers} />
+                )}
 
-                    {settings.hero_subtitle && (
-                        <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground">{settings.hero_subtitle}</p>
-                    )}
-
-                    {events.length > 0 && (
-                        <Button asChild size="lg" className="mt-8 gap-2.5 px-8">
-                            <a href="#events">
-                                {settings.cta_text || 'Browse Events'}
-                                <ArrowRight className="size-4" />
-                            </a>
-                        </Button>
-                    )}
-                </section>
-
-                <div className="mx-6 h-px bg-border lg:mx-12" />
-
-                {/* Events */}
-                <section id="events" className="flex-1 px-6 py-12 lg:px-12 lg:py-16">
-                    <div className="mb-8">
-                        <h2 className="text-xl font-semibold tracking-tight text-foreground">Upcoming Events</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">Find and join our latest events</p>
-                    </div>
-
-                    {events.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-                            <Calendar className="mb-3 size-8 text-muted-foreground/50" />
-                            <p className="text-sm font-medium text-muted-foreground">No upcoming events</p>
-                            <p className="mt-1 text-xs text-muted-foreground/70">Check back soon for new events</p>
-                        </div>
-                    ) : (
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {events.map((event) => (
-                                <EventCard key={event.id} event={event} />
-                            ))}
-                        </div>
-                    )}
-                </section>
+                {/* Membership Plans */}
+                {plans.length > 0 && (
+                    <MembershipSection plans={plans} />
+                )}
 
                 {/* Testimonials */}
                 {testimonials.length > 0 && (
-                    <>
-                        <div className="mx-6 h-px bg-border lg:mx-12" />
-                        <section className="px-6 py-12 lg:px-12 lg:py-16">
-                            <div className="mb-8 text-center">
-                                <h2 className="text-xl font-semibold tracking-tight text-foreground">What Our Attendees Say</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">Hear from people who joined our events</p>
+                    <section className="bg-background px-6 py-16 lg:px-12 lg:py-24">
+                        <div className="mx-auto max-w-6xl">
+                            <div className="mb-10 text-center">
+                                <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">What Our Attendees Say</h2>
+                                <p className="mt-3 text-base text-muted-foreground">Hear from people who joined our events</p>
                             </div>
-                            <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                                 {testimonials.map((t) => (
                                     <TestimonialCard key={t.id} testimonial={t} />
                                 ))}
                             </div>
-                        </section>
-                    </>
+                        </div>
+                    </section>
                 )}
 
                 {/* Latest Articles */}
                 {articles.length > 0 && (
-                    <>
-                        <div className="mx-6 h-px bg-border lg:mx-12" />
-                        <section className="px-6 py-12 lg:px-12 lg:py-16">
-                            <div className="mb-8 flex items-center justify-between">
+                    <section className="bg-secondary/30 px-6 py-16 lg:px-12 lg:py-24">
+                        <div className="mx-auto max-w-6xl">
+                            <div className="mb-10 flex items-end justify-between">
                                 <div>
-                                    <h2 className="text-xl font-semibold tracking-tight text-foreground">Latest Articles</h2>
-                                    <p className="mt-1 text-sm text-muted-foreground">Insights and updates from our team</p>
+                                    <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">Latest Articles</h2>
+                                    <p className="mt-3 text-base text-muted-foreground">Insights and updates from our team</p>
                                 </div>
-                                <Button asChild variant="outline" size="sm">
+                                <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
                                     <Link href={blogIndex.url()}>
                                         View All
                                         <ArrowRight className="ml-1.5 size-3.5" />
                                     </Link>
                                 </Button>
                             </div>
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                                 {articles.map((article) => (
                                     <Link
                                         key={article.id}
                                         href={blogShow.url({ article: article.slug })}
-                                        className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-foreground/20 hover:bg-accent/50"
+                                        className="group flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-lg"
                                     >
-                                        {article.media?.[0]?.original_url && (
-                                            <div className="aspect-video overflow-hidden">
-                                                <img
-                                                    src={article.media[0].original_url}
-                                                    alt={article.title}
-                                                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                                                />
-                                            </div>
-                                        )}
+                                        <div className="aspect-video overflow-hidden">
+                                            <img
+                                                src={`https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop&sig=${article.id}`}
+                                                alt={article.title}
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        </div>
                                         <div className="flex flex-1 flex-col p-5">
                                             {article.published_at && (
                                                 <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -224,7 +173,7 @@ export default function Home({ settings, events, logoUrl, testimonials = [], faq
                                                     {new Date(article.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             )}
-                                            <h3 className="text-base font-semibold text-foreground group-hover:text-foreground/90">{article.title}</h3>
+                                            <h3 className="text-base font-semibold text-foreground">{article.title}</h3>
                                             {article.excerpt && (
                                                 <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
                                             )}
@@ -232,32 +181,43 @@ export default function Home({ settings, events, logoUrl, testimonials = [], faq
                                     </Link>
                                 ))}
                             </div>
-                        </section>
-                    </>
+                            <div className="mt-8 text-center sm:hidden">
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={blogIndex.url()}>
+                                        View All
+                                        <ArrowRight className="ml-1.5 size-3.5" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    </section>
                 )}
 
                 {/* FAQ */}
                 {faqs.length > 0 && (
-                    <>
-                        <div className="mx-6 h-px bg-border lg:mx-12" />
-                        <section className="px-6 py-12 lg:px-12 lg:py-16">
-                            <div className="mb-8 text-center">
-                                <h2 className="text-xl font-semibold tracking-tight text-foreground">Frequently Asked Questions</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">Find answers to common questions</p>
+                    <section className="bg-background px-6 py-16 lg:px-12 lg:py-24">
+                        <div className="mx-auto max-w-2xl">
+                            <div className="mb-10 text-center">
+                                <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">Frequently Asked Questions</h2>
+                                <p className="mt-3 text-base text-muted-foreground">Find answers to common questions</p>
                             </div>
-                            <div className="mx-auto max-w-2xl divide-y">
+                            <div className="divide-y">
                                 {faqs.map((faq) => (
                                     <FaqItem key={faq.id} faq={faq} />
                                 ))}
                             </div>
-                        </section>
-                    </>
+                        </div>
+                    </section>
                 )}
 
                 {/* Footer */}
-                <footer className="border-t px-6 py-6 lg:px-12">
-                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                        <p className="text-xs text-muted-foreground">
+                <footer className="border-t bg-foreground px-6 py-10 text-background lg:px-12">
+                    <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+                        <div className="flex items-center gap-2.5">
+                            <img src="https://placehold.co/84x28/ffffff/000000?text=LOGO" alt={name} className="h-7 w-auto object-contain brightness-0 invert" />
+                            <span className="text-sm font-semibold">{name}</span>
+                        </div>
+                        <p className="text-xs text-background/60">
                             {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
                         </p>
                         <SocialLinks settings={settings} />
@@ -268,6 +228,249 @@ export default function Home({ settings, events, logoUrl, testimonials = [], faq
     );
 }
 
+/* ─── Hero Section ─── */
+function HeroSection({
+    name,
+    logoUrl,
+    heroImageUrl,
+    settings,
+    customer,
+    events,
+}: {
+    name: string;
+    logoUrl?: string | null;
+    heroImageUrl?: string | null;
+    settings: LandingPageSetting;
+    customer: SharedData['auth']['customer'];
+    events: Event[];
+}) {
+    return (
+        <section className="relative min-h-svh overflow-hidden bg-foreground">
+            {/* Background Image */}
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Naam_Yoga_LA_Class.jpg/1920px-Naam_Yoga_LA_Class.jpg?_=20140511030540"
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
+
+            {/* Nav Bar */}
+            <nav className="relative z-10 flex items-center justify-between px-6 py-5 lg:px-12">
+                <div className="flex items-center gap-8">
+                    <div className="hidden items-center gap-6 sm:flex">
+                        {events.length > 0 && (
+                            <a href="#events" className="text-sm text-background/80 transition-colors hover:text-background">
+                                Events
+                            </a>
+                        )}
+                        <Link href={showAddons.url()} className="text-sm text-background/80 transition-colors hover:text-background">
+                            Add-ons
+                        </Link>
+                        <Link href={blogIndex.url()} className="text-sm text-background/80 transition-colors hover:text-background">
+                            Blog
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Center Logo */}
+                <Link href="/" className="absolute left-1/2 top-5 flex -translate-x-1/2 items-center gap-2">
+                    <img src="https://placehold.co/120x40/000000/ffffff?text=LOGO" alt={name} className="h-10 w-auto object-contain" />
+                </Link>
+
+                {/* Right CTA */}
+                <div className="flex items-center gap-3">
+                    {customer ? (
+                        <>
+                            <Button asChild variant="outline" size="sm" className="border-background/30 bg-transparent text-background hover:bg-background/10 hover:text-background">
+                                <Link href="/customer/orders">
+                                    <ClipboardList className="size-4" />
+                                    My Orders
+                                </Link>
+                            </Button>
+                            <div className="flex items-center gap-2">
+                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" alt={customer.name} className="size-8 rounded-full ring-2 ring-background/30" />
+                            </div>
+                        </>
+                    ) : (
+                        <a
+                            href={redirect.url()}
+                            className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+                        >
+                            Join Now
+                            <ArrowUpRight className="size-4" />
+                        </a>
+                    )}
+                </div>
+            </nav>
+
+            {/* Hero Content */}
+            <div className="relative z-10 flex min-h-svh flex-col justify-between px-6 pb-12 pt-20 lg:px-12 lg:pb-16 lg:pt-32">
+                <div className="max-w-2xl">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        className="text-4xl font-bold leading-tight tracking-tight text-background sm:text-5xl lg:text-6xl"
+                    >
+                        {settings.hero_title || name}
+                    </motion.h1>
+
+                    {settings.hero_subtitle && (
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+                            className="mt-6 max-w-lg text-base leading-relaxed text-background/70 lg:text-lg"
+                        >
+                            {settings.hero_subtitle}
+                        </motion.p>
+                    )}
+
+                    {events.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+                            className="mt-8"
+                        >
+                            <a
+                                href="#events"
+                                className="inline-flex items-center gap-2.5 rounded-full bg-background px-7 py-3 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+                            >
+                                {settings.cta_text || 'See Our Events'}
+                                <ArrowUpRight className="size-4" />
+                            </a>
+                        </motion.div>
+                    )}
+                </div>
+
+                {/* Stats Bar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
+                    className="mt-auto flex flex-wrap gap-12 pt-16 lg:gap-20"
+                >
+                    <StatItem value={`${events.length}+`} label="Upcoming Events" />
+                    <StatItem value="100+" label="Happy Attendees" />
+                    <StatItem value="96%" label="Satisfaction Rate" />
+                </motion.div>
+            </div>
+        </section>
+    );
+}
+
+function StatItem({ value, label }: { value: string; label: string }) {
+    return (
+        <div>
+            <p className="text-3xl font-bold text-background lg:text-4xl">{value}</p>
+            <p className="mt-1 text-sm text-background/60">{label}</p>
+        </div>
+    );
+}
+
+/* ─── About Section (Animated Text) ─── */
+function AboutSection({ settings }: { settings: LandingPageSetting }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { once: true, margin: '-100px' });
+    const aboutText = settings.business_description || `A community focused on creating meaningful experiences, supporting each individual through expert guidance and a welcoming, purposeful environment where every event becomes memorable.`;
+
+    const words = aboutText.split(' ');
+    const midPoint = Math.floor(words.length * 0.4);
+
+    return (
+        <section ref={ref} className="bg-background px-6 py-20 lg:px-12 lg:py-32">
+            <div className="mx-auto max-w-5xl text-center">
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={isInView ? { opacity: 1 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="mb-8 flex items-center justify-center gap-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                    <span className="h-px w-8 bg-border" />
+                    About {settings.business_name || 'Us'}
+                    <span className="h-px w-8 bg-border" />
+                </motion.p>
+
+                <p className="text-2xl font-medium leading-relaxed tracking-tight sm:text-3xl lg:text-4xl lg:leading-relaxed">
+                    {words.map((word, i) => (
+                        <motion.span
+                            key={i}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={isInView ? { opacity: 1, y: 0 } : {}}
+                            transition={{
+                                duration: 0.4,
+                                delay: i * 0.04,
+                                ease: 'easeOut',
+                            }}
+                            className={i >= midPoint ? 'text-muted-foreground' : 'text-foreground'}
+                        >
+                            {word}{' '}
+                        </motion.span>
+                    ))}
+                </p>
+            </div>
+        </section>
+    );
+}
+
+/* ─── Events Section ─── */
+function EventsSection({ events, settings }: { events: Event[]; settings: LandingPageSetting }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { once: true, margin: '-80px' });
+    const displayEvents = events.slice(0, 3);
+
+    return (
+        <section id="events" ref={ref} className="bg-secondary/30 px-6 py-16 lg:px-12 lg:py-24">
+            <div className="mx-auto max-w-6xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="mb-10 text-center"
+                >
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">
+                        Discover Our Upcoming Events
+                    </h2>
+                    <p className="mt-3 max-w-xl mx-auto text-base text-muted-foreground">
+                        {settings.hero_subtitle || 'Find and join our curated events designed to inspire and connect.'}
+                    </p>
+                </motion.div>
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {displayEvents.map((event, i) => (
+                        <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={isInView ? { opacity: 1, y: 0 } : {}}
+                            transition={{ duration: 0.5, delay: i * 0.1 }}
+                        >
+                            <EventCard event={event} />
+                        </motion.div>
+                    ))}
+                </div>
+
+                {events.length > 3 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={isInView ? { opacity: 1, y: 0 } : {}}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        className="mt-10 text-center"
+                    >
+                        <a
+                            href="#events"
+                            className="inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+                        >
+                            See All Events
+                            <ArrowUpRight className="size-4" />
+                        </a>
+                    </motion.div>
+                )}
+            </div>
+        </section>
+    );
+}
+
 function EventCard({ event }: { event: Event }) {
     const lowestPrice = getLowestPrice(event);
     const catalogCount = event.catalogs?.length || 0;
@@ -275,59 +478,218 @@ function EventCard({ event }: { event: Event }) {
     return (
         <Link
             href={showEvent.url({ event: event.id })}
-            className="group flex flex-col rounded-lg border bg-card p-5 transition-colors hover:border-foreground/20 hover:bg-accent/50"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:shadow-lg"
         >
-            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <Calendar className="size-3.5" />
-                <span>{formatDateRange(event.start_date, event.end_date)}</span>
-            </div>
+            {/* Gradient top band */}
+            <div className="h-32 bg-gradient-to-br from-primary/20 via-primary/10 to-accent/30" />
 
-            <h3 className="text-base font-semibold text-foreground group-hover:text-foreground/90">{event.name}</h3>
+            {/* Card body overlapping the gradient */}
+            <div className="relative -mt-6 flex flex-1 flex-col rounded-t-2xl bg-card p-5">
+                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="size-3.5" />
+                    <span>{formatDateRange(event.start_date, event.end_date)}</span>
+                </div>
 
-            {event.description && (
-                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{event.description}</p>
-            )}
+                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{event.name}</h3>
 
-            <div className="mt-auto flex items-center justify-between pt-4">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {catalogCount > 0 && (
-                        <span className="flex items-center gap-1">
-                            <Users className="size-3.5" />
-                            {catalogCount} {catalogCount === 1 ? 'session' : 'sessions'}
+                {event.description && (
+                    <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{event.description}</p>
+                )}
+
+                <div className="mt-auto flex items-center justify-between pt-5">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {catalogCount > 0 && (
+                            <span className="flex items-center gap-1">
+                                <Users className="size-3.5" />
+                                {catalogCount} {catalogCount === 1 ? 'session' : 'sessions'}
+                            </span>
+                        )}
+                    </div>
+
+                    {lowestPrice !== null && (
+                        <span className="text-sm font-bold text-foreground">
+                            {catalogCount > 1 ? `From ${formatPrice(lowestPrice)}` : formatPrice(lowestPrice)}
                         </span>
                     )}
                 </div>
-
-                {lowestPrice !== null && (
-                    <span className="text-sm font-semibold text-foreground">
-                        {catalogCount > 1 ? `From ${formatPrice(lowestPrice)}` : formatPrice(lowestPrice)}
-                    </span>
-                )}
             </div>
         </Link>
     );
 }
 
+/* ─── Instructors Section ─── */
+function InstructorsSection({ speakers }: { speakers: Speaker[] }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { once: true, margin: '-80px' });
+    const displaySpeakers = speakers.slice(0, 8);
+
+    return (
+        <section ref={ref} className="bg-secondary/30 px-6 py-16 lg:px-12 lg:py-24">
+            <div className="mx-auto max-w-6xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="mb-10 flex items-end justify-between"
+                >
+                    <div>
+                        <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            <span>&#10022;</span> Outstanding Instructors
+                        </p>
+                        <h2 className="text-3xl font-bold uppercase tracking-tight text-foreground lg:text-4xl">
+                            Meet Your Instructors
+                        </h2>
+                    </div>
+                </motion.div>
+
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {displaySpeakers.map((speaker, i) => (
+                        <motion.div
+                            key={speaker.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                            transition={{ duration: 0.4, delay: i * 0.05 }}
+                            className="group relative aspect-square overflow-hidden rounded-2xl bg-muted"
+                        >
+                            <img
+                                src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&sig=${speaker.id}`}
+                                alt={speaker.name}
+                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 flex flex-col justify-between bg-primary p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                <div>
+                                    <p className="text-xl font-bold uppercase text-primary-foreground lg:text-2xl">{speaker.name}</p>
+                                    {speaker.title && (
+                                        <p className="mt-2 text-sm text-primary-foreground/80">{speaker.title}</p>
+                                    )}
+                                </div>
+                                <a href="#events" className="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/90 transition-colors hover:text-primary-foreground">
+                                    Book a Session <ArrowRight className="size-4" />
+                                </a>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/* ─── Membership Section ─── */
+function MembershipSection({ plans }: { plans: SubscriptionPlan[] }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const isInView = useInView(ref, { once: true, margin: '-80px' });
+
+    function formatPeriod(plan: SubscriptionPlan) {
+        if (!plan.periodicity || !plan.periodicity_type) return '';
+        const type = plan.periodicity_type.replace(/s$/, '');
+        return plan.periodicity === 1 ? `/ ${type}` : `/ ${plan.periodicity} ${plan.periodicity_type}`;
+    }
+
+    return (
+        <section ref={ref} className="bg-background px-6 py-16 lg:px-12 lg:py-24">
+            <div className="mx-auto max-w-5xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="mb-12 text-center"
+                >
+                    <p className="mb-3 flex items-center justify-center gap-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        <span className="h-px w-8 bg-border" />
+                        Membership
+                        <span className="h-px w-8 bg-border" />
+                    </p>
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">
+                        Choose Your Plan
+                    </h2>
+                    <p className="mt-3 text-base text-muted-foreground">
+                        Join our community and unlock exclusive benefits
+                    </p>
+                </motion.div>
+
+                <div className={`grid gap-6 ${plans.length === 1 ? 'max-w-md mx-auto' : plans.length === 2 ? 'max-w-3xl mx-auto sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
+                    {plans.map((plan, i) => {
+                        const isPopular = i === 1 && plans.length > 1;
+
+                        return (
+                            <motion.div
+                                key={plan.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                                transition={{ duration: 0.5, delay: i * 0.1 }}
+                                className={`relative flex flex-col rounded-2xl border p-7 ${isPopular ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'bg-card'}`}
+                            >
+                                {isPopular && (
+                                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
+                                        Popular
+                                    </span>
+                                )}
+
+                                <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                                {plan.description && (
+                                    <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                                )}
+
+                                <div className="mt-5 flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold text-foreground">{formatPrice(plan.price)}</span>
+                                    <span className="text-sm text-muted-foreground">{formatPeriod(plan)}</span>
+                                </div>
+
+                                {plan.features && plan.features.length > 0 && (
+                                    <ul className="mt-6 space-y-3">
+                                        {plan.features.map((feature) => (
+                                            <li key={feature.id} className="flex items-start gap-2.5 text-sm text-foreground">
+                                                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                                                <span>
+                                                    {feature.pivot?.charges != null && feature.pivot.charges > 0
+                                                        ? `${feature.pivot.charges}x ${feature.name}`
+                                                        : feature.name}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                <div className="mt-auto pt-6">
+                                    <Link
+                                        href="/customer/subscription"
+                                        className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-medium transition-colors ${
+                                            isPopular
+                                                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                                : 'bg-foreground text-background hover:bg-foreground/90'
+                                        }`}
+                                    >
+                                        Get Started
+                                        <ArrowRight className="size-4" />
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/* ─── Testimonial Card ─── */
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
     return (
-        <div className="flex flex-col rounded-lg border bg-card p-5">
+        <div className="flex flex-col rounded-2xl border bg-card p-6">
             <div className="mb-3 flex items-center gap-0.5">
                 {Array.from({ length: 5 }, (_, i) => (
                     <Star
                         key={i}
-                        className={`size-3.5 ${i < testimonial.rating ? 'fill-foreground text-foreground' : 'text-muted-foreground/30'}`}
+                        className={`size-4 ${i < testimonial.rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'}`}
                     />
                 ))}
             </div>
             <p className="flex-1 text-sm leading-relaxed text-muted-foreground">"{testimonial.body}"</p>
-            <div className="mt-4 flex items-center gap-2.5">
-                {testimonial.customer?.avatar ? (
-                    <img src={testimonial.customer.avatar} alt={testimonial.customer.name} className="size-7 rounded-full" />
-                ) : (
-                    <div className="flex size-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                        {testimonial.customer?.name?.charAt(0).toUpperCase()}
-                    </div>
-                )}
+            <div className="mt-5 flex items-center gap-3">
+                <img src={`https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&sig=${testimonial.id}`} alt={testimonial.customer?.name} className="size-9 rounded-full" />
                 <div>
                     <p className="text-sm font-medium text-foreground">{testimonial.customer?.name}</p>
                     {testimonial.event && (
@@ -339,28 +701,30 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
     );
 }
 
+/* ─── FAQ ─── */
 function FaqItem({ faq }: { faq: Faq }) {
     const [open, setOpen] = React.useState(false);
 
     return (
-        <div className="py-4">
+        <div className="py-5">
             <button
                 type="button"
                 className="flex w-full items-center justify-between text-left"
                 onClick={() => setOpen(!open)}
             >
-                <span className="text-sm font-medium text-foreground">{faq.question}</span>
+                <span className="text-base font-medium text-foreground">{faq.question}</span>
                 <ChevronDown
-                    className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+                    className={`ml-4 size-5 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                 />
             </button>
             {open && (
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{faq.answer}</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{faq.answer}</p>
             )}
         </div>
     );
 }
 
+/* ─── Social Links ─── */
 function SocialLinks({ settings }: { settings: LandingPageSetting }) {
     const links = [
         { url: settings.social_instagram, label: 'Instagram' },
@@ -379,7 +743,7 @@ function SocialLinks({ settings }: { settings: LandingPageSetting }) {
                     href={link.url!}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-xs text-background/60 transition-colors hover:text-background"
                 >
                     {link.label}
                 </a>
