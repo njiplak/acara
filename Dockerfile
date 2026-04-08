@@ -1,12 +1,12 @@
 # ==============================================================================
 # Stage 1: Build frontend assets
 # ==============================================================================
-FROM node:22-alpine AS frontend
+FROM oven/bun:1-alpine AS frontend
 
 WORKDIR /app
 
 COPY package.json bun.lock* ./
-RUN npm install -g bun && bun install --frozen-lockfile
+RUN bun install --frozen-lockfile
 
 COPY resources/ resources/
 COPY vite.config.ts tsconfig.json tailwind.config.* postcss.config.* ./
