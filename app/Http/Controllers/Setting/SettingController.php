@@ -48,7 +48,7 @@ class SettingController extends Controller
     public function show($id)
     {
         $data = $this->service->find($id);
-        return Inertia::render('setting/setting/form', [
+        return Inertia::render('setting/setting/show', [
             "setting" => $data
         ]);
     }

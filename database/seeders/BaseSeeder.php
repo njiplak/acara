@@ -17,12 +17,12 @@ class BaseSeeder extends Seeder
         $this->call([
             SettingSeeder::class,
             LandingPageSettingSeeder::class,
-            MailTemplateSeeder::class,
+            // MailTemplateSeeder::class,
             PageSeeder::class,
-            VenueSeeder::class,
-            SpeakerSeeder::class,
-            AddonSeeder::class,
-            CatalogSeeder::class,
+            // VenueSeeder::class,
+            // SpeakerSeeder::class,
+            // AddonSeeder::class,
+            // CatalogSeeder::class,
         ]);
     }
 }

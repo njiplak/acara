@@ -4,7 +4,6 @@ import IndexPage from '@/components/index-page';
 import AppLayout from '@/layouts/app-layout';
 import { createDateColumn } from '@/lib/column-helpers';
 import {
-    create,
     destroy as destroyRoute,
     destroyBulk,
     fetch as fetchRoute,
@@ -36,16 +35,16 @@ const columns: ColumnDef<Setting, any>[] = [
     createDateColumn<Setting>('created_at'),
 ];
 
-const routes = { fetch: fetchRoute, destroy: destroyRoute, destroyBulk, show, create };
+const routes = { fetch: fetchRoute, destroy: destroyRoute, destroyBulk, show, create: show as any };
 
 export default function SettingIndex() {
     return (
         <IndexPage<Setting>
             title="Setting Management"
             description="Manage your application settings"
-            addLabel="Add Setting"
             columns={columns}
             routes={routes}
+            hideAdd
         />
     );
 }
