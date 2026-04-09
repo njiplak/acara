@@ -1,10 +1,11 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronDown, ClipboardList, Star, Users } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronDown, ClipboardList, CalendarX, Star, Users } from 'lucide-react';
 import * as React from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
 import { showAddons, showEvent } from '@/actions/App/Http/Controllers/HomeController';
+import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Article } from '@/types/article';
@@ -63,7 +64,7 @@ export default function Home({
     articles?: Article[];
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl } = usePage<SharedData>().props;
+    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
     const customer = auth.customer;
     const title = settings.meta_title || name;
     const description = settings.meta_description || '';
@@ -105,8 +106,22 @@ export default function Home({
                 <AboutSection settings={settings} />
 
                 {/* Events Section */}
-                {events.length > 0 && (
+                {events.length > 0 ? (
                     <EventsSection events={events} settings={settings} />
+                ) : (
+                    <section className="bg-secondary/30 px-6 py-16 lg:px-12 lg:py-24">
+                        <div className="mx-auto max-w-6xl">
+                            <div className="mb-10 text-center">
+                                <h2 className="text-3xl font-bold tracking-tight text-foreground lg:text-4xl">Upcoming Events</h2>
+                                <p className="mt-3 text-base text-muted-foreground">Stay tuned for our upcoming events</p>
+                            </div>
+                            <PublicEmptyState
+                                icon={CalendarX}
+                                title="No upcoming events"
+                                description="Check back soon for new events"
+                            />
+                        </div>
+                    </section>
                 )}
 
                 {/* Instructors Section */}
@@ -217,6 +232,15 @@ export default function Home({
                             <img src="https://placehold.co/84x28/ffffff/000000?text=LOGO" alt={name} className="h-7 w-auto object-contain brightness-0 invert" />
                             <span className="text-sm font-semibold">{name}</span>
                         </div>
+                        {footerPages.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                {footerPages.map((p) => (
+                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-background/60 transition-colors hover:text-background">
+                                        {p.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                         <p className="text-xs text-background/60">
                             {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
                         </p>

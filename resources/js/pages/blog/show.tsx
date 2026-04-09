@@ -1,7 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList, User } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, FileText, User } from 'lucide-react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as blogIndex, show } from '@/actions/App/Http/Controllers/BlogController';
+import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Article } from '@/types/article';
@@ -19,7 +20,7 @@ export default function BlogShow({
     logoUrl?: string | null;
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl } = usePage<SharedData>().props;
+    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
     const customer = auth.customer;
     const featuredImage = article.media?.[0]?.original_url;
     const publishedDate = article.published_at
@@ -152,48 +153,63 @@ export default function BlogShow({
                 </article>
 
                 {/* Related Articles */}
-                {related.length > 0 && (
-                    <>
-                        <div className="mx-6 h-px bg-border lg:mx-12" />
-                        <section className="px-6 py-12 lg:px-12 lg:py-16">
-                            <h2 className="mb-6 text-lg font-semibold tracking-tight text-foreground">More Articles</h2>
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {related.map((r) => {
-                                    const img = r.media?.[0]?.original_url;
-                                    const date = r.published_at
-                                        ? new Date(r.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-                                        : null;
+                <div className="mx-6 h-px bg-border lg:mx-12" />
+                <section className="px-6 py-12 lg:px-12 lg:py-16">
+                    <h2 className="mb-6 text-lg font-semibold tracking-tight text-foreground">More Articles</h2>
+                    {related.length > 0 ? (
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {related.map((r) => {
+                                const img = r.media?.[0]?.original_url;
+                                const date = r.published_at
+                                    ? new Date(r.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                                    : null;
 
-                                    return (
-                                        <Link
-                                            key={r.id}
-                                            href={show.url({ article: r.slug })}
-                                            className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-foreground/20 hover:bg-accent/50"
-                                        >
-                                            {img && (
-                                                <div className="aspect-video overflow-hidden">
-                                                    <img src={img} alt={r.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                                                </div>
-                                            )}
-                                            <div className="p-4">
-                                                {date && (
-                                                    <p className="mb-1 text-xs text-muted-foreground">{date}</p>
-                                                )}
-                                                <h3 className="text-sm font-semibold text-foreground">{r.title}</h3>
+                                return (
+                                    <Link
+                                        key={r.id}
+                                        href={show.url({ article: r.slug })}
+                                        className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-foreground/20 hover:bg-accent/50"
+                                    >
+                                        {img && (
+                                            <div className="aspect-video overflow-hidden">
+                                                <img src={img} alt={r.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                                             </div>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </section>
-                    </>
-                )}
+                                        )}
+                                        <div className="p-4">
+                                            {date && (
+                                                <p className="mb-1 text-xs text-muted-foreground">{date}</p>
+                                            )}
+                                            <h3 className="text-sm font-semibold text-foreground">{r.title}</h3>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <PublicEmptyState
+                            icon={FileText}
+                            title="No related articles"
+                            description="Check back soon for more content"
+                        />
+                    )}
+                </section>
 
                 {/* Footer */}
                 <footer className="border-t px-6 py-6 lg:px-12">
-                    <p className="text-center text-xs text-muted-foreground">
-                        {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                    </p>
+                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                        <p className="text-xs text-muted-foreground">
+                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
+                        </p>
+                        {footerPages.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                {footerPages.map((p) => (
+                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+                                        {p.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </footer>
             </div>
         </>

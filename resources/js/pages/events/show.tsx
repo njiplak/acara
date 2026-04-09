@@ -1,8 +1,9 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, ClipboardList, Clock, Copy, Link2, LoaderCircle, MapPin, Share2, Star, Tag, Ticket, Timer, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, ClipboardList, Clock, Copy, Link2, LoaderCircle, MapPin, Share2, Star, Tag, Ticket, TicketX, Timer, Users, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { store, validateVoucher, joinWaitlist, leaveWaitlist } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
@@ -49,7 +50,7 @@ type Props = {
 export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerWaitlistCatalogIds = [], waitlistCounts = {}, customerBalance, referralDiscount, testimonials = [], prefillReferralCode = '' }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
-    const { auth } = usePage<SharedData>().props;
+    const { auth, footerPages } = usePage<SharedData>().props;
     const customer = auth.customer;
 
     return (
@@ -197,7 +198,11 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                             </h2>
 
                             {catalogs.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No sessions available for this event.</p>
+                                <PublicEmptyState
+                                    icon={TicketX}
+                                    title="No sessions available"
+                                    description="There are no sessions available for this event yet"
+                                />
                             ) : (
                                 <div className="space-y-4">
                                     {catalogs.map((catalog) => {
@@ -288,6 +293,15 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                         <p className="text-xs text-muted-foreground">
                             {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
                         </p>
+                        {footerPages.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                {footerPages.map((p) => (
+                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+                                        {p.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                         <SocialLinks settings={settings} />
                     </div>
                 </footer>

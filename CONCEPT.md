@@ -16,10 +16,7 @@ any idea, regarding this concept? think dont code
 
 feedback : 
 
-- empty state on public page, simple ui component
 - certificate template should having the dedicated settings page rather than on landing page, also for the payment instruction, i think we can had like operational settings one
-- the page setting looks like still dont have a page, routes, need to be implemented
-- phone number on customer portal use shadcn input phone number
 - purchase standalone add-ons still error
 
 error backoffice : 

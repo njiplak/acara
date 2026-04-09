@@ -1,7 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Calendar, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Calendar, ClipboardList, FileText } from 'lucide-react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { show } from '@/actions/App/Http/Controllers/BlogController';
+import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Article } from '@/types/article';
@@ -25,7 +26,7 @@ export default function BlogIndex({
     logoUrl?: string | null;
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl } = usePage<SharedData>().props;
+    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
     const customer = auth.customer;
     const description = `Latest articles and updates from ${name}`;
     const canonicalUrl = articles.current_page > 1
@@ -103,10 +104,11 @@ export default function BlogIndex({
                 {/* Articles Grid */}
                 <section className="flex-1 px-6 py-12 lg:px-12 lg:py-16">
                     {articles.data.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-                            <p className="text-sm font-medium text-muted-foreground">No articles yet</p>
-                            <p className="mt-1 text-xs text-muted-foreground/70">Check back soon for new content</p>
-                        </div>
+                        <PublicEmptyState
+                            icon={FileText}
+                            title="No articles yet"
+                            description="Check back soon for new content"
+                        />
                     ) : (
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {articles.data.map((article) => (
@@ -137,9 +139,20 @@ export default function BlogIndex({
 
                 {/* Footer */}
                 <footer className="border-t px-6 py-6 lg:px-12">
-                    <p className="text-center text-xs text-muted-foreground">
-                        {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                    </p>
+                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                        <p className="text-xs text-muted-foreground">
+                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
+                        </p>
+                        {footerPages.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                {footerPages.map((p) => (
+                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+                                        {p.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </footer>
             </div>
         </>

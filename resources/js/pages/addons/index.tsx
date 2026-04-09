@@ -3,6 +3,7 @@ import { ArrowLeft, Check, ClipboardList, LoaderCircle, Package, Wallet } from '
 import { useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { storeAddon } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
@@ -21,7 +22,7 @@ type Props = {
 
 export default function AddonsIndex({ settings, logoUrl, addons, customerBalance }: Props) {
     const name = settings.business_name || 'Acara';
-    const { auth } = usePage<SharedData>().props;
+    const { auth, footerPages } = usePage<SharedData>().props;
     const customer = auth.customer;
 
     const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
@@ -114,11 +115,11 @@ export default function AddonsIndex({ settings, logoUrl, addons, customerBalance
                         </div>
 
                         {addons.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-                                <Package className="mb-3 size-8 text-muted-foreground/50" />
-                                <p className="text-sm font-medium text-muted-foreground">No add-ons available</p>
-                                <p className="mt-1 text-xs text-muted-foreground/70">Check back soon for new items</p>
-                            </div>
+                            <PublicEmptyState
+                                icon={Package}
+                                title="No add-ons available"
+                                description="Check back soon for new items"
+                            />
                         ) : (
                             <div className="space-y-3">
                                 {addons.map((addon) => {
@@ -253,6 +254,15 @@ export default function AddonsIndex({ settings, logoUrl, addons, customerBalance
                         <p className="text-xs text-muted-foreground">
                             {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
                         </p>
+                        {footerPages.length > 0 && (
+                            <div className="flex items-center gap-4">
+                                {footerPages.map((p) => (
+                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+                                        {p.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                         <SocialLinks settings={settings} />
                     </div>
                 </footer>
