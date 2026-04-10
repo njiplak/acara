@@ -1,9 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
 import { LoaderCircle, Plus, X } from 'lucide-react';
-import { EditorContent, EditorRoot, useEditor } from 'novel';
 import { useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
+import TiptapEditor from '@/components/tiptap-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,6 @@ function slugify(text: string): string {
 
 export default function MailTemplateForm({ mail_template }: Props) {
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!mail_template);
-    const [htmlLoaded, setHtmlLoaded] = useState(false);
     const [newVariable, setNewVariable] = useState('');
 
     const { data, setData, post, put, errors, processing } = useForm({
@@ -196,23 +195,11 @@ export default function MailTemplateForm({ mail_template }: Props) {
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Body</Label>
-                    <div className="min-h-64 rounded-md border border-input">
-                        <EditorRoot>
-                            <EditorContent
-                                onUpdate={({ editor }) => {
-                                    setData('body', editor.getHTML());
-                                }}
-                                onCreate={({ editor }) => {
-                                    if (mail_template?.body && !htmlLoaded) {
-                                        editor.commands.setContent(mail_template.body);
-                                        setHtmlLoaded(true);
-                                    }
-                                }}
-                                className="prose dark:prose-invert max-w-none p-4 focus:outline-none [&_.tiptap]:min-h-48 [&_.tiptap]:focus:outline-none"
-                                immediatelyRender={false}
-                            />
-                        </EditorRoot>
-                    </div>
+                    <TiptapEditor
+                        content={data.body}
+                        onChange={(html) => setData('body', html)}
+                        placeholder="Start writing..."
+                    />
                     <InputError message={errors?.body} />
                 </div>
 

@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import type { LucideIcon } from 'lucide-react';
 import {
     Calendar,
     CalendarDays,
@@ -23,11 +24,11 @@ import {
     MessageSquare,
     ScanLine,
     Settings,
-    Shield,
     Tag,
     UserCog,
     UserRound,
     Users,
+    UsersRound,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -60,6 +61,68 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { logout } from '@/routes';
 import backoffice from '@/routes/backoffice';
 import type { SharedData, AppLayoutProps } from '@/types';
+
+type MenuItem = {
+    label: string;
+    icon: LucideIcon;
+    href: string;
+    permission: string;
+    exact?: boolean;
+};
+
+type MenuGroup = {
+    label: string;
+    items: MenuItem[];
+};
+
+const menuConfig: MenuGroup[] = [
+    {
+        label: 'Menu',
+        items: [
+            { label: 'Dashboard', icon: LayoutDashboard, href: backoffice.index.url(), permission: 'dashboard.view', exact: true },
+            { label: 'Calendar', icon: CalendarDays, href: backoffice.calendar.url(), permission: 'calendar.view' },
+        ],
+    },
+    {
+        label: 'Master',
+        items: [
+            { label: 'Event', icon: Calendar, href: backoffice.master.event.index.url(), permission: 'event.view' },
+            { label: 'Catalog', icon: Package, href: backoffice.master.catalog.index.url(), permission: 'catalog.view' },
+            { label: 'Addon', icon: Puzzle, href: backoffice.master.addon.index.url(), permission: 'addon.view' },
+            { label: 'Speaker', icon: UserRound, href: backoffice.master.speaker.index.url(), permission: 'speaker.view' },
+            { label: 'Venue', icon: MapPin, href: backoffice.master.venue.index.url(), permission: 'venue.view' },
+            { label: 'Voucher', icon: Tag, href: backoffice.master.voucher.index.url(), permission: 'voucher.view' },
+            { label: 'Templates', icon: Copy, href: backoffice.master.eventTemplate.index.url(), permission: 'event_template.view' },
+            { label: 'Article', icon: Newspaper, href: backoffice.master.article.index.url(), permission: 'article.view' },
+            { label: 'FAQ', icon: CircleHelp, href: backoffice.master.faq.index.url(), permission: 'faq.view' },
+            { label: 'Subscription Plans', icon: Crown, href: backoffice.master.subscriptionPlan.index.url(), permission: 'subscription_plan.view' },
+            { label: 'Sub. Features', icon: Gem, href: backoffice.master.subscriptionFeature.index.url(), permission: 'subscription_feature.view' },
+        ],
+    },
+    {
+        label: 'Operational',
+        items: [
+            { label: 'Order', icon: ClipboardList, href: backoffice.operational.order.index.url(), permission: 'order.view' },
+            { label: 'Customer', icon: Users, href: backoffice.operational.customer.index.url(), permission: 'customer.view' },
+            { label: 'Check In', icon: ScanLine, href: backoffice.operational.checkIn.scanner.url(), permission: 'check_in.view' },
+            { label: 'Testimonial', icon: MessageSquare, href: backoffice.operational.testimonial.index.url(), permission: 'testimonial.view' },
+            { label: 'Survey', icon: ClipboardCheck, href: backoffice.operational.survey.index.url(), permission: 'survey.view' },
+            { label: 'Sub. Orders', icon: CreditCard, href: backoffice.operational.subscriptionOrder.index.url(), permission: 'subscription_order.view' },
+            { label: 'Campaign', icon: Megaphone, href: backoffice.operational.campaign.index.url(), permission: 'campaign.view' },
+            { label: 'Announcement', icon: Mail, href: backoffice.operational.announcement.index.url(), permission: 'announcement.view' },
+        ],
+    },
+    {
+        label: 'Setting',
+        items: [
+            { label: 'Landing Page', icon: Globe, href: backoffice.setting.landingPage.edit.url(), permission: 'landing_page.view' },
+            { label: 'Settings', icon: Settings, href: backoffice.setting.setting.index.url(), permission: 'setting.view' },
+            { label: 'User', icon: UsersRound, href: backoffice.setting.user.index.url(), permission: 'user.view' },
+            { label: 'Role', icon: UserCog, href: backoffice.setting.role.index.url(), permission: 'role.view' },
+            { label: 'Pages', icon: FileText, href: backoffice.setting.page.index.url(), permission: 'page.view' },
+        ],
+    },
+];
 
 function getInitials(name: string) {
     return name
@@ -149,11 +212,22 @@ function SidebarUser() {
 export default function AppLayout({ children }: AppLayoutProps) {
     const page = usePage<SharedData>();
     const { sidebarOpen: isOpen } = page.props;
+    const permissions = page.props.auth.permissions;
     const currentUrl = page.url;
 
-    function isMenuActive(href: string) {
-        return currentUrl === href || currentUrl.startsWith(href + '/');
+    function isMenuActive(item: MenuItem) {
+        if (item.exact) {
+            return currentUrl === item.href;
+        }
+        return currentUrl === item.href || currentUrl.startsWith(item.href + '/');
     }
+
+    const visibleGroups = menuConfig
+        .map((group) => ({
+            ...group,
+            items: group.items.filter((item) => permissions.includes(item.permission)),
+        }))
+        .filter((group) => group.items.length > 0);
 
     return (
         <SidebarProvider defaultOpen={isOpen}>
@@ -170,242 +244,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     </SidebarMenu>
                 </SidebarHeader>
                 <SidebarContent>
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Menu</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.index.url())}>
-                                        <Link href={backoffice.index.url()}>
-                                            <LayoutDashboard />
-                                            <span>Dashboard</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.calendar.url())}>
-                                        <Link href={backoffice.calendar.url()}>
-                                            <CalendarDays />
-                                            <span>Calendar</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Master</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.event.index.url())}>
-                                        <Link href={backoffice.master.event.index.url()}>
-                                            <Calendar />
-                                            <span>Event</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.catalog.index.url())}>
-                                        <Link href={backoffice.master.catalog.index.url()}>
-                                            <Package />
-                                            <span>Catalog</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.addon.index.url())}>
-                                        <Link href={backoffice.master.addon.index.url()}>
-                                            <Puzzle />
-                                            <span>Addon</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.speaker.index.url())}>
-                                        <Link href={backoffice.master.speaker.index.url()}>
-                                            <UserRound />
-                                            <span>Speaker</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.venue.index.url())}>
-                                        <Link href={backoffice.master.venue.index.url()}>
-                                            <MapPin />
-                                            <span>Venue</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.voucher.index.url())}>
-                                        <Link href={backoffice.master.voucher.index.url()}>
-                                            <Tag />
-                                            <span>Voucher</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.eventTemplate.index.url())}>
-                                        <Link href={backoffice.master.eventTemplate.index.url()}>
-                                            <Copy />
-                                            <span>Templates</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.article.index.url())}>
-                                        <Link href={backoffice.master.article.index.url()}>
-                                            <Newspaper />
-                                            <span>Article</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.faq.index.url())}>
-                                        <Link href={backoffice.master.faq.index.url()}>
-                                            <CircleHelp />
-                                            <span>FAQ</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.subscriptionPlan.index.url())}>
-                                        <Link href={backoffice.master.subscriptionPlan.index.url()}>
-                                            <Crown />
-                                            <span>Subscription Plans</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.master.subscriptionFeature.index.url())}>
-                                        <Link href={backoffice.master.subscriptionFeature.index.url()}>
-                                            <Gem />
-                                            <span>Sub. Features</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Operational</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.order.index.url())}>
-                                        <Link href={backoffice.operational.order.index.url()}>
-                                            <ClipboardList />
-                                            <span>Order</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.customer.index.url())}>
-                                        <Link href={backoffice.operational.customer.index.url()}>
-                                            <Users />
-                                            <span>Customer</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.checkIn.scanner.url())}>
-                                        <Link href={backoffice.operational.checkIn.scanner.url()}>
-                                            <ScanLine />
-                                            <span>Check In</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.testimonial.index.url())}>
-                                        <Link href={backoffice.operational.testimonial.index.url()}>
-                                            <MessageSquare />
-                                            <span>Testimonial</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.survey.index.url())}>
-                                        <Link href={backoffice.operational.survey.index.url()}>
-                                            <ClipboardCheck />
-                                            <span>Survey</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.subscriptionOrder.index.url())}>
-                                        <Link href={backoffice.operational.subscriptionOrder.index.url()}>
-                                            <CreditCard />
-                                            <span>Sub. Orders</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.campaign.index.url())}>
-                                        <Link href={backoffice.operational.campaign.index.url()}>
-                                            <Megaphone />
-                                            <span>Campaign</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.operational.announcement.index.url())}>
-                                        <Link href={backoffice.operational.announcement.index.url()}>
-                                            <Mail />
-                                            <span>Announcement</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Setting</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.landingPage.edit.url())}>
-                                        <Link href={backoffice.setting.landingPage.edit.url()}>
-                                            <Globe />
-                                            <span>Landing Page</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.setting.index.url())}>
-                                        <Link href={backoffice.setting.setting.index.url()}>
-                                            <Settings />
-                                            <span>Settings</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.role.index.url())}>
-                                        <Link href={backoffice.setting.role.index.url()}>
-                                            <UserCog />
-                                            <span>Role</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.permission.index.url())}>
-                                        <Link href={backoffice.setting.permission.index.url()}>
-                                            <Shield />
-                                            <span>Permission</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={isMenuActive(backoffice.setting.page.index.url())}>
-                                        <Link href={backoffice.setting.page.index.url()}>
-                                            <FileText />
-                                            <span>Pages</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
+                    {visibleGroups.map((group) => (
+                        <SidebarGroup key={group.label}>
+                            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                            <SidebarGroupContent>
+                                <SidebarMenu>
+                                    {group.items.map((item) => (
+                                        <SidebarMenuItem key={item.href}>
+                                            <SidebarMenuButton asChild isActive={isMenuActive(item)}>
+                                                <Link href={item.href}>
+                                                    <item.icon />
+                                                    <span>{item.label}</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    ))}
+                                </SidebarMenu>
+                            </SidebarGroupContent>
+                        </SidebarGroup>
+                    ))}
                 </SidebarContent>
                 <SidebarFooter>
                     <SidebarUser />

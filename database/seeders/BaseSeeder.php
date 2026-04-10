@@ -9,16 +9,21 @@ class BaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
+        $this->call(PermissionSeeder::class);
+
+        $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
+        $user->assignRole('super-admin');
+
         $this->call([
             SettingSeeder::class,
             LandingPageSettingSeeder::class,
-            // MailTemplateSeeder::class,
             PageSeeder::class,
+            PermissionSeeder::class,
+            // MailTemplateSeeder::class,
             // VenueSeeder::class,
             // SpeakerSeeder::class,
             // AddonSeeder::class,

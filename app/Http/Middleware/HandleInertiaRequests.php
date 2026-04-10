@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'customer' => $request->user('customer'),
+                'permissions' => $request->user()?->getAllPermissions()->pluck('name')->toArray() ?? [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'footerPages' => fn () => Page::where('status', 'published')

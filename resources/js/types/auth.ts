@@ -25,6 +25,7 @@ export type AuthCustomer = {
 export type Auth = {
     user: User;
     customer: AuthCustomer | null;
+    permissions: string[];
 };
 
 export type TwoFactorSetupData = {

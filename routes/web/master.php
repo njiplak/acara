@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.master.'], function () {
 
-    Route::group(['prefix' => 'article', 'as' => 'article.'], function () {
+    Route::group(['prefix' => 'article', 'as' => 'article.', 'middleware' => 'permission:article.view'], function () {
         Route::get('/', [ArticleController::class, 'index'])->name('index');
         Route::get('/fetch', [ArticleController::class, 'fetch'])->name('fetch');
         Route::get('/create', [ArticleController::class, 'create'])->name('create');
@@ -27,7 +27,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [ArticleController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'addon', 'as' => 'addon.'], function () {
+    Route::group(['prefix' => 'addon', 'as' => 'addon.', 'middleware' => 'permission:addon.view'], function () {
         Route::get('/', [AddonController::class, 'index'])->name('index');
         Route::get('/fetch', [AddonController::class, 'fetch'])->name('fetch');
         Route::get('/create', [AddonController::class, 'create'])->name('create');
@@ -38,7 +38,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [AddonController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'catalog', 'as' => 'catalog.'], function () {
+    Route::group(['prefix' => 'catalog', 'as' => 'catalog.', 'middleware' => 'permission:catalog.view'], function () {
         Route::get('/', [CatalogController::class, 'index'])->name('index');
         Route::get('/fetch', [CatalogController::class, 'fetch'])->name('fetch');
         Route::get('/create', [CatalogController::class, 'create'])->name('create');
@@ -49,7 +49,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [CatalogController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'speaker', 'as' => 'speaker.'], function () {
+    Route::group(['prefix' => 'speaker', 'as' => 'speaker.', 'middleware' => 'permission:speaker.view'], function () {
         Route::get('/', [SpeakerController::class, 'index'])->name('index');
         Route::get('/fetch', [SpeakerController::class, 'fetch'])->name('fetch');
         Route::get('/create', [SpeakerController::class, 'create'])->name('create');
@@ -60,7 +60,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [SpeakerController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'venue', 'as' => 'venue.'], function () {
+    Route::group(['prefix' => 'venue', 'as' => 'venue.', 'middleware' => 'permission:venue.view'], function () {
         Route::get('/', [VenueController::class, 'index'])->name('index');
         Route::get('/fetch', [VenueController::class, 'fetch'])->name('fetch');
         Route::get('/create', [VenueController::class, 'create'])->name('create');
@@ -71,7 +71,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [VenueController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'voucher', 'as' => 'voucher.'], function () {
+    Route::group(['prefix' => 'voucher', 'as' => 'voucher.', 'middleware' => 'permission:voucher.view'], function () {
         Route::get('/', [VoucherController::class, 'index'])->name('index');
         Route::get('/fetch', [VoucherController::class, 'fetch'])->name('fetch');
         Route::get('/create', [VoucherController::class, 'create'])->name('create');
@@ -82,7 +82,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [VoucherController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'event-template', 'as' => 'event-template.'], function () {
+    Route::group(['prefix' => 'event-template', 'as' => 'event-template.', 'middleware' => 'permission:event_template.view'], function () {
         Route::get('/', [EventTemplateController::class, 'index'])->name('index');
         Route::get('/fetch', [EventTemplateController::class, 'fetch'])->name('fetch');
         Route::get('/create', [EventTemplateController::class, 'create'])->name('create');
@@ -95,7 +95,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [EventTemplateController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'faq', 'as' => 'faq.'], function () {
+    Route::group(['prefix' => 'faq', 'as' => 'faq.', 'middleware' => 'permission:faq.view'], function () {
         Route::get('/', [FaqController::class, 'index'])->name('index');
         Route::get('/fetch', [FaqController::class, 'fetch'])->name('fetch');
         Route::get('/create', [FaqController::class, 'create'])->name('create');
@@ -106,7 +106,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [FaqController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'subscription-plan', 'as' => 'subscription-plan.'], function () {
+    Route::group(['prefix' => 'subscription-plan', 'as' => 'subscription-plan.', 'middleware' => 'permission:subscription_plan.view'], function () {
         Route::get('/', [SubscriptionPlanController::class, 'index'])->name('index');
         Route::get('/fetch', [SubscriptionPlanController::class, 'fetch'])->name('fetch');
         Route::get('/create', [SubscriptionPlanController::class, 'create'])->name('create');
@@ -117,7 +117,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [SubscriptionPlanController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'subscription-feature', 'as' => 'subscription-feature.'], function () {
+    Route::group(['prefix' => 'subscription-feature', 'as' => 'subscription-feature.', 'middleware' => 'permission:subscription_feature.view'], function () {
         Route::get('/', [SubscriptionFeatureController::class, 'index'])->name('index');
         Route::get('/fetch', [SubscriptionFeatureController::class, 'fetch'])->name('fetch');
         Route::get('/create', [SubscriptionFeatureController::class, 'create'])->name('create');
@@ -128,7 +128,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'master', 'as' => 'backoffice.
         Route::post('/destroy-bulk', [SubscriptionFeatureController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'event', 'as' => 'event.'], function () {
+    Route::group(['prefix' => 'event', 'as' => 'event.', 'middleware' => 'permission:event.view'], function () {
         Route::get('/', [EventController::class, 'index'])->name('index');
         Route::get('/fetch', [EventController::class, 'fetch'])->name('fetch');
         Route::get('/create', [EventController::class, 'create'])->name('create');

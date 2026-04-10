@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { completeStore } from '@/actions/App/Http/Controllers/Customer/ProfileController';
+import { PhoneInput } from '@/components/phone-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -89,12 +90,10 @@ export default function CompleteProfile({ logoUrl }: Props) {
 
                                 <div className="flex flex-col gap-1.5">
                                     <Label htmlFor="phone">Phone Number</Label>
-                                    <Input
-                                        id="phone"
-                                        type="tel"
-                                        placeholder="08xxxxxxxxxx"
+                                    <PhoneInput
+                                        defaultCountry="ID"
                                         value={data.phone}
-                                        onChange={(e) => setData('phone', e.target.value)}
+                                        onChange={(value) => setData('phone', value)}
                                     />
                                     {errors.phone && (
                                         <p className="text-xs text-destructive">{errors.phone}</p>

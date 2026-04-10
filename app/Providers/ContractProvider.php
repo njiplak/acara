@@ -23,8 +23,8 @@ use App\Contract\Operational\OrderContract;
 use App\Contract\Operational\CampaignContract;
 use App\Contract\Operational\SurveyContract;
 use App\Contract\Operational\TestimonialContract;
-use App\Contract\Setting\PermissionContract;
 use App\Contract\Setting\RoleContract;
+use App\Contract\Setting\UserContract;
 use App\Contract\Setting\PageContract;
 use App\Contract\Setting\MailTemplateContract;
 use App\Contract\Setting\SettingContract;
@@ -50,8 +50,8 @@ use App\Service\Operational\CampaignService;
 use App\Service\Operational\SurveyService;
 use App\Service\Operational\TestimonialService;
 use App\Service\Setting\PageService;
-use App\Service\Setting\PermissionService;
 use App\Service\Setting\RoleService;
+use App\Service\Setting\UserService;
 use App\Service\Setting\MailTemplateService;
 use App\Service\Setting\SettingService;
 use App\Service\Payment\PaymentGatewayManager;
@@ -91,7 +91,7 @@ class ContractProvider extends ServiceProvider
         MailTemplateContract::class => MailTemplateService::class,
         SettingContract::class => SettingService::class,
         RoleContract::class => RoleService::class,
-        PermissionContract::class => PermissionService::class,
+        UserContract::class => UserService::class,
         PageContract::class => PageService::class,
     ];
 

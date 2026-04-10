@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backoffice.operational.'], function () {
 
-    Route::group(['prefix' => 'customer', 'as' => 'customer.'], function () {
+    Route::group(['prefix' => 'customer', 'as' => 'customer.', 'middleware' => 'permission:customer.view'], function () {
         Route::get('/', [CustomerController::class, 'index'])->name('index');
         Route::get('/fetch', [CustomerController::class, 'fetch'])->name('fetch');
         Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
@@ -20,7 +20,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/{id}/birthday-voucher', [CustomerController::class, 'generateBirthdayVoucher'])->name('birthday-voucher');
     });
 
-    Route::group(['prefix' => 'order', 'as' => 'order.'], function () {
+    Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => 'permission:order.view'], function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/fetch', [OrderController::class, 'fetch'])->name('fetch');
         Route::get('/export', [OrderController::class, 'export'])->name('export');
@@ -35,7 +35,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/{id}/undo-session-check-in', [OrderController::class, 'undoSessionCheckIn'])->name('undo-session-check-in');
     });
 
-    Route::group(['prefix' => 'subscription-order', 'as' => 'subscription-order.'], function () {
+    Route::group(['prefix' => 'subscription-order', 'as' => 'subscription-order.', 'middleware' => 'permission:subscription_order.view'], function () {
         Route::get('/', [SubscriptionOrderController::class, 'index'])->name('index');
         Route::get('/fetch', [SubscriptionOrderController::class, 'fetch'])->name('fetch');
         Route::get('/{id}', [SubscriptionOrderController::class, 'show'])->name('show');
@@ -43,18 +43,18 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/{id}/reject', [SubscriptionOrderController::class, 'reject'])->name('reject');
     });
 
-    Route::group(['prefix' => 'check-in', 'as' => 'check-in.'], function () {
+    Route::group(['prefix' => 'check-in', 'as' => 'check-in.', 'middleware' => 'permission:check_in.view'], function () {
         Route::get('/', [OrderController::class, 'scannerPage'])->name('scanner');
         Route::post('/scan', [OrderController::class, 'scanCheckIn'])->name('scan');
     });
 
-    Route::group(['prefix' => 'testimonial', 'as' => 'testimonial.'], function () {
+    Route::group(['prefix' => 'testimonial', 'as' => 'testimonial.', 'middleware' => 'permission:testimonial.view'], function () {
         Route::get('/', [TestimonialController::class, 'index'])->name('index');
         Route::get('/fetch', [TestimonialController::class, 'fetch'])->name('fetch');
         Route::post('/{id}/toggle-highlight', [TestimonialController::class, 'toggleHighlight'])->name('toggle-highlight');
     });
 
-    Route::group(['prefix' => 'survey', 'as' => 'survey.'], function () {
+    Route::group(['prefix' => 'survey', 'as' => 'survey.', 'middleware' => 'permission:survey.view'], function () {
         Route::get('/', [SurveyController::class, 'index'])->name('index');
         Route::get('/fetch', [SurveyController::class, 'fetch'])->name('fetch');
         Route::get('/create', [SurveyController::class, 'create'])->name('create');
@@ -66,7 +66,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/destroy-bulk', [SurveyController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'campaign', 'as' => 'campaign.'], function () {
+    Route::group(['prefix' => 'campaign', 'as' => 'campaign.', 'middleware' => 'permission:campaign.view'], function () {
         Route::get('/', [CampaignController::class, 'index'])->name('index');
         Route::get('/fetch', [CampaignController::class, 'fetch'])->name('fetch');
         Route::get('/create', [CampaignController::class, 'create'])->name('create');
@@ -78,7 +78,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'operational', 'as' => 'backof
         Route::post('/destroy-bulk', [CampaignController::class, 'destroy_bulk'])->name('destroy-bulk');
     });
 
-    Route::group(['prefix' => 'announcement', 'as' => 'announcement.'], function () {
+    Route::group(['prefix' => 'announcement', 'as' => 'announcement.', 'middleware' => 'permission:announcement.view'], function () {
         Route::get('/', [AnnouncementController::class, 'index'])->name('index');
         Route::get('/fetch', [AnnouncementController::class, 'fetch'])->name('fetch');
         Route::get('/create', [AnnouncementController::class, 'create'])->name('create');

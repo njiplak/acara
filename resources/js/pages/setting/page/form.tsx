@@ -1,13 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import {
-    EditorContent,
-    EditorRoot,
-    useEditor,
-} from 'novel';
 import { useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
+import TiptapEditor from '@/components/tiptap-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,24 +33,8 @@ function slugify(text: string): string {
         .replace(/^-+|-+$/g, '');
 }
 
-function EditorSyncer({ setContent }: { setContent: (html: string) => void }) {
-    const { editor } = useEditor();
-
-    useEffect(() => {
-        if (!editor) return;
-        const handler = () => setContent(editor.getHTML());
-        editor.on('update', handler);
-        return () => {
-            editor.off('update', handler);
-        };
-    }, [editor, setContent]);
-
-    return null;
-}
-
 export default function PageForm({ page_data }: Props) {
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!page_data);
-    const [htmlLoaded, setHtmlLoaded] = useState(false);
 
     const { data, setData, post, put, errors, processing } = useForm({
         title: page_data?.title ?? '',
@@ -148,23 +128,11 @@ export default function PageForm({ page_data }: Props) {
 
                 <div className="flex flex-col gap-1.5">
                     <Label>Content</Label>
-                    <div className="min-h-64 rounded-md border border-input">
-                        <EditorRoot>
-                            <EditorContent
-                                onUpdate={({ editor }) => {
-                                    setData('content', editor.getHTML());
-                                }}
-                                onCreate={({ editor }) => {
-                                    if (page_data?.content && !htmlLoaded) {
-                                        editor.commands.setContent(page_data.content);
-                                        setHtmlLoaded(true);
-                                    }
-                                }}
-                                className="prose dark:prose-invert max-w-none p-4 focus:outline-none [&_.tiptap]:min-h-48 [&_.tiptap]:focus:outline-none"
-                                immediatelyRender={false}
-                            />
-                        </EditorRoot>
-                    </div>
+                    <TiptapEditor
+                        content={data.content}
+                        onChange={(html) => setData('content', html)}
+                        placeholder="Start writing..."
+                    />
                     <InputError message={errors?.content} />
                 </div>
 

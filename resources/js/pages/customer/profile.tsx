@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { logout } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as ordersIndex } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { update as updateProfile } from '@/actions/App/Http/Controllers/Customer/ProfileController';
+import { PhoneInput } from '@/components/phone-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,10 +136,10 @@ export default function CustomerProfile({ stats, logoUrl }: Props) {
                                             </div>
                                             <div className="flex flex-col gap-1.5">
                                                 <Label>Phone</Label>
-                                                <Input
-                                                    type="tel"
+                                                <PhoneInput
+                                                    defaultCountry="ID"
                                                     value={data.phone}
-                                                    onChange={(e) => setData('phone', e.target.value)}
+                                                    onChange={(value) => setData('phone', value)}
                                                 />
                                                 {errors.phone && (
                                                     <p className="text-xs text-destructive">{errors.phone}</p>

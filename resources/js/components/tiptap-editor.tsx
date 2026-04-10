@@ -1,6 +1,4 @@
-import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import {
@@ -52,11 +50,11 @@ type TiptapEditorProps = {
 export default function TiptapEditor({ content, onChange, placeholder }: TiptapEditorProps) {
     const editor = useEditor({
         extensions: [
-            StarterKit,
-            Underline,
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: { class: 'text-primary underline' },
+            StarterKit.configure({
+                link: {
+                    openOnClick: false,
+                    HTMLAttributes: { class: 'text-primary underline' },
+                },
             }),
             Placeholder.configure({
                 placeholder: placeholder || 'Start writing...',
