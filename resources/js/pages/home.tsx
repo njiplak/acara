@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronDown, ClipboardList, 
 import * as React from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
-import { showAddons, showEvent } from '@/actions/App/Http/Controllers/HomeController';
+import { showAddons, showEvent, showSpeaker } from '@/actions/App/Http/Controllers/HomeController';
 import { PublicEmptyState } from '@/components/public-empty-state';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
@@ -568,32 +568,39 @@ function InstructorsSection({ speakers }: { speakers: Speaker[] }) {
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                     {displaySpeakers.map((speaker, i) => (
-                        <motion.div
-                            key={speaker.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                            transition={{ duration: 0.4, delay: i * 0.05 }}
-                            className="group relative aspect-square overflow-hidden rounded-2xl bg-muted"
-                        >
-                            <img
-                                src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&sig=${speaker.id}`}
-                                alt={speaker.name}
-                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
+                        <Link key={speaker.id} href={showSpeaker.url({ speaker: speaker.slug })}>
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                                transition={{ duration: 0.4, delay: i * 0.05 }}
+                                className="group relative aspect-square overflow-hidden rounded-2xl bg-muted"
+                            >
+                                {speaker.media?.[0]?.original_url ? (
+                                    <img
+                                        src={speaker.media[0].original_url}
+                                        alt={speaker.name}
+                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-muted text-4xl font-bold text-muted-foreground">
+                                        {speaker.name.charAt(0)}
+                                    </div>
+                                )}
 
-                            {/* Hover overlay */}
-                            <div className="absolute inset-0 flex flex-col justify-between bg-primary p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                                <div>
-                                    <p className="text-xl font-bold uppercase text-primary-foreground lg:text-2xl">{speaker.name}</p>
-                                    {speaker.title && (
-                                        <p className="mt-2 text-sm text-primary-foreground/80">{speaker.title}</p>
-                                    )}
+                                {/* Hover overlay */}
+                                <div className="absolute inset-0 flex flex-col justify-between bg-primary p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                    <div>
+                                        <p className="text-xl font-bold uppercase text-primary-foreground lg:text-2xl">{speaker.name}</p>
+                                        {speaker.title && (
+                                            <p className="mt-2 text-sm text-primary-foreground/80">{speaker.title}</p>
+                                        )}
+                                    </div>
+                                    <span className="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/90 transition-colors hover:text-primary-foreground">
+                                        View Profile <ArrowRight className="size-4" />
+                                    </span>
                                 </div>
-                                <a href="#events" className="inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/90 transition-colors hover:text-primary-foreground">
-                                    Book a Session <ArrowRight className="size-4" />
-                                </a>
-                            </div>
-                        </motion.div>
+                            </motion.div>
+                        </Link>
                     ))}
                 </div>
             </div>

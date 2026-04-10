@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events/{event}', [HomeController::class, 'showEvent'])->name('events.show');
 Route::get('/addons', [HomeController::class, 'showAddons'])->name('addons.index');
+Route::get('/speakers/{speaker:slug}', [HomeController::class, 'showSpeaker'])->name('speakers.show');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{article:slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/page/{page:slug}', [PageController::class, 'show'])->name('page.show');

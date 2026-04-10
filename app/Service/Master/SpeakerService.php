@@ -6,6 +6,7 @@ use App\Contract\Master\SpeakerContract;
 use App\Models\Speaker;
 use App\Service\BaseService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SpeakerService extends BaseService implements SpeakerContract
 {
@@ -25,6 +26,8 @@ class SpeakerService extends BaseService implements SpeakerContract
             foreach ($this->fileKeys as $fileKey) {
                 unset($payloads[$fileKey]);
             }
+
+            $payloads['slug'] = $this->generateUniqueSlug($payloads['name']);
 
             $model = $this->model->create($payloads);
 
@@ -56,6 +59,11 @@ class SpeakerService extends BaseService implements SpeakerContract
             }
 
             $model = $this->model->findOrFail($id);
+
+            if (isset($payloads['name']) && $payloads['name'] !== $model->name) {
+                $payloads['slug'] = $this->generateUniqueSlug($payloads['name'], $model->id);
+            }
+
             $model->update($payloads);
 
             // Handle media upload
@@ -72,5 +80,29 @@ class SpeakerService extends BaseService implements SpeakerContract
             DB::rollBack();
             return $e;
         }
+    }
+
+    private function generateUniqueSlug(string $name, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($name);
+        $query = Speaker::where('slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        if (! $query->exists()) {
+            return $slug;
+        }
+
+        $counter = 2;
+        while (Speaker::where('slug', "{$slug}-{$counter}")
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->exists()
+        ) {
+            $counter++;
+        }
+
+        return "{$slug}-{$counter}";
     }
 }

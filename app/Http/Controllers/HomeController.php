@@ -97,6 +97,59 @@ class HomeController extends Controller
         ]);
     }
 
+    public function showSpeaker(Speaker $speaker)
+    {
+        $speaker->load('media');
+
+        $events = Event::query()
+            ->where('status', 'published')
+            ->where('end_date', '>=', now()->toDateString())
+            ->whereHas('catalogs.speakers', function ($q) use ($speaker) {
+                $q->where('speakers.id', $speaker->id);
+            })
+            ->with('catalogs')
+            ->orderBy('start_date')
+            ->get();
+
+        // Compute lowest active price per event
+        $allOrderCounts = Order::whereIn('event_id', $events->pluck('id'))
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->selectRaw('event_id, catalog_id, count(*) as count')
+            ->groupBy('event_id', 'catalog_id')
+            ->get()
+            ->groupBy('event_id');
+
+        $events->each(function ($event) use ($allOrderCounts) {
+            $eventOrderCounts = $allOrderCounts->get($event->id, collect());
+            $lowestPrice = null;
+
+            foreach ($event->catalogs as $catalog) {
+                $currentOrders = $eventOrderCounts->firstWhere('catalog_id', $catalog->id)?->count ?? 0;
+                $resolved = PriceResolver::resolve(
+                    pricingType: $catalog->pivot->pricing_type ?? 'fixed',
+                    pricingTiers: $catalog->pivot->pricing_tiers,
+                    catalogPrice: $catalog->price,
+                    currentOrders: $currentOrders,
+                );
+
+                if ($lowestPrice === null || $resolved['active_price'] < $lowestPrice) {
+                    $lowestPrice = $resolved['active_price'];
+                }
+            }
+
+            $event->lowest_active_price = $lowestPrice;
+        });
+
+        $settings = LandingPageSetting::instance();
+
+        return Inertia::render('speakers/show', [
+            'settings' => $settings,
+            'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
+            'speaker' => $speaker,
+            'events' => $events,
+        ]);
+    }
+
     public function showEvent(Event $event)
     {
         abort_if($event->status !== 'published', 404);

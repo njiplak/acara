@@ -14,14 +14,21 @@ class Speaker extends Model implements HasMedia
 
     protected $fillable = [
         'name',
+        'slug',
         'title',
         'bio',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     public function catalogs(): BelongsToMany
     {
         return $this->belongsToMany(Catalog::class);
     }
+
 
     public function registerMediaCollections(): void
     {

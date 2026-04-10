@@ -4,6 +4,7 @@ import type { Model } from './model';
 
 export type Speaker = Model & {
     name: string;
+    slug: string;
     title: string | null;
     bio: string | null;
     media?: MediaItem[];

@@ -2,12 +2,12 @@ import { router, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 
 import InputError from '@/components/input-error';
+import TiptapEditor from '@/components/tiptap-editor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { FormResponse } from '@/lib/constant';
 import { index, store, update } from '@/routes/backoffice/master/speaker';
@@ -71,10 +71,10 @@ export default function SpeakerForm({ speaker }: Props) {
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <Label>Bio</Label>
-                        <Textarea
-                            rows={4}
-                            value={data.bio}
-                            onChange={(e) => setData('bio', e.target.value)}
+                        <TiptapEditor
+                            content={data.bio}
+                            onChange={(html) => setData('bio', html)}
+                            placeholder="Write the speaker's biography..."
                         />
                         <p className="text-xs text-muted-foreground">
                             A short biography or description of the speaker
