@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Models\LandingPageSetting;
+use App\Models\OperationalSetting;
 use App\Models\Order;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -21,10 +22,11 @@ class CertificateService
     {
         $order->loadMissing(['event', 'catalog', 'customer']);
         $settings = LandingPageSetting::instance();
+        $operationalSetting = OperationalSetting::instance();
 
         $certificateId = 'CERT-' . $order->id . '-' . strtoupper(substr(md5($order->id . $order->order_code), 0, 6));
 
-        $templateMedia = $settings->getFirstMedia('certificate_template');
+        $templateMedia = $operationalSetting->getFirstMedia('certificate_template');
 
         if ($templateMedia) {
             return static::generateFromDocx($order, $settings, $certificateId, $templateMedia->getPath());

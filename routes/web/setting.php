@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\LandingPageSettingController;
+use App\Http\Controllers\Setting\OperationalSettingController;
 use App\Http\Controllers\Setting\PageController;
 use App\Http\Controllers\Setting\RoleController;
 use App\Http\Controllers\Setting\SettingController;
@@ -45,6 +46,11 @@ Route::group(['middleware' => 'auth', 'prefix' => 'setting', 'as' => 'backoffice
     Route::group(['prefix' => 'landing-page', 'as' => 'landing-page.', 'middleware' => 'permission:landing_page.view'], function () {
         Route::get('/', [LandingPageSettingController::class, 'edit'])->name('edit');
         Route::put('/', [LandingPageSettingController::class, 'update'])->name('update');
+    });
+
+    Route::group(['prefix' => 'operational', 'as' => 'operational.', 'middleware' => 'permission:operational_setting.view'], function () {
+        Route::get('/', [OperationalSettingController::class, 'edit'])->name('edit');
+        Route::put('/', [OperationalSettingController::class, 'update'])->name('update');
     });
 
     Route::group(['prefix' => 'page', 'as' => 'page.', 'middleware' => 'permission:page.view'], function () {

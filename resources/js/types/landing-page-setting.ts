@@ -25,5 +25,4 @@ export type LandingPageSetting = {
     social_tiktok: string | null;
     social_facebook: string | null;
     footer_text: string | null;
-    payment_instruction: string | null;
 };

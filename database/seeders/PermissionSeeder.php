@@ -38,6 +38,7 @@ class PermissionSeeder extends Seeder
 
         // Setting
         'landing_page',
+        'operational_setting',
         'setting',
         'role',
         'user',

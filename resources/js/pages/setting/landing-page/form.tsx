@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { FileText, ImageIcon, LoaderCircle, Trash2 } from 'lucide-react';
+import { ImageIcon, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import InputError from '@/components/input-error';
@@ -17,11 +17,9 @@ import type { LandingPageSetting } from '@/types/landing-page-setting';
 type Props = {
     landingPageSetting: LandingPageSetting;
     logoUrl?: string | null;
-    certificateTemplateUrl?: string | null;
-    certificateTemplateName?: string | null;
 };
 
-export default function LandingPageSettingForm({ landingPageSetting, logoUrl, certificateTemplateUrl, certificateTemplateName }: Props) {
+export default function LandingPageSettingForm({ landingPageSetting, logoUrl }: Props) {
     const [logoPreview, setLogoPreview] = useState<string | null>(logoUrl ?? null);
     const { data, setData, errors, processing, post } = useForm<Record<string, any>>({
         logo: null as File | null,
@@ -49,11 +47,7 @@ export default function LandingPageSettingForm({ landingPageSetting, logoUrl, ce
         social_tiktok: landingPageSetting.social_tiktok ?? '',
         social_facebook: landingPageSetting.social_facebook ?? '',
         footer_text: landingPageSetting.footer_text ?? '',
-        payment_instruction: landingPageSetting.payment_instruction ?? '',
-        certificate_template: null as File | null,
     });
-
-    const [certFileName, setCertFileName] = useState<string | null>(certificateTemplateName ?? null);
 
     const handleLogoChange = (file: File | null) => {
         setData('logo', file);
@@ -408,77 +402,6 @@ export default function LandingPageSettingForm({ landingPageSetting, logoUrl, ce
                             </p>
                             <InputError message={errors?.social_facebook} />
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Payment</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Payment Instruction</Label>
-                        <Textarea
-                            rows={5}
-                            value={data.payment_instruction}
-                            onChange={(e) => setData('payment_instruction', e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            Instructions shown to customers after placing an order (e.g. bank account details, transfer steps)
-                        </p>
-                        <InputError message={errors?.payment_instruction} />
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Certificate Template</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex flex-col gap-2">
-                        {certFileName && (
-                            <div className="flex items-center gap-2 rounded-md border bg-accent/50 px-3 py-2 text-sm">
-                                <FileText className="size-4 text-muted-foreground" />
-                                <span className="flex-1">{certFileName}</span>
-                            </div>
-                        )}
-                        <input
-                            type="file"
-                            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0] || null;
-                                setData('certificate_template', file);
-                                if (file) setCertFileName(file.name);
-                            }}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            Upload a .docx template for attendance certificates. Use these placeholders in your template:
-                        </p>
-                        <div className="rounded-md border bg-muted/50 p-3">
-                            <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                                <span>{'${attendee_name}'}</span>
-                                <span className="text-muted-foreground">Customer name</span>
-                                <span>{'${event_name}'}</span>
-                                <span className="text-muted-foreground">Event name</span>
-                                <span>{'${catalog_name}'}</span>
-                                <span className="text-muted-foreground">Session/catalog name</span>
-                                <span>{'${event_date}'}</span>
-                                <span className="text-muted-foreground">Event date(s)</span>
-                                <span>{'${certificate_id}'}</span>
-                                <span className="text-muted-foreground">Unique certificate ID</span>
-                                <span>{'${business_name}'}</span>
-                                <span className="text-muted-foreground">Your business name</span>
-                                <span>{'${checked_in_date}'}</span>
-                                <span className="text-muted-foreground">Check-in date</span>
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            If no template is uploaded, a default certificate design will be used.
-                        </p>
-                        <InputError message={errors?.certificate_template} />
                     </div>
                 </CardContent>
             </Card>

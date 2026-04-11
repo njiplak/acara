@@ -16,7 +16,6 @@ any idea, regarding this concept? think dont code
 
 feedback : 
 
-- certificate template should having the dedicated settings page rather than on landing page, also for the payment instruction, i think we can had like operational settings one
 - purchase standalone add-ons still error
 error backoffice : 
 

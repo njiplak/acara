@@ -27,6 +27,7 @@ import {
     UserRound,
     Users,
     UsersRound,
+    Wrench,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -112,6 +113,7 @@ const menuConfig: MenuGroup[] = [
         label: 'Setting',
         items: [
             { label: 'Landing Page', icon: Globe, href: backoffice.setting.landingPage.edit.url(), permission: 'landing_page.view' },
+            { label: 'Operational', icon: Wrench, href: backoffice.setting.operational.edit.url(), permission: 'operational_setting.view' },
             { label: 'Settings', icon: Settings, href: backoffice.setting.setting.index.url(), permission: 'setting.view' },
             { label: 'User', icon: UsersRound, href: backoffice.setting.user.index.url(), permission: 'user.view' },
             { label: 'Role', icon: UserCog, href: backoffice.setting.role.index.url(), permission: 'role.view' },

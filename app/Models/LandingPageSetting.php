@@ -37,7 +37,6 @@ class LandingPageSetting extends Model implements HasMedia
         'social_tiktok',
         'social_facebook',
         'footer_text',
-        'payment_instruction',
     ];
 
     public static function instance(): static
@@ -49,6 +48,5 @@ class LandingPageSetting extends Model implements HasMedia
     {
         $this->addMediaCollection('logo')->singleFile();
         $this->addMediaCollection('hero_image')->singleFile();
-        $this->addMediaCollection('certificate_template')->singleFile();
     }
 }

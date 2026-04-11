@@ -15,27 +15,19 @@ class LandingPageSettingController extends Controller
         $setting = LandingPageSetting::instance();
         $setting->load('media');
 
-        $certificateMedia = $setting->getFirstMedia('certificate_template');
-
         return Inertia::render('setting/landing-page/form', [
             'landingPageSetting' => $setting,
             'logoUrl' => $setting->getFirstMediaUrl('logo') ?: null,
-            'certificateTemplateUrl' => $certificateMedia?->getUrl(),
-            'certificateTemplateName' => $certificateMedia?->file_name,
         ]);
     }
 
     public function update(LandingPageSettingRequest $request)
     {
         $setting = LandingPageSetting::instance();
-        $setting->update($request->safe()->except(['logo', 'certificate_template']));
+        $setting->update($request->safe()->except(['logo']));
 
         if ($request->hasFile('logo')) {
             $setting->addMediaFromRequest('logo')->toMediaCollection('logo');
-        }
-
-        if ($request->hasFile('certificate_template')) {
-            $setting->addMediaFromRequest('certificate_template')->toMediaCollection('certificate_template');
         }
 
         return WebResponse::response($setting, 'backoffice.setting.landing-page.edit');

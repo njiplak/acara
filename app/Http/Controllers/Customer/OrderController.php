@@ -9,6 +9,7 @@ use App\Http\Requests\PlaceAddonOrderRequest;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Models\EventMaterial;
 use App\Models\LandingPageSetting;
+use App\Models\OperationalSetting;
 use App\Models\Order;
 use App\Models\Testimonial;
 use App\Models\Voucher;
@@ -151,9 +152,11 @@ class OrderController extends Controller
 
         $order->load('latestTransaction');
 
+        $operationalSetting = OperationalSetting::instance();
+
         return Inertia::render('customer/orders/show', [
             'order' => $order,
-            'paymentInstruction' => $settings->payment_instruction,
+            'paymentInstruction' => $operationalSetting->payment_instruction,
             'materials' => $materials,
             'logoUrl' => $settings->getFirstMediaUrl('logo') ?: null,
             'testimonial' => $testimonial,

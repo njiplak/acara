@@ -16,4 +16,4 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 Route::get('/feed', [SeoController::class, 'feed'])->name('feed');
 
-Route::get('/{page:slug}', [PageController::class, 'show'])->name('page.show');
+Route::get('pages/{page:slug}', [PageController::class, 'show'])->name('page.show');

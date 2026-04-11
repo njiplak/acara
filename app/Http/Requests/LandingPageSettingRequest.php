@@ -39,7 +39,6 @@ class LandingPageSettingRequest extends FormRequest
             'social_tiktok' => ['nullable', 'string', 'max:255'],
             'social_facebook' => ['nullable', 'string', 'max:255'],
             'footer_text' => ['nullable', 'string', 'max:255'],
-            'payment_instruction' => ['nullable', 'string'],
         ];
     }
 }
