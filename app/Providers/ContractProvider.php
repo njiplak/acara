@@ -20,13 +20,11 @@ use App\Contract\Master\SubscriptionPlanContract;
 use App\Contract\Master\VoucherContract;
 use App\Contract\Operational\CustomerContract;
 use App\Contract\Operational\OrderContract;
-use App\Contract\Operational\CampaignContract;
 use App\Contract\Operational\SurveyContract;
 use App\Contract\Operational\TestimonialContract;
 use App\Contract\Setting\RoleContract;
 use App\Contract\Setting\UserContract;
 use App\Contract\Setting\PageContract;
-use App\Contract\Setting\MailTemplateContract;
 use App\Contract\Setting\SettingContract;
 use App\Service\Auth\CustomerAuthService;
 use App\Service\Auth\UserAuthService;
@@ -46,13 +44,11 @@ use App\Service\Master\SubscriptionPlanService;
 use App\Service\Master\VoucherService;
 use App\Service\Operational\CustomerService;
 use App\Service\Operational\OrderService;
-use App\Service\Operational\CampaignService;
 use App\Service\Operational\SurveyService;
 use App\Service\Operational\TestimonialService;
 use App\Service\Setting\PageService;
 use App\Service\Setting\RoleService;
 use App\Service\Setting\UserService;
-use App\Service\Setting\MailTemplateService;
 use App\Service\Setting\SettingService;
 use App\Service\Payment\PaymentGatewayManager;
 use Illuminate\Support\ServiceProvider;
@@ -67,7 +63,6 @@ class ContractProvider extends ServiceProvider
         CustomerAuthContract::class => CustomerAuthService::class,
 
         // Operational
-        CampaignContract::class => CampaignService::class,
         CustomerContract::class => CustomerService::class,
         OrderContract::class => OrderService::class,
         SurveyContract::class => SurveyService::class,
@@ -88,7 +83,6 @@ class ContractProvider extends ServiceProvider
         VoucherContract::class => VoucherService::class,
 
         // Setting
-        MailTemplateContract::class => MailTemplateService::class,
         SettingContract::class => SettingService::class,
         RoleContract::class => RoleService::class,
         UserContract::class => UserService::class,

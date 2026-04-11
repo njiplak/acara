@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\CertificateDistributionMail;
 use App\Models\Event;
 use App\Models\Order;
-use App\Service\MailService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class SendCertificateEmails extends Command
 {
@@ -38,17 +39,11 @@ class SendCertificateEmails extends Command
             foreach ($orders as $order) {
                 $certificateUrl = url("/customer/orders/{$order->id}/certificate");
 
-                MailService::send(
-                    slug: 'certificate-distribution',
-                    to: $order->customer->email,
-                    data: [
-                        'customer_name' => $order->customer->name,
-                        'event_name' => $event->name,
-                        'certificate_url' => $certificateUrl,
-                    ],
-                    orderId: $order->id,
-                    eventId: $event->id,
-                );
+                Mail::to($order->customer->email)->queue(new CertificateDistributionMail(
+                    customerName: $order->customer->name,
+                    eventName: $event->name,
+                    certificateUrl: $certificateUrl,
+                ));
 
                 $sent++;
             }

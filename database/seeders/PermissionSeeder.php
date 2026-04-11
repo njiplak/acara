@@ -35,8 +35,6 @@ class PermissionSeeder extends Seeder
         'testimonial',
         'survey',
         'subscription_order',
-        'campaign',
-        'announcement',
 
         // Setting
         'landing_page',

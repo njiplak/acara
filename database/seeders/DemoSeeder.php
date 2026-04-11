@@ -3,14 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Addon;
-use App\Models\Campaign;
 use App\Models\Catalog;
 use App\Models\Customer;
 use App\Models\Event;
-use App\Models\EventAnnouncement;
 use App\Models\EventMaterial;
-use App\Models\MailLog;
-use App\Models\MailTemplate;
 use App\Models\Order;
 use App\Models\SessionAttendance;
 use App\Models\Speaker;
@@ -68,14 +64,8 @@ class DemoSeeder extends Seeder
         // ─── Event Materials ───────────────────────────────────
         $this->seedEventMaterials($events);
 
-        // ─── Campaigns ─────────────────────────────────────────
-        $this->seedCampaigns();
-
         // ─── Waitlist ──────────────────────────────────────────
         $this->seedWaitlist($events, $customers);
-
-        // ─── Announcements ─────────────────────────────────────
-        $this->seedAnnouncements($events);
 
         // ─── Membership Subscriptions ──────────────────────────
         $this->seedSubscriptions($customers, $admin);
@@ -712,50 +702,6 @@ class DemoSeeder extends Seeder
         }
     }
 
-    private function seedCampaigns(): void
-    {
-        $now = Carbon::now();
-        $templates = MailTemplate::all();
-        $announcementTemplate = $templates->where('slug', 'event-announcement')->first();
-        $thankYouTemplate = $templates->where('slug', 'post-event-thank-you')->first();
-
-        if ($announcementTemplate) {
-            Campaign::updateOrCreate(
-                ['name' => 'Re-engage Lapsed Customers'],
-                [
-                    'target_tags' => ['lapsed', 'inactive'],
-                    'mail_template_id' => $announcementTemplate->id,
-                    'sent_count' => 12,
-                    'sent_at' => $now->copy()->subDays(7),
-                ],
-            );
-        }
-
-        if ($thankYouTemplate) {
-            Campaign::updateOrCreate(
-                ['name' => 'Thank You — Loyal Members'],
-                [
-                    'target_tags' => ['loyal', 'active'],
-                    'mail_template_id' => $thankYouTemplate->id,
-                    'sent_count' => 5,
-                    'sent_at' => $now->copy()->subDays(14),
-                ],
-            );
-        }
-
-        if ($announcementTemplate) {
-            Campaign::updateOrCreate(
-                ['name' => 'Weekend Retreat Promo'],
-                [
-                    'target_tags' => ['active', 'returning'],
-                    'mail_template_id' => $announcementTemplate->id,
-                    'sent_count' => 0,
-                    'sent_at' => null, // draft campaign, not yet sent
-                ],
-            );
-        }
-    }
-
     private function seedWaitlist(array $events, array $customers): void
     {
         // Find an upcoming event and create waitlist entries for it
@@ -790,26 +736,6 @@ class DemoSeeder extends Seeder
                     'notified_at' => null,
                 ],
             );
-        }
-    }
-
-    private function seedAnnouncements(array $events): void
-    {
-        $pastEvents = collect($events)->filter(fn ($e) => Carbon::parse($e->start_date)->isPast());
-
-        foreach ($pastEvents as $event) {
-            $checkedInCount = Order::where('event_id', $event->id)->whereNotNull('checked_in_at')->count();
-
-            if ($checkedInCount > 0) {
-                EventAnnouncement::updateOrCreate(
-                    ['event_id' => $event->id, 'subject' => 'Terima kasih sudah hadir!'],
-                    [
-                        'message' => "Terima kasih telah hadir di {$event->name}! Jangan lupa untuk mengisi survey dan download sertifikat Anda. Sampai jumpa di event berikutnya!",
-                        'sent_count' => $checkedInCount,
-                        'sent_at' => Carbon::parse($event->end_date)->addDay(),
-                    ],
-                );
-            }
         }
     }
 

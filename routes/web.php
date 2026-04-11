@@ -12,8 +12,8 @@ Route::get('/addons', [HomeController::class, 'showAddons'])->name('addons.index
 Route::get('/speakers/{speaker:slug}', [HomeController::class, 'showSpeaker'])->name('speakers.show');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{article:slug}', [BlogController::class, 'show'])->name('blog.show');
-Route::get('/page/{page:slug}', [PageController::class, 'show'])->name('page.show');
-
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 Route::get('/feed', [SeoController::class, 'feed'])->name('feed');
+
+Route::get('/{page:slug}', [PageController::class, 'show'])->name('page.show');

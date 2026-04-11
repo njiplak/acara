@@ -7,9 +7,10 @@ use App\Filters\CustomerTagFilter;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Voucher;
-use App\Service\MailService;
+use App\Mail\BirthdayVoucherMail;
 use App\Utils\WebResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -94,16 +95,12 @@ class CustomerController extends Controller
             'stackable_with_referral' => true,
         ]);
 
-        MailService::send(
-            slug: 'birthday-voucher',
-            to: $customer->email,
-            data: [
-                'customer_name' => $customer->name,
-                'voucher_code' => $voucher->code,
-                'voucher_value' => 'Rp ' . number_format($voucher->value, 0, ',', '.'),
-                'valid_until' => $voucher->valid_until->format('d M Y'),
-            ],
-        );
+        Mail::to($customer->email)->queue(new BirthdayVoucherMail(
+            customerName: $customer->name,
+            voucherCode: $voucher->code,
+            voucherValue: 'Rp ' . number_format($voucher->value, 0, ',', '.'),
+            validUntil: $voucher->valid_until->format('d M Y'),
+        ));
 
         return WebResponse::response($voucher);
     }

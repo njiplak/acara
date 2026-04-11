@@ -2,11 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\PostEventSurveyMail;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Survey;
-use App\Service\MailService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class SendPostEventSurveyEmails extends Command
 {
@@ -47,17 +48,11 @@ class SendPostEventSurveyEmails extends Command
                 ->get();
 
             foreach ($orders as $order) {
-                MailService::send(
-                    slug: 'post-event-survey',
-                    to: $order->customer->email,
-                    data: [
-                        'customer_name' => $order->customer->name,
-                        'event_name' => $event->name,
-                        'survey_url' => $surveyUrl,
-                    ],
-                    orderId: $order->id,
-                    eventId: $event->id,
-                );
+                Mail::to($order->customer->email)->queue(new PostEventSurveyMail(
+                    customerName: $order->customer->name,
+                    eventName: $event->name,
+                    surveyUrl: $surveyUrl,
+                ));
 
                 $sent++;
             }

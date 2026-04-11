@@ -19,8 +19,6 @@ import {
     CreditCard,
     Crown,
     Gem,
-    Mail,
-    Megaphone,
     MessageSquare,
     ScanLine,
     Settings,
@@ -108,8 +106,6 @@ const menuConfig: MenuGroup[] = [
             { label: 'Testimonial', icon: MessageSquare, href: backoffice.operational.testimonial.index.url(), permission: 'testimonial.view' },
             { label: 'Survey', icon: ClipboardCheck, href: backoffice.operational.survey.index.url(), permission: 'survey.view' },
             { label: 'Sub. Orders', icon: CreditCard, href: backoffice.operational.subscriptionOrder.index.url(), permission: 'subscription_order.view' },
-            { label: 'Campaign', icon: Megaphone, href: backoffice.operational.campaign.index.url(), permission: 'campaign.view' },
-            { label: 'Announcement', icon: Mail, href: backoffice.operational.announcement.index.url(), permission: 'announcement.view' },
         ],
     },
     {

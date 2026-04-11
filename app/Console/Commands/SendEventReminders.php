@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\EventReminderMail;
 use App\Models\Event;
 use App\Models\Order;
-use App\Service\MailService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class SendEventReminders extends Command
 {
@@ -39,18 +40,12 @@ class SendEventReminders extends Command
                 ->get();
 
             foreach ($orders as $order) {
-                MailService::send(
-                    slug: 'order-reminder',
-                    to: $order->customer->email,
-                    data: [
-                        'customer_name' => $order->customer->name,
-                        'event_name' => $event->name,
-                        'event_date' => $event->start_date,
-                        'venue_name' => $event->venue?->name ?? '-',
-                    ],
-                    orderId: $order->id,
-                    eventId: $event->id,
-                );
+                Mail::to($order->customer->email)->queue(new EventReminderMail(
+                    customerName: $order->customer->name,
+                    eventName: $event->name,
+                    eventDate: $event->start_date,
+                    venueName: $event->venue?->name ?? '-',
+                ));
 
                 $sent++;
             }

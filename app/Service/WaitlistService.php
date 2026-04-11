@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\Mail\WaitlistSpotAvailableMail;
+use App\Models\Event;
 use App\Models\Order;
 use App\Models\Waitlist;
+use Illuminate\Support\Facades\Mail;
 
 class WaitlistService
 {
@@ -13,7 +16,7 @@ class WaitlistService
      */
     public static function notifyIfSpotAvailable(int $eventId, int $catalogId): void
     {
-        $event = \App\Models\Event::with('catalogs')->find($eventId);
+        $event = Event::with('catalogs')->find($eventId);
         if (!$event) return;
 
         $catalog = $event->catalogs->firstWhere('id', $catalogId);
@@ -27,7 +30,6 @@ class WaitlistService
             ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
             ->count();
 
-        // Only notify if there's actually a spot now
         if ($activeCount >= $maxParticipant) return;
 
         $waitlisted = Waitlist::where('event_id', $eventId)
@@ -43,18 +45,12 @@ class WaitlistService
         foreach ($waitlisted as $entry) {
             $entry->loadMissing('customer');
 
-            MailService::send(
-                slug: 'waitlist-spot-available',
-                to: $entry->customer->email,
-                data: [
-                    'customer_name' => $entry->customer->name,
-                    'event_name' => $event->name,
-                    'catalog_name' => $catalog->name,
-                    'event_url' => $eventUrl,
-                ],
-                orderId: null,
-                eventId: $eventId,
-            );
+            Mail::to($entry->customer->email)->queue(new WaitlistSpotAvailableMail(
+                customerName: $entry->customer->name,
+                eventName: $event->name,
+                catalogName: $catalog->name,
+                eventUrl: $eventUrl,
+            ));
 
             $entry->update(['notified_at' => now()]);
         }

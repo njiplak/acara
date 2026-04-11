@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\PostEventThankYouMail;
 use App\Models\Event;
 use App\Models\Order;
-use App\Service\MailService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class SendPostEventEmails extends Command
 {
@@ -36,16 +37,10 @@ class SendPostEventEmails extends Command
                 ->get();
 
             foreach ($orders as $order) {
-                MailService::send(
-                    slug: 'post-event-thank-you',
-                    to: $order->customer->email,
-                    data: [
-                        'customer_name' => $order->customer->name,
-                        'event_name' => $event->name,
-                    ],
-                    orderId: $order->id,
-                    eventId: $event->id,
-                );
+                Mail::to($order->customer->email)->queue(new PostEventThankYouMail(
+                    customerName: $order->customer->name,
+                    eventName: $event->name,
+                ));
 
                 $sent++;
             }

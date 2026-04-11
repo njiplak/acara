@@ -50,8 +50,6 @@ const MODULE_LABELS: Record<string, string> = {
     testimonial: 'Testimonial',
     survey: 'Survey',
     subscription_order: 'Sub. Orders',
-    campaign: 'Campaign',
-    announcement: 'Announcement',
     landing_page: 'Landing Page',
     setting: 'Settings',
     user: 'User',
@@ -72,7 +70,7 @@ const CATEGORIES: { label: string; modules: string[] }[] = [
         label: 'Operational',
         modules: [
             'order', 'customer', 'check_in', 'testimonial', 'survey',
-            'subscription_order', 'campaign', 'announcement',
+            'subscription_order',
         ],
     },
     {

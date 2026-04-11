@@ -23,7 +23,6 @@ class BaseSeeder extends Seeder
             LandingPageSettingSeeder::class,
             PageSeeder::class,
             PermissionSeeder::class,
-            // MailTemplateSeeder::class,
             // VenueSeeder::class,
             // SpeakerSeeder::class,
             // AddonSeeder::class,

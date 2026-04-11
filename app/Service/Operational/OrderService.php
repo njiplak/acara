@@ -11,9 +11,12 @@ use App\Models\Order;
 use App\Models\SessionAttendance;
 use App\Models\Voucher;
 use App\Models\PaymentTransaction;
+use App\Mail\OrderPlacedMail;
+use App\Mail\OrderRejectedMail;
+use App\Mail\PaymentConfirmedMail;
 use App\Service\BaseService;
-use App\Service\MailService;
 use App\Service\Payment\PaymentService;
+use Illuminate\Support\Facades\Mail;
 use App\Service\WaitlistService;
 use App\Utils\PriceResolver;
 use Exception;
@@ -198,7 +201,7 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
-            MailService::sendForOrder('order-placed', $order);
+            Mail::to($order->customer->email)->queue(new OrderPlacedMail($order));
 
             $order = $order->fresh($this->relation);
 
@@ -286,7 +289,7 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
-            MailService::sendForOrder('order-placed', $order);
+            Mail::to($order->customer->email)->queue(new OrderPlacedMail($order));
 
             $order = $order->fresh($this->relation);
 
@@ -370,7 +373,7 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
-            MailService::sendForOrder('payment-confirmed', $order);
+            Mail::to($order->customer->email)->queue(new PaymentConfirmedMail($order));
 
             return $order->fresh($this->relation);
         } catch (Exception $e) {
@@ -396,9 +399,7 @@ class OrderService extends BaseService implements OrderContract
 
             DB::commit();
 
-            MailService::sendForOrder('order-rejected', $order, [
-                'rejection_reason' => $reason,
-            ]);
+            Mail::to($order->customer->email)->queue(new OrderRejectedMail($order, $reason));
 
             return $order->fresh($this->relation);
         } catch (Exception $e) {
