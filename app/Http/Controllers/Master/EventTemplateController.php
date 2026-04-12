@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Master;
 
+use App\Contract\Master\CatalogContract;
 use App\Contract\Master\EventContract;
 use App\Contract\Master\EventTemplateContract;
 use App\Contract\Master\VenueContract;
@@ -17,10 +18,17 @@ use Inertia\Inertia;
 class EventTemplateController extends Controller
 {
     protected EventTemplateContract $service;
+    protected CatalogContract $catalogService;
+    protected VenueContract $venueService;
 
-    public function __construct(EventTemplateContract $service)
-    {
+    public function __construct(
+        EventTemplateContract $service,
+        CatalogContract $catalogService,
+        VenueContract $venueService,
+    ) {
         $this->service = $service;
+        $this->catalogService = $catalogService;
+        $this->venueService = $venueService;
     }
 
     public function index()
@@ -41,7 +49,19 @@ class EventTemplateController extends Controller
 
     public function create()
     {
-        return Inertia::render('master/event-template/form');
+        return Inertia::render('master/event-template/form', [
+            'catalogs' => $this->catalogService->all(
+                allowedFilters: [],
+                allowedSorts: [],
+                withPaginate: false,
+                relation: ['speakers', 'addons'],
+            ),
+            'venues' => $this->venueService->all(
+                allowedFilters: [],
+                allowedSorts: [],
+                withPaginate: false,
+            ),
+        ]);
     }
 
     public function store(EventTemplateRequest $request)
@@ -55,6 +75,17 @@ class EventTemplateController extends Controller
         $data = $this->service->find($id);
         return Inertia::render('master/event-template/form', [
             'template' => $data,
+            'catalogs' => $this->catalogService->all(
+                allowedFilters: [],
+                allowedSorts: [],
+                withPaginate: false,
+                relation: ['speakers', 'addons'],
+            ),
+            'venues' => $this->venueService->all(
+                allowedFilters: [],
+                allowedSorts: [],
+                withPaginate: false,
+            ),
         ]);
     }
 
@@ -76,11 +107,11 @@ class EventTemplateController extends Controller
         return WebResponse::response($data, 'backoffice.master.event-template.index');
     }
 
-    public function generateForm($id, VenueContract $venueService)
+    public function generateForm($id)
     {
         $template = $this->service->find($id);
 
-        $venues = $venueService->all(
+        $venues = $this->venueService->all(
             allowedFilters: [],
             allowedSorts: [],
             withPaginate: false,

@@ -94,8 +94,8 @@ const menuConfig: MenuGroup[] = [
             { label: 'Templates', icon: Copy, href: backoffice.master.eventTemplate.index.url(), permission: 'event_template.view' },
             { label: 'Article', icon: Newspaper, href: backoffice.master.article.index.url(), permission: 'article.view' },
             { label: 'FAQ', icon: CircleHelp, href: backoffice.master.faq.index.url(), permission: 'faq.view' },
-            { label: 'Subscription Plans', icon: Crown, href: backoffice.master.subscriptionPlan.index.url(), permission: 'subscription_plan.view' },
-            { label: 'Sub. Features', icon: Gem, href: backoffice.master.subscriptionFeature.index.url(), permission: 'subscription_feature.view' },
+            { label: 'Plans', icon: Crown, href: backoffice.master.subscriptionPlan.index.url(), permission: 'subscription_plan.view' },
+            { label: 'Features', icon: Gem, href: backoffice.master.subscriptionFeature.index.url(), permission: 'subscription_feature.view' },
         ],
     },
     {
@@ -106,7 +106,7 @@ const menuConfig: MenuGroup[] = [
             { label: 'Check In', icon: ScanLine, href: backoffice.operational.checkIn.scanner.url(), permission: 'check_in.view' },
             { label: 'Testimonial', icon: MessageSquare, href: backoffice.operational.testimonial.index.url(), permission: 'testimonial.view' },
             { label: 'Survey', icon: ClipboardCheck, href: backoffice.operational.survey.index.url(), permission: 'survey.view' },
-            { label: 'Sub. Orders', icon: CreditCard, href: backoffice.operational.subscriptionOrder.index.url(), permission: 'subscription_order.view' },
+            { label: 'Subscriber', icon: CreditCard, href: backoffice.operational.subscriptionOrder.index.url(), permission: 'subscription_order.view' },
         ],
     },
     {

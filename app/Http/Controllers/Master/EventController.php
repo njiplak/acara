@@ -91,7 +91,7 @@ class EventController extends Controller
                     'status' => 'draft',
                     'payment_gateway' => $td['payment_gateway'] ?? 'manual',
                     'currency' => $td['currency'] ?? 'IDR',
-                    'venue_id' => null,
+                    'venue_id' => $td['venue_id'] ?? null,
                     'material_require_checkin' => $td['material_require_checkin'] ?? true,
                     'schedule' => $td['schedule'] ?? [],
                     'catalogs' => collect($td['catalogs'] ?? [])->map(fn($c) => [
@@ -186,6 +186,7 @@ class EventController extends Controller
             'payment_gateway' => $event->payment_gateway,
             'currency' => $event->currency,
             'material_require_checkin' => $event->material_require_checkin,
+            'venue_id' => $event->venue_id,
             'schedule' => $event->schedule ?? [],
             'catalogs' => $event->catalogs->map(fn($c) => [
                 'catalog_id' => $c->id,

@@ -29,6 +29,7 @@ type EventTemplate = {
         description?: string;
         payment_gateway?: string;
         currency?: string;
+        venue_id?: number | null;
         schedule?: any[];
         catalogs?: any[];
     };
@@ -61,7 +62,7 @@ export default function GenerateRecurring({ template, venues }: Props) {
         start_date: '',
         end_date: '',
         event_time: '',
-        venue_id: '' as string | number,
+        venue_id: (template.template_data.venue_id ?? '') as string | number,
     });
 
     const eventCount = useMemo(
