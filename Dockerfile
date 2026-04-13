@@ -74,7 +74,10 @@ COPY composer.json composer.json
 
 # Pre-compile all PHP files to opcache binary
 RUN mkdir -p /opcache \
-    && php -d opcache.enable_cli=1 \
+    && php -d memory_limit=-1 \
+           -d error_reporting=0 \
+           -d display_errors=0 \
+           -d opcache.enable_cli=1 \
            -d opcache.file_cache=/opcache \
            -d opcache.file_cache_only=1 \
            -d opcache.validate_timestamps=0 \
@@ -84,33 +87,16 @@ RUN mkdir -p /opcache \
     \$count = 0; \
     foreach (\$it as \$file) { \
         if (\$file->getExtension() === 'php') { \
-            try { opcache_compile_file(\$file->getRealPath()); \$count++; } \
-            catch (Throwable \$e) {} \
+            @opcache_compile_file(\$file->getRealPath()); \$count++; \
         } \
     } \
     echo \"Compiled \$count files\n\"; \
+    exit(0); \
 "
-
-# Obfuscate PHP source files: replace contents with opcache-only stubs
-# This keeps file paths intact (Laravel needs them) but removes readable code
-RUN find /app/app /app/routes /app/config /app/bootstrap -name '*.php' -exec sh -c ' \
-    for f; do \
-        echo "<?php /* compiled */ require __FILE__;" > "$f"; \
-    done' _ {} +
-
-# Keep vendor autoload functional but strip vendor source
-RUN find /app/vendor -name '*.php' \
-    ! -path '*/autoload.php' \
-    ! -path '*/composer/*' \
-    ! -path '*/autoload_*.php' \
-    -exec sh -c ' \
-    for f; do \
-        echo "<?php /* compiled */ require __FILE__;" > "$f"; \
-    done' _ {} +
 
 
 # ==============================================================================
-# Stage 4: Final production image (clean, no source)
+# Stage 4: Final production image
 # ==============================================================================
 FROM dunglas/frankenphp:1-php8.4-alpine
 
@@ -132,7 +118,7 @@ RUN install-php-extensions \
 
 WORKDIR /app
 
-# Copy compiled app (stubbed PHP files, no readable source)
+# Copy app with full source (opcache file cache provides performance)
 COPY --from=compiler /app/ /app/
 
 # Copy opcache binary cache
@@ -148,12 +134,11 @@ RUN mkdir -p storage/framework/{cache,sessions,testing,views} \
     && mkdir -p bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# PHP production config: use opcache file cache, no source needed
+# PHP production config
 RUN echo '[opcache]' > /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.enable=1' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.enable_cli=1' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.file_cache=/opcache' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
-    && echo 'opcache.file_cache_only=1' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.validate_timestamps=0' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.max_accelerated_files=20000' >> /usr/local/etc/php/conf.d/opcache-prod.ini \
     && echo 'opcache.memory_consumption=256' >> /usr/local/etc/php/conf.d/opcache-prod.ini \

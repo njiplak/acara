@@ -14,7 +14,7 @@
 
 services:
   app:
-    image: ghcr.io/njiplak/acara:latest
+    image: ghcr.io/njiplak/acara:1.0.0
     container_name: acara-app
     restart: unless-stopped
     ports:

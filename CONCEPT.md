@@ -16,7 +16,6 @@ any idea, regarding this concept? think dont code
 
 feedback : 
 
-- purchase standalone add-ons still error
-error backoffice : 
 
+- app-layout naming
 - 

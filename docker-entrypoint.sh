@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+# Discover packages (regenerates bootstrap/cache/packages.php for production)
+php artisan package:discover --ansi
+
 # Run migrations if database exists
 php artisan migrate --force 2>/dev/null || true
 
