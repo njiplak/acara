@@ -129,10 +129,10 @@ export default function Home({
                     <InstructorsSection speakers={speakers} />
                 )}
 
-                {/* Membership Plans */}
-                {plans.length > 0 && (
+                {/* Membership Plans - hidden for initial testing without subscription */}
+                {/* {plans.length > 0 && (
                     <MembershipSection plans={plans} />
-                )}
+                )} */}
 
                 {/* Testimonials */}
                 {testimonials.length > 0 && (
