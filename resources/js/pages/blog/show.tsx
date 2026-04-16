@@ -57,7 +57,7 @@ export default function BlogShow({
     return (
         <>
             <Head>
-                <title>{article.title} - {name}</title>
+                <title>{`${article.title} - ${name}`}</title>
                 {article.excerpt && <meta name="description" content={article.excerpt} />}
                 <link rel="canonical" href={canonicalUrl} />
 

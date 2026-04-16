@@ -36,7 +36,7 @@ export default function BlogIndex({
     return (
         <>
             <Head>
-                <title>Blog - {name}</title>
+                <title>{`Blog - ${name}`}</title>
                 <meta name="description" content={description} />
                 <link rel="canonical" href={canonicalUrl} />
 

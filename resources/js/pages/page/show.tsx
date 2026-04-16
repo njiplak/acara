@@ -23,7 +23,7 @@ export default function PageShow({
     return (
         <>
             <Head>
-                <title>{page.title} - {name}</title>
+                <title>{`${page.title} - ${name}`}</title>
                 {page.meta_description && <meta name="description" content={page.meta_description} />}
                 <link rel="canonical" href={canonicalUrl} />
 
