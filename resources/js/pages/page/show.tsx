@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, ClipboardList } from 'lucide-react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
+import { PublicFooter } from '@/components/public-footer';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { LandingPageSetting } from '@/types/landing-page-setting';
@@ -16,7 +17,7 @@ export default function PageShow({
     logoUrl?: string | null;
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
     const canonicalUrl = `${appUrl}/page/${page.slug}`;
 
@@ -92,23 +93,7 @@ export default function PageShow({
                     )}
                 </article>
 
-                {/* Footer */}
-                <footer className="mt-auto border-t px-6 py-6 lg:px-12">
-                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                        <p className="text-xs text-muted-foreground">
-                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                        </p>
-                        {footerPages.length > 0 && (
-                            <div className="flex items-center gap-4">
-                                {footerPages.map((p) => (
-                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
-                                        {p.title}
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </footer>
+                <PublicFooter settings={settings} name={name} logoUrl={logoUrl} />
             </div>
         </>
     );

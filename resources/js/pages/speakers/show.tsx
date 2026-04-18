@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { showEvent, showSpeaker } from '@/actions/App/Http/Controllers/HomeController';
 import { PublicEmptyState } from '@/components/public-empty-state';
+import { PublicFooter } from '@/components/public-footer';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Event } from '@/types/event';
@@ -48,7 +49,7 @@ export default function SpeakerShow({
     events: Event[];
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
     const photo = speaker.media?.[0]?.original_url;
     const canonicalUrl = `${appUrl}${showSpeaker.url({ speaker: speaker.slug })}`;
@@ -234,23 +235,7 @@ export default function SpeakerShow({
                     </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="border-t px-6 py-6 lg:px-12">
-                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                        <p className="text-xs text-muted-foreground">
-                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                        </p>
-                        {footerPages.length > 0 && (
-                            <div className="flex items-center gap-4">
-                                {footerPages.map((p) => (
-                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
-                                        {p.title}
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </footer>
+                <PublicFooter settings={settings} name={name} logoUrl={logoUrl} />
             </div>
         </>
     );

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthController';
 import { store, validateVoucher, joinWaitlist, leaveWaitlist } from '@/actions/App/Http/Controllers/Customer/OrderController';
 import { PublicEmptyState } from '@/components/public-empty-state';
+import { PublicFooter } from '@/components/public-footer';
 import { Button } from '@/components/ui/button';
 import type { Addon } from '@/types/addon';
 import type { SharedData } from '@/types';
@@ -50,7 +51,7 @@ type Props = {
 export default function EventShow({ settings, logoUrl, event, orderCounts, pricingData, customerOrderCatalogIds, customerWaitlistCatalogIds = [], waitlistCounts = {}, customerBalance, referralDiscount, testimonials = [], prefillReferralCode = '' }: Props) {
     const name = settings.business_name || 'Acara';
     const catalogs = event.catalogs || [];
-    const { auth, footerPages } = usePage<SharedData>().props;
+    const { auth } = usePage<SharedData>().props;
     const customer = auth.customer;
 
     return (
@@ -287,24 +288,7 @@ export default function EventShow({ settings, logoUrl, event, orderCounts, prici
                     </div>
                 </main>
 
-                {/* Footer */}
-                <footer className="border-t px-6 py-6 lg:px-12">
-                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                        <p className="text-xs text-muted-foreground">
-                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                        </p>
-                        {footerPages.length > 0 && (
-                            <div className="flex items-center gap-4">
-                                {footerPages.map((p) => (
-                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
-                                        {p.title}
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                        <SocialLinks settings={settings} />
-                    </div>
-                </footer>
+                <PublicFooter settings={settings} name={name} logoUrl={logoUrl} />
             </div>
         </>
     );
@@ -940,29 +924,3 @@ function ShareEventButton({ eventName, referralCode, referralDiscount }: { event
     );
 }
 
-function SocialLinks({ settings }: { settings: LandingPageSetting }) {
-    const links = [
-        { url: settings.social_instagram, label: 'Instagram' },
-        { url: settings.social_facebook, label: 'Facebook' },
-        { url: settings.social_tiktok, label: 'TikTok' },
-        { url: settings.social_whatsapp, label: 'WhatsApp' },
-    ].filter((l) => l.url);
-
-    if (links.length === 0) return null;
-
-    return (
-        <div className="flex items-center gap-4">
-            {links.map((link) => (
-                <a
-                    key={link.label}
-                    href={link.url!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-                >
-                    {link.label}
-                </a>
-            ))}
-        </div>
-    );
-}

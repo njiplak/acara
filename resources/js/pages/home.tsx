@@ -6,6 +6,7 @@ import { redirect } from '@/actions/App/Http/Controllers/Auth/CustomerAuthContro
 import { index as blogIndex, show as blogShow } from '@/actions/App/Http/Controllers/BlogController';
 import { showAddons, showEvent, showSpeaker } from '@/actions/App/Http/Controllers/HomeController';
 import { PublicEmptyState } from '@/components/public-empty-state';
+import { PublicFooter } from '@/components/public-footer';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 import type { Article } from '@/types/article';
@@ -64,7 +65,7 @@ export default function Home({
     articles?: Article[];
 }) {
     const name = settings.business_name || 'Acara';
-    const { auth, appUrl, footerPages } = usePage<SharedData>().props;
+    const { auth, appUrl } = usePage<SharedData>().props;
     const customer = auth.customer;
     const title = settings.meta_title || name;
     const description = settings.meta_description || '';
@@ -225,28 +226,7 @@ export default function Home({
                     </section>
                 )}
 
-                {/* Footer */}
-                <footer className="border-t bg-foreground px-6 py-10 text-background lg:px-12">
-                    <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-                        <div className="flex items-center gap-2.5">
-                            <img src="https://placehold.co/84x28/ffffff/000000?text=LOGO" alt={name} className="h-7 w-auto object-contain brightness-0 invert" />
-                            <span className="text-sm font-semibold">{name}</span>
-                        </div>
-                        {footerPages.length > 0 && (
-                            <div className="flex items-center gap-4">
-                                {footerPages.map((p) => (
-                                    <Link key={p.slug} href={`/page/${p.slug}`} className="text-xs text-background/60 transition-colors hover:text-background">
-                                        {p.title}
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                        <p className="text-xs text-background/60">
-                            {settings.footer_text || `\u00A9 ${new Date().getFullYear()} ${name}. All rights reserved.`}
-                        </p>
-                        <SocialLinks settings={settings} />
-                    </div>
-                </footer>
+                <PublicFooter settings={settings} name={name} logoUrl={logoUrl} />
             </div>
         </>
     );
@@ -755,30 +735,3 @@ function FaqItem({ faq }: { faq: Faq }) {
     );
 }
 
-/* ─── Social Links ─── */
-function SocialLinks({ settings }: { settings: LandingPageSetting }) {
-    const links = [
-        { url: settings.social_instagram, label: 'Instagram' },
-        { url: settings.social_facebook, label: 'Facebook' },
-        { url: settings.social_tiktok, label: 'TikTok' },
-        { url: settings.social_whatsapp, label: 'WhatsApp' },
-    ].filter((l) => l.url);
-
-    if (links.length === 0) return null;
-
-    return (
-        <div className="flex items-center gap-4">
-            {links.map((link) => (
-                <a
-                    key={link.label}
-                    href={link.url!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-background/60 transition-colors hover:text-background"
-                >
-                    {link.label}
-                </a>
-            ))}
-        </div>
-    );
-}
